@@ -11,7 +11,7 @@
 
 namespace CurveBall {
 
-TEST_F(IMTradeListGTest, matchingNodeNumber) {
+TEST_F(IMTradeListGTest, testMatchingNodeNumber) {
 	std::vector<TradeDescriptor> trades;
 	trades.push_back(TradeDescriptor(0, 1));
 	trades.push_back(TradeDescriptor(0, 2));
@@ -49,7 +49,7 @@ TEST_F(IMTradeListGTest, matchingNodeNumber) {
 	ASSERT_EQ(*trade_iter, TRADELIST_END);
 }
 
-TEST_F(IMTradeListGTest, nodesAtEndNoTrades) {
+TEST_F(IMTradeListGTest, testNodesAtEndNoTrades) {
 	std::vector<TradeDescriptor> trades;
 	trades.push_back(TradeDescriptor(0, 1));
 	trades.push_back(TradeDescriptor(0, 2));
@@ -71,7 +71,7 @@ TEST_F(IMTradeListGTest, nodesAtEndNoTrades) {
 	ASSERT_EQ(*trade_iter, TRADELIST_END);
 }
 
-TEST_F(IMTradeListGTest, nodesAtBeginningNoTrades) {
+TEST_F(IMTradeListGTest, testNodesAtBeginningNoTrades) {
 	std::vector<TradeDescriptor> trades;
 	trades.push_back(TradeDescriptor(3, 4));
 	trades.push_back(TradeDescriptor(3, 5));
@@ -93,7 +93,7 @@ TEST_F(IMTradeListGTest, nodesAtBeginningNoTrades) {
 	ASSERT_EQ(*trade_iter, TRADELIST_END);
 }
 
-TEST_F(IMTradeListGTest, nodesInMiddleNoTrades) {
+TEST_F(IMTradeListGTest, testNodesInMiddleNoTrades) {
 	// 5, 6, 7 have no trades
 	std::vector<TradeDescriptor> trades;
 	trades.push_back(TradeDescriptor(3, 4));

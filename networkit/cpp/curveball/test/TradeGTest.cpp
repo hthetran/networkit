@@ -11,7 +11,7 @@ namespace CurveBall {
 
 using trade = TradeDescriptor;
 
-TEST_F(TradeGTest, constructor) {
+TEST_F(TradeGTest, testConstructor) {
 	trade t1(0, 1);
 	ASSERT_EQ(t1.fst(), 0);
 	ASSERT_EQ(t1.snd(), 1);

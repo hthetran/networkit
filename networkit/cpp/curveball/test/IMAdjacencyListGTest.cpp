@@ -12,7 +12,7 @@ namespace CurveBall {
 using degree_vector = std::vector<degree_t>;
 using neighbour_it = std::vector<node_t>::const_iterator;
 
-TEST_F(IMAdjacencyListGTest, container) {
+TEST_F(IMAdjacencyListGTest, testContainer) {
 	degree_vector degrees;
 	degrees.push_back(3);
 	degrees.push_back(2);
