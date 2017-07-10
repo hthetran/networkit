@@ -12,7 +12,7 @@ namespace CurveBall {
     class TradeGTest : public testing::Test {
     public:
         TradeGTest() = default;
-        virtual ~TradetGTest() = default;
+        virtual ~TradeGTest() = default;
     };
 }
 

@@ -21,7 +21,7 @@ TEST_F(IMTradeListGTest, testMatchingNodeNumber) {
 
 	const node_t num_nodes = 5;
 
-	IMTradeList trade_list(&trades, num_nodes);
+	IMTradeList trade_list(trades, num_nodes);
 	
 	auto trade_iter = trade_list.get_trades(0);
 	ASSERT_EQ(*trade_iter, 0);
@@ -59,7 +59,7 @@ TEST_F(IMTradeListGTest, testNodesAtEndNoTrades) {
 
 	const node_t num_nodes = 10;
 
-	IMTradeList trade_list(&trades, num_nodes);
+	IMTradeList trade_list(trades, num_nodes);
 
 	auto trade_iter = trade_list.get_trades(5);
 	ASSERT_EQ(*trade_iter, TRADELIST_END);
@@ -81,7 +81,7 @@ TEST_F(IMTradeListGTest, testNodesAtBeginningNoTrades) {
 
 	const node_t num_nodes = 10;
 
-	IMTradeList trade_list(&trades, num_nodes);
+	IMTradeList trade_list(trades, num_nodes);
 
 	auto trade_iter = trade_list.get_trades(0);
 	ASSERT_EQ(*trade_iter, TRADELIST_END);
@@ -104,7 +104,7 @@ TEST_F(IMTradeListGTest, testNodesInMiddleNoTrades) {
 
 	const node_t num_nodes = 12;
 
-	IMTradeList trade_list(&trades, num_nodes);
+	IMTradeList trade_list(trades, num_nodes);
 
 	auto trade_iter = trade_list.get_trades(0);
 	ASSERT_EQ(*trade_iter, TRADELIST_END);

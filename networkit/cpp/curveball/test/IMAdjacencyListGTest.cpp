@@ -22,10 +22,10 @@ TEST_F(IMAdjacencyListGTest, testContainer) {
 
 	const edgeid_t degree_count = 8;
 
-	IMAdjacencyList adj_list(&degrees, degree_count);
+	IMAdjacencyList adj_list(degrees, degree_count);
 
 	// Test beginning iterator for 0
-	neighbour_it n_it = adj_list.getBegin(0);
+	neighbour_it n_it = adj_list.cbegin(0);
 	++n_it; 
 	++n_it; 
 	++n_it;
@@ -42,14 +42,14 @@ TEST_F(IMAdjacencyListGTest, testContainer) {
 	n_it++;
 
 	// Test beginning iterator for 1
-	n_it = adj_list.getBegin(1);
+	n_it = adj_list.cbegin(1);
 	++n_it;
 	++n_it;
 	ASSERT_EQ(*n_it, LISTROW_END);
 
 	// Test ending iterator for 2
-	n_it = adj_list.getBegin(2);
-	neighbour_it e_it = adj_list.getEnd(2);
+	n_it = adj_list.cbegin(2);
+	neighbour_it e_it = adj_list.cend(2);
 	ASSERT_EQ(n_it, e_it);
 }
 
