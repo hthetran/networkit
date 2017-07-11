@@ -11,6 +11,7 @@
 namespace CurveBall {
     using value_type = std::vector<TradeDescriptor>;
     using rload_node_vector = std::vector< std::pair<uint64_t, node_t> >;
+	using node_vector = std::vector<node_t>;
 
     // Behaviour we have here:
     // If num_nodes is even, nothing changes
@@ -28,21 +29,20 @@ namespace CurveBall {
 
         for (int_t run = 0; run < _run_length; run++) {
             // TODO: Here: space-local aware implementation, for smaller instances it may be better to enforce direct accesses instead
-            rload_node_vector node_payload;
-            for (node_t node_id = 0; node_id < 2 * _trades_per_run; node_id++) {
-                node_payload.push_back( std::pair<uint64_t, node_t>((uint64_t) Aux::Random::integer(), node_id) );
-            }
-            assert(node_payload.size() == static_cast<std::size_t>(2 * _trades_per_run));
+            node_vector node_permutation;
+			for (node_t node_id = 0; node_id < _num_nodes; node_id++) {
+				node_permutation.push_back(node_id);
+			}
 
-            std::sort(node_payload.begin(), node_payload.end());
+            std::shuffle(node_permutation.begin(), node_permutation.end(), Aux::Random::getURNG());
 
-            auto rand_node_it = node_payload.cbegin();
+            auto rand_node_it = node_permutation.cbegin();
             for (tradeid_t t_id = 0; t_id < _trades_per_run; t_id++) {
-                assert(rand_node_it != node_payload.cend());
+                assert(rand_node_it != node_permutation.cend());
 
-                const node_t fst = (*rand_node_it).second;
-                rand_node_it++;
-                const node_t snd = (*rand_node_it).second;
+                const node_t fst = *rand_node_it;
+				rand_node_it++;
+                const node_t snd = *rand_node_it;
                 rand_node_it++;
                 // TODO: may use direct indices, instead of push_back
                 _trades_out.push_back(TradeDescriptor(fst, snd));
