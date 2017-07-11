@@ -20,6 +20,8 @@ class TradeDescriptor {
 	node_t _snd;
 
 public:
+	TradeDescriptor();
+
 	TradeDescriptor(node_t fst, node_t snd)
 		: _fst(fst)
 		, _snd(snd) 
