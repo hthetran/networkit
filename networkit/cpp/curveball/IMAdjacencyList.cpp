@@ -1,3 +1,10 @@
+/*
+ * IMAdjacencyList.cpp
+ *
+ *  Created on: Jul 11, 2017
+ *      Author: Hung Tran
+ */
+
 #include "IMAdjacencyList.h"
 
 namespace CurveBall {

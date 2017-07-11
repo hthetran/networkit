@@ -1,3 +1,10 @@
+/*
+ * IMTradeList.cpp
+ *
+ *  Created on: Jul 11, 2017
+ *      Author: Hung Tran
+ */
+
 #include "IMTradeList.h"
 #include "Trade.h"
 

@@ -1,6 +1,8 @@
-/**
- * @brief Internal Memory Adjacency List Datastructure
- * @author Hung Tran
+/*
+ * IMAdjacencyList.h
+ *
+ *  Created on: Jul 11, 2017
+ *      Author: Hung Tran
  */
 
 #pragma once
