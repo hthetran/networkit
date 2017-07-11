@@ -10,7 +10,6 @@
 
 namespace CurveBall {
     using value_type = std::vector<TradeDescriptor>;
-    using rload_node_vector = std::vector< std::pair<uint64_t, node_t> >;
 	using node_vector = std::vector<node_t>;
 
     // Behaviour we have here:
