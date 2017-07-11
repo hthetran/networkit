@@ -16,6 +16,11 @@ namespace CurveBall {
     public:
         using value_type = std::vector<TradeDescriptor>;
 
+	protected:
+		const node_t _num_nodes;
+		const int_t _trade_num;
+		value_type _trades_out;
+
     public:
         UniformTradeGenerator(const int_t trade_num, const node_t num_nodes);
 
