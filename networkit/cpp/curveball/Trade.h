@@ -20,7 +20,7 @@ class TradeDescriptor {
 	node_t _snd;
 
 public:
-	TradeDescriptor();
+	TradeDescriptor() = default;
 
 	TradeDescriptor(node_t fst, node_t snd)
 		: _fst(fst)
