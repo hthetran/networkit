@@ -11,7 +11,6 @@
 #define CB_IMADJACENCYLIST_H_
 
 #include "defs.h"
-#include "iostream"
 
 namespace CurveBall {
 
@@ -31,6 +30,8 @@ protected:
 	
 
 public:
+	IMAdjacencyList() = default;
+	
 	// Receives the degree_vector to initialize
 	// As trades permute neighbours the degrees don't change
 	IMAdjacencyList(const degree_vector& degrees,
