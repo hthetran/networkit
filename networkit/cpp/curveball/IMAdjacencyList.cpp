@@ -33,17 +33,18 @@ IMAdjacencyList::IMAdjacencyList(const degree_vector& degrees, // remove pointer
 {
 	degree_t sum = 0;
 	node_t node_id = 0;
-	for (degree_it iter = degrees.begin(); iter != degrees.end(); iter++, node_id++) {
+	for (const degree_t node_degree : degrees) {
 		_begin[node_id] = sum;
 		_end[node_id] = sum;
 
 		// no isolated nodes allowed
-		assert(*iter > 0);
+		assert(node_degree > 0);
 		
-		sum += *iter;
+		sum += node_degree;
 		_neighbours[sum] = LISTROW_END;
 
 		sum += 1;
+		node_id++;
 	}
 	assert(sum == static_cast<degree_t>(degree_count + degrees.size()));
 	assert(node_id == static_cast<degree_t>(degrees.size()));
