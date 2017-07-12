@@ -25,9 +25,9 @@ namespace CurveBall {
 
     const value_type& GlobalTradeGenerator::generate() {
         _trades_out.clear();
+        _trades_out.reserve(_run_length * _trades_per_run);
 
         for (int_t run = 0; run < _run_length; run++) {
-            // TODO: Here: space-local aware implementation, for smaller instances it may be better to enforce direct accesses instead
             node_vector node_permutation;
 			for (node_t node_id = 0; node_id < _num_nodes; node_id++) {
 				node_permutation.push_back(node_id);
@@ -43,8 +43,8 @@ namespace CurveBall {
 				rand_node_it++;
                 const node_t snd = *rand_node_it;
                 rand_node_it++;
-                // TODO: may use direct indices, instead of push_back
-                _trades_out.push_back(TradeDescriptor(fst, snd));
+
+                _trades_out.push_back(TradeDescriptor{fst, snd});
             }
         }
 
