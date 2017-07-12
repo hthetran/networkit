@@ -19,13 +19,14 @@ namespace CurveBall {
 
 	const value_type& UniformTradeGenerator::generate() {
 		_trades_out.clear();
+		_trades_out.reserve(_trade_num);
 
 		for (tradeid_t t_id = 0; t_id < _trade_num; t_id++) {
 			const node_t fst = Aux::Random::integer(_num_nodes - 1);
 			while (true) {
 				const node_t snd = Aux::Random::integer(_num_nodes - 1);
 				if (fst != snd) {
-					_trades_out.push_back(TradeDescriptor(fst, snd));
+					_trades_out.push_back(TradeDescriptor{fst, snd});
 					break;
 				}
 			}
