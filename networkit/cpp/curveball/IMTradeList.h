@@ -10,7 +10,6 @@
 
 #include "defs.h"
 #include "Trade.h"
-#include <iostream>
 
 namespace CurveBall {
 
