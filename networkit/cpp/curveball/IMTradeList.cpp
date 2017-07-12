@@ -24,7 +24,6 @@ IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
 	assert(num_nodes > 0);
 	assert(trades.size() > 0);
 
-	std::vector<std::pair<node_t, tradeid_t> > occures;
 	std::vector<tradeid_t> trade_count(num_nodes);
 
 	// Push occurences
