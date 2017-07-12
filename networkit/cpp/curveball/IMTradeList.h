@@ -28,6 +28,8 @@ protected:
 	node_t _num_nodes;
 
 public:
+	IMTradeList() = default;
+
 	// Receives the edge_vector to initialize 
 	IMTradeList(const trade_vector& trades, const node_t num_nodes);
 
