@@ -13,7 +13,8 @@ using neighbour_vector = std::vector<node_t>;
 using degree_vector = std::vector<degree_t>;
 using degree_it = std::vector<degree_t>::const_iterator;
 using pos_vector = std::vector<edgeid_t>;
-using neighbour_it = neighbour_vector::const_iterator;
+using neighbour_it = neighbour_vector::iterator;
+using cneighbour_it = neighbour_vector::const_iterator;
 
 
 // public static constexpr degree_t LISTROW_END = std::numeric_limits<degree_t>::max();
@@ -50,12 +51,20 @@ IMAdjacencyList::IMAdjacencyList(const degree_vector& degrees, // remove pointer
 	assert(node_id == static_cast<degree_t>(degrees.size()));
 }
 
-neighbour_it IMAdjacencyList::cbegin(const node_t node_id) const {
-	return (_neighbours.begin() + _begin[node_id]);
+neighbour_it IMAdjacencyList::begin(const node_t node_id) {
+	return _neighbours.begin() + _begin[node_id];
 }
 
-neighbour_it IMAdjacencyList::cend(const node_t node_id) const {
-	return (_neighbours.begin() + _end[node_id]);
+neighbour_it IMAdjacencyList::end(const node_t node_id) {
+	return _neighbours.begin() + _end[node_id];
+}
+
+cneighbour_it IMAdjacencyList::cbegin(const node_t node_id) const {
+	return _neighbours.cbegin() + _begin[node_id];
+}
+
+cneighbour_it IMAdjacencyList::cend(const node_t node_id) const {
+	return _neighbours.cbegin() + _end[node_id];
 }
 
 }
