@@ -10,6 +10,7 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
+#include "../Globals.h"
 #include <assert.h> // why is this not included in networkit?
 #include <vector> // this too
 #include <algorithm> // this too
@@ -27,7 +28,7 @@ using int_t = std::int64_t;
  * @typedef node_t
  * @brief	Type for every node id
  */
-using node_t = std::int32_t;
+using node_t = NetworKit::node;
 constexpr node_t INVALID_NODE = std::numeric_limits<node_t>::max();
 
 /**
