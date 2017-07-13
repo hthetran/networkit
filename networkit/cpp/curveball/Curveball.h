@@ -22,10 +22,11 @@ namespace CurveBall {
     class Curveball : public NetworKit::Algorithm {
 
     protected:
-        //trade_vector& _trades;
+        trade_vector _trades;
         const NetworKit::Graph& _G;
-        //IMAdjacencyList _adj_list;
-        //IMTradeList _trade_list;
+        const node_t _num_nodes;
+		IMAdjacencyList _adj_list;
+		IMTradeList _trade_list;
 
         void load_from_graph();
 
@@ -34,14 +35,17 @@ namespace CurveBall {
     public:
         Curveball(const NetworKit::Graph& G);
 
-        // doesnt override run() of superclass
+		void run() {
+			std::runtime_error("Invalid use of algorithm, provide trades!");
+		};
+
         void run(trade_vector& trades);
 
         bool isParallel() const {
             return false;
         }
 
-        NetworKit::Graph& getGraph() const;
+        NetworKit::Graph getGraph();
     };
 }
 
