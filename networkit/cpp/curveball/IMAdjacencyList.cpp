@@ -23,9 +23,10 @@ using cneighbour_it = neighbour_vector::const_iterator;
  *
  */
 void IMAdjacencyList::initialize(const degree_vector& degrees, const edgeid_t degree_count) {
-	_neighbours.reserve(degree_count + degrees.size());
-	_begin.reserve(degrees.size());
-	_end.reserve(degrees.size());
+	_neighbours.resize(degree_count + degrees.size());
+	_begin.resize(degrees.size());
+	_end.resize(degrees.size());
+	_offsets.resize(degrees.size());
 
 	degree_t sum = 0;
 	node_t node_id = 0;
@@ -42,8 +43,8 @@ void IMAdjacencyList::initialize(const degree_vector& degrees, const edgeid_t de
 		sum += 1;
 		node_id++;
 	}
-	assert(sum == static_cast<degree_t>(degree_count + degrees.size()));
-	assert(node_id == static_cast<degree_t>(degrees.size()));
+	assert(sum == degree_count + degrees.size());
+	assert(node_id == degrees.size());
 
 	return;
 }
@@ -60,6 +61,7 @@ IMAdjacencyList::IMAdjacencyList(const degree_vector& degrees, // remove pointer
 	: _neighbours(degree_count + degrees.size())
 	, _begin(degrees.size())
 	, _end(degrees.size())
+	, _offsets(degrees.size())
 {
 	degree_t sum = 0;
 	node_t node_id = 0;
