@@ -10,6 +10,7 @@
 #define CB_GLOBALTRADEGENERATOR_H
 
 #include "Trade.h"
+#include "../Globals.h"
 
 namespace CurveBall {
     class GlobalTradeGenerator {
@@ -18,12 +19,12 @@ namespace CurveBall {
 
     protected:
         const node_t _num_nodes;
-        const int_t _run_length;
+        const uint64_t _run_length;
         const tradeid_t _trades_per_run;
         value_type _trades_out;
 
     public:
-        GlobalTradeGenerator(const int_t run_length, const node_t num_nodes);
+        GlobalTradeGenerator(const uint64_t run_length, const node_t num_nodes);
 
         const value_type& generate();
     };

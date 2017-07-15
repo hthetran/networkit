@@ -19,37 +19,32 @@
 #include <ostream>
 
 /**
- * @typedef int_t
- * @brief	Default signed integer to use
- */
-using int_t = std::int64_t;
-
-/**
  * @typedef node_t
  * @brief	Type for every node id
  */
 using node_t = NetworKit::node;
-constexpr node_t INVALID_NODE = NetworKit::none; // std::numeric_limits<node_t>::max();
+// TODO: why overflow??? Occured after switching to NetworKit::node???
+constexpr node_t INVALID_NODE = 1000;
 
 /**
  * @typedef tradeid_t
  * @brief	Type for every trade id
  */
 using tradeid_t = NetworKit::node;
-constexpr tradeid_t TRADELIST_END = NetworKit::none; //std::numeric_limits<tradeid_t>::max();
+constexpr tradeid_t TRADELIST_END = 1000;
 
 /**
  * @typedef degree_t
  * @brief	Type for node degrees
  */
 using degree_t = NetworKit::node;
-constexpr degree_t LISTROW_END = NetworKit::none; //std::numeric_limits<degree_t>::max();
+constexpr degree_t LISTROW_END = 1000;
 
 /**
  * @typedef edgeid_t
  * @brief	Type for addressing edges
  */
-using edgeid_t = int_t;
+using edgeid_t = NetworKit::node;
 
 /**
  * @brief	Type for every (un)directed edge

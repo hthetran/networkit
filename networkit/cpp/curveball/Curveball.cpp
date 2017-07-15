@@ -81,8 +81,11 @@ namespace CurveBall {
 		for (const auto trade : _trades) {
 			const node_t fst = trade.fst();
 			const node_t snd = trade.snd();
-		
-			// best way to shuffle stuff?	
+			
+			// TODO: retrieve neighbours
+			
+
+			// TODO: best way to perform permutation? std::shuffle then reassign?
 		}
 
 		hasRun = true;
