@@ -35,14 +35,14 @@ constexpr node_t INVALID_NODE = std::numeric_limits<node_t>::max();
  * @typedef tradeid_t
  * @brief	Type for every trade id
  */
-using tradeid_t = std::int32_t;
+using tradeid_t = NetworKit::node;
 constexpr tradeid_t TRADELIST_END = std::numeric_limits<tradeid_t>::max();
 
 /**
  * @typedef degree_t
  * @brief	Type for node degrees
  */
-using degree_t = std::int32_t;
+using degree_t = NetworKit::node;
 constexpr degree_t LISTROW_END = std::numeric_limits<degree_t>::max();
 
 /**
@@ -50,12 +50,6 @@ constexpr degree_t LISTROW_END = std::numeric_limits<degree_t>::max();
  * @brief	Type for addressing edges
  */
 using edgeid_t = int_t;
-
-/**
- * @typedef tradeid_t
- * @brief	Type for addressing trades
- */
-using tradeid_t = std::int32_t;
 
 /**
  * @brief	Type for every (un)directed edge
