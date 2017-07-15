@@ -38,6 +38,8 @@ public:
 	IMAdjacencyList(const degree_vector& degrees,
 					const edgeid_t degree_count); // edge count // graph? // tradelist
 
+	void initialize(const degree_vector& degrees, const edgeid_t degree_count);
+
 	// No Copy Constructor
 	IMAdjacencyList(const IMAdjacencyList &) = delete;
 

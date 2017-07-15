@@ -18,6 +18,35 @@ using cneighbour_it = neighbour_vector::const_iterator;
 
 
 // public static constexpr degree_t LISTROW_END = std::numeric_limits<degree_t>::max();
+/**
+ * @brief Initialize method (when constructor can't be used)
+ *
+ */
+void IMAdjacencyList::initialize(const degree_vector& degrees, const edgeid_t degree_count) {
+	_neighbours.reserve(degree_count + degrees.size());
+	_begin.reserve(degrees.size());
+	_end.reserve(degrees.size());
+
+	degree_t sum = 0;
+	node_t node_id = 0;
+	for (const degree_t node_degree : degrees) {
+		_begin[node_id] = sum;
+		_end[node_id] = sum;
+
+		assert(node_degree > 0);
+
+		sum += node_degree;
+		_neighbours[sum] = LISTROW_END;
+
+		// shift after Sentinel
+		sum += 1;
+		node_id++;
+	}
+	assert(sum == static_cast<degree_t>(degree_count + degrees.size()));
+	assert(node_id == static_cast<degree_t>(degrees.size()));
+
+	return;
+}
 
 /**
  * @brief Constructor
