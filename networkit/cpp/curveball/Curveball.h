@@ -27,6 +27,7 @@ namespace CurveBall {
         const node_t _num_nodes;
 		IMAdjacencyList _adj_list;
 		IMTradeList _trade_list;
+		bool hasRun;
 
         void load_from_graph();
 
@@ -39,7 +40,7 @@ namespace CurveBall {
 			std::runtime_error("Invalid use of algorithm, provide trades!");
 		};
 
-        void run(trade_vector& trades);
+        void run(const trade_vector& trades);
 
         bool isParallel() const {
             return false;
