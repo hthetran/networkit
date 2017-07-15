@@ -12,7 +12,7 @@ namespace CurveBall {
     TEST_F(UniformTradeGeneratorGTest, testGeneration) {
         UniformTradeGenerator gen(15, 10);
         auto trades = gen.generate();
-        ASSERT_EQ((int_t) trades.size(), 15);
+        ASSERT_EQ((uint64_t) trades.size(), 15);
 		for (auto t_it = trades.cbegin(); t_it != trades.cend(); t_it++) {
 			ASSERT_LE((*t_it).fst(), 9);
 			ASSERT_GE((*t_it).fst(), 0);
