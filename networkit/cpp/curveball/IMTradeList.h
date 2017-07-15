@@ -57,10 +57,9 @@ public:
 		_offsets[nodeid] += d;
 	}
 
-	// generator global, k times n / 2
-
-	// generator uniform, nodenumber, count
-
+	node_t numberOfNodes() const {
+		return _num_nodes;
+	}
 };
 
 }

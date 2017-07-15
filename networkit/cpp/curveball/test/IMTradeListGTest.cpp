@@ -133,7 +133,7 @@ TEST_F(IMTradeListGTest, testNodesInMiddleNoTrades) {
 	ASSERT_EQ(*trade_iter, TRADELIST_END);
 }
 
-TEST_F(IMTradeListGTest, testNodesInMiddleNoTradesInitializeMethod) {
+TEST_F(IMTradeListGTest, testCenteredEmptyTradesViaInitialize) {
 	// 5, 6, 7 have no trades
 	std::vector<TradeDescriptor> trades;
 	trades.push_back(TradeDescriptor(3, 4));
