@@ -133,4 +133,45 @@ TEST_F(IMTradeListGTest, testNodesInMiddleNoTrades) {
 	ASSERT_EQ(*trade_iter, TRADELIST_END);
 }
 
+TEST_F(IMTradeListGTest, testNodesInMiddleNoTradesInitializeMethod) {
+	// 5, 6, 7 have no trades
+	std::vector<TradeDescriptor> trades;
+	trades.push_back(TradeDescriptor(3, 4));
+	trades.push_back(TradeDescriptor(3, 8));
+	trades.push_back(TradeDescriptor(3, 9));
+	trades.push_back(TradeDescriptor(3, 10));
+	trades.push_back(TradeDescriptor(4, 10));
+
+	const node_t num_nodes = 12;
+
+	IMTradeList trade_list;
+	trade_list.initialize(trades, num_nodes);
+
+	auto trade_iter = trade_list.get_trades(0);
+	ASSERT_EQ(*trade_iter, TRADELIST_END);
+
+	trade_iter = trade_list.get_trades(3);
+	ASSERT_EQ(*trade_iter, 0);
+	trade_iter++;
+	trade_iter++;
+	trade_iter++;
+	ASSERT_EQ(*trade_iter, 3);
+	trade_iter++;
+	ASSERT_EQ(*trade_iter, TRADELIST_END);
+
+	trade_iter = trade_list.get_trades(5);
+	ASSERT_EQ(*trade_iter, TRADELIST_END);
+
+	trade_iter = trade_list.get_trades(6);
+	ASSERT_EQ(*trade_iter, TRADELIST_END);
+
+	trade_iter = trade_list.get_trades(7);
+	ASSERT_EQ(*trade_iter, TRADELIST_END);
+
+	trade_iter = trade_list.get_trades(8);
+	ASSERT_EQ(*trade_iter, 1);
+	trade_iter++;
+	ASSERT_EQ(*trade_iter, TRADELIST_END);
+}
+
 }

@@ -33,6 +33,9 @@ public:
 	// Receives the edge_vector to initialize 
 	IMTradeList(const trade_vector& trades, const node_t num_nodes);
 
+	// Initialize method
+	void initialize(const trade_vector& trades, const node_t num_nodes);
+
 	// No Copy Constructor
 	IMTradeList(const IMTradeList&) = delete;
 
