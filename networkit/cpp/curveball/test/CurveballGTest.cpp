@@ -16,6 +16,7 @@ using trade_vector = std::vector<TradeDescriptor>;
 TEST_F(CurveballGTest, testGraphBuilder) {
 	NetworKit::Graph tG(6);
 	tG.addEdge(0, 1);
+	tG.addEdge(0, 4);
 	tG.addEdge(1, 2);
 	tG.addEdge(2, 3);
 	tG.addEdge(3, 4);
