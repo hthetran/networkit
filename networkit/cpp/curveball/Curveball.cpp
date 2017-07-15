@@ -28,7 +28,6 @@ namespace CurveBall {
 
 	void Curveball::load_from_graph() {
 		const auto edges = _G.edges();
-		// use forEdges...
 
 		degree_vector degrees;
 	   	degrees.reserve(_num_nodes);
@@ -63,7 +62,6 @@ namespace CurveBall {
                 }
             }
         });
-
 		return;
 	}
 
@@ -75,13 +73,19 @@ namespace CurveBall {
 
 	void Curveball::run(const trade_vector& trades) {
 		_trades = trades;
-		if (!hasRun) {
+		if (!hasRun)
 			load_from_graph();
-
-			hasRun = true;
-		} else {
+		else
 			restructure_graph();
+
+		for (const auto trade : _trades) {
+			const node_t fst = trade.fst();
+			const node_t snd = trade.snd();
+		
+			// best way to shuffle stuff?	
 		}
+
+		hasRun = true;
 
 		return;
 	}
