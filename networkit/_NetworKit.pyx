@@ -2397,6 +2397,38 @@ cdef class RmatGenerator:
 		print("random nodes to delete to achieve target node count: ", reduceNodes)
 		return RmatGenerator(scaleParameter, edgeFactor, a, b, c, d, False, reduceNodes)
 
+cdef extern from "cpp/curveball/Curveball.h":
+	cdef cppclass _Curveball "CurveBall::Curveball":
+		_Curveball(_Graph) except +
+		void run(vector[pair[node, node]] trades, bool verbose) nogil except +
+		bool isParallel() except +
+		_Graph getGraph() except +
+
+cdef class Curveball:
+	"""
+	TODO document
+	TODO nogil?
+	"""
+	cdef _Curveball *_this
+
+	def __cinit__(self, G):
+		if isinstance(G, Graph):
+			self._this = new _Curveball((<Graph>G)._this)
+
+	def __dealloc__(self):
+		del self._this
+
+	def run(self, trades):
+		cdef bool x = False
+		if isinstance(trades, collections.Iterable):
+			self._this.run(trades, x)
+
+	def isParallel(self):
+		return self._this.isParallel()
+
+	def getGraph(self):
+		return Graph().setThis(self._this.getGraph())
+
 cdef extern from "cpp/generators/PowerlawDegreeSequence.h":
 	cdef cppclass _PowerlawDegreeSequence "NetworKit::PowerlawDegreeSequence":
 		_PowerlawDegreeSequence(count minDeg, count maxDeg, double gamma) except +
