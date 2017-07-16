@@ -24,21 +24,21 @@
  */
 using node_t = NetworKit::node;
 // TODO: why overflow??? Occured after switching to NetworKit::node???
-constexpr node_t INVALID_NODE = 1000;
+constexpr node_t INVALID_NODE = 1000;//std::numeric_limits<uint64_t>::max();
 
 /**
  * @typedef tradeid_t
  * @brief	Type for every trade id
  */
 using tradeid_t = NetworKit::node;
-constexpr tradeid_t TRADELIST_END = 1000;
+constexpr tradeid_t TRADELIST_END = 1000;//std::numeric_limits<uint64_t>::max();
 
 /**
  * @typedef degree_t
  * @brief	Type for node degrees
  */
 using degree_t = NetworKit::node;
-constexpr degree_t LISTROW_END = 1000;
+constexpr degree_t LISTROW_END = 1000;//std::numeric_limits<uint64_t>::max();
 
 /**
  * @typedef edgeid_t
