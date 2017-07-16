@@ -40,7 +40,7 @@ namespace CurveBall {
 			std::runtime_error("Invalid use of algorithm, provide trades!");
 		};
 
-        void run(const trade_vector& trades, bool verbose = true);
+        void run(const trade_vector& trades, const bool verbose = true);
 
         bool isParallel() const {
             return false;
