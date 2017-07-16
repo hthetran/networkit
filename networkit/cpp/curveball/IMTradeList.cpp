@@ -25,13 +25,13 @@ void IMTradeList::initialize(const trade_vector& trades, const node_t num_nodes)
 
 	// Push occurences
 	for (const trade_t trade : trades) {
-		assert(trade.fst() >= 0);
-		assert(trade.fst() < num_nodes);
-		assert(trade.snd() >= 0);
-		assert(trade.snd() < num_nodes);
+		assert(trade.first >= 0);
+		assert(trade.first < num_nodes);
+		assert(trade.second >= 0);
+		assert(trade.second < num_nodes);
 
-		trade_count[trade.fst()]++;
-		trade_count[trade.snd()]++;
+		trade_count[trade.first]++;
+		trade_count[trade.second]++;
 	}
 	
 	// calc prefix sums...
@@ -56,14 +56,14 @@ void IMTradeList::initialize(const trade_vector& trades, const node_t num_nodes)
 	tradeid_t trade_id = 0;
 	for (const trade_t trade : trades) {
 		// process first node
-		const node_t fst_node = trade.fst();
+		const node_t fst_node = trade.first;
 
 		const node_t fst_pos = _offsets[fst_node] + tmp_counter[fst_node];
 		_trade_list[fst_pos] = trade_id;
 		tmp_counter[fst_node]++;
 
 		// process second node
-		const node_t snd_node = trade.snd();
+		const node_t snd_node = trade.second;
 
 		const node_t snd_pos = _offsets[snd_node] + tmp_counter[snd_node];
 		_trade_list[snd_pos] = trade_id;
@@ -88,13 +88,13 @@ IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
 
 	// Push occurences
 	for (const trade_t trade : trades) {
-		assert(trade.fst() >= 0);
-		assert(trade.fst() < num_nodes);
-		assert(trade.snd() >= 0);
-		assert(trade.snd() < num_nodes);
+		assert(trade.first >= 0);
+		assert(trade.first < num_nodes);
+		assert(trade.second >= 0);
+		assert(trade.second < num_nodes);
 
-		trade_count[trade.fst()]++;
-		trade_count[trade.snd()]++;
+		trade_count[trade.first]++;
+		trade_count[trade.second]++;
 	}
 	
 	// calc prefix sums...
@@ -119,14 +119,14 @@ IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
 	tradeid_t trade_id = 0;
 	for (const trade_t trade : trades) {
 		// process first node
-		const node_t fst_node = trade.fst();
+		const node_t fst_node = trade.first;
 
 		const node_t fst_pos = _offsets[fst_node] + tmp_counter[fst_node];
 		_trade_list[fst_pos] = trade_id;
 		tmp_counter[fst_node]++;
 
 		// process second node
-		const node_t snd_node = trade.snd();
+		const node_t snd_node = trade.second;
 
 		const node_t snd_pos = _offsets[snd_node] + tmp_counter[snd_node];
 		_trade_list[snd_pos] = trade_id;

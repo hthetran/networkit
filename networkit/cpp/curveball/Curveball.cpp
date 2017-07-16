@@ -28,7 +28,7 @@ namespace CurveBall {
 		assert(_num_nodes > 0);
 	}
 
-	void Curveball::load_from_graph(bool verbose) {
+	void Curveball::load_from_graph(const bool verbose) {
 		if (verbose)
 			std::cout << "Load from graph:" << std::endl;
 		const auto edges = _G.edges();
@@ -62,7 +62,7 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::run(const trade_vector& trades, bool verbose) {
+	void Curveball::run(const trade_vector& trades, const bool verbose) {
 		if (verbose)
 			std::cout << "===== Algorithm Run ====="<< std::endl;
 		_trades = trades;
@@ -77,8 +77,8 @@ namespace CurveBall {
 			// It's important to determine, if both share an edge for later communication
 			bool shared = false;
 		
-			const node_t fst = trade.fst();
-			const node_t snd = trade.snd();
+			const node_t fst = trade.first;
+			const node_t snd = trade.second;
 
 			// we shift the trade_list pointer for these two
 			// (is currently at trade_count)
