@@ -53,10 +53,29 @@ public:
 
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
 		auto pos = begin(node_id) + _offsets[node_id];
+		// for debug
+		if (*pos == LISTROW_END) {
+			std::cout << "Tried to write into sentinel??? to: " << node_id << " with " << neighbour << std::endl;
+			std::cout << "Look at current entries:" << std::endl;
+			auto beg = begin(node_id);
+			while (beg != end(node_id)) {
+				std::cout << *beg << std::endl;
+				beg++;
+			}
+
+			assert(*pos != LISTROW_END);
+		}
 		*pos = neighbour;
 
 		_offsets[node_id]++;
 		_end[node_id]++;
+	}
+
+	void reset_row(const node_t node_id) {
+		_offsets[node_id] = 0;
+		_end[node_id] = _begin[node_id];
+
+		return;
 	}
 
 	void reset_offsets() {
