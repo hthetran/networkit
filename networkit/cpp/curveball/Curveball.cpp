@@ -25,7 +25,7 @@ namespace CurveBall {
 		, _num_nodes(G.numberOfNodes())
 		, hasRun(false)
 	{ 
-		assert(G.numberOfNodes == 0);
+		assert(G.numberOfSelfLoops() == 0);
 		assert(_num_nodes > 0);
 	}
 
