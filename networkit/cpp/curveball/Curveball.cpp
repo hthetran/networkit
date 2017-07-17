@@ -94,8 +94,8 @@ namespace CurveBall {
 
 		NetworKit::count trade_count = 0;
 		for (const auto trade : _trades) {
-			//if (verbose)
-			std::cout << "Processing trade (" << trade_count << "): " << trade << std::endl;
+			if (verbose)
+				std::cout << "Processing trade (" << trade_count << "): " << trade << std::endl;
 
 			// It's important to determine, if both share an edge for later communication
 			bool shared = false;
