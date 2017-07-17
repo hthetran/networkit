@@ -69,9 +69,11 @@ perl -pi -e 's/backend\s*:\s*TkAgg/backend: pdf/' $MPL_RC
 
 cd $INST_DIR
 echo -e "\e[31mBuild python2 for scons \e[39m"
+pip install virtualenv
 virtualenv -p $PYTHOND $INST_DIR/python2-env
+deactivate
 . $INST_DIR/python2-env/bin/activate
-
+pip install scons
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INST_DIR/curveball-im/googletest/googletest/build/
 cd curveball-im
 scons --optimize=Dbg --target=Tests
