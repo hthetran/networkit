@@ -28,7 +28,8 @@ protected:
 	neighbour_vector _neighbours;
 	pos_vector _begin;
 	pos_vector _end;
-	
+	degree_vector _degrees;
+	edgeid_t _degree_count;	
 
 public:
 	IMAdjacencyList() = default;
@@ -39,6 +40,8 @@ public:
 					const edgeid_t degree_count); // edge count // graph? // tradelist
 
 	void initialize(const degree_vector& degrees, const edgeid_t degree_count);
+
+	void restructure();
 
 	// No Copy Constructor
 	IMAdjacencyList(const IMAdjacencyList &) = delete;
@@ -74,20 +77,6 @@ public:
 	void reset_row(const node_t node_id) {
 		_offsets[node_id] = 0;
 		_end[node_id] = _begin[node_id];
-
-		return;
-	}
-
-	void reset_offsets() {
-		for (auto offsets_it = _offsets.begin(); offsets_it != _offsets.end(); offsets_it++) {
-			*offsets_it = 0;
-		}
-
-		return;
-	}
-
-	void reset_end() {
-		_end = _begin;
 
 		return;
 	}

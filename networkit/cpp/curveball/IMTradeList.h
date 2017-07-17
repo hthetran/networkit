@@ -45,16 +45,15 @@ public:
 		return _trade_list.begin() + _offsets[nodeid];
 	}
 
-	void shift_offset(const node_t nodeid, const tradeid_t d) {
-		assert(d >= 0);
+	void inc_offset(const node_t nodeid) {
 		assert(nodeid >= 0);
 		assert(nodeid < _num_nodes);
-		if (nodeid < _num_nodes)
-			assert(d <= _offsets[nodeid + 1] - _offsets[nodeid]);
+		if (nodeid < _num_nodes - 1)
+			assert(1 <= _offsets[nodeid + 1] - _offsets[nodeid]);
 		else 
-			assert(d <= static_cast<tradeid_t>(_trade_list.size()) - _offsets[nodeid] - 1);
+			assert(1 <= static_cast<tradeid_t>(_trade_list.size()) - _offsets[nodeid] - 1);
 
-		_offsets[nodeid] += d;
+		_offsets[nodeid] += 1;
 	}
 
 	node_t numberOfNodes() const {
