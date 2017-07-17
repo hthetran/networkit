@@ -31,7 +31,6 @@ namespace CurveBall {
 	void Curveball::load_from_graph(const bool verbose) {
 		if (verbose)
 			std::cout << "Load from graph:" << std::endl;
-		const auto edges = _G.edges();
 
 		// compute degree sequence
 		degree_vector degrees;
@@ -56,9 +55,31 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::restructure_graph() {
-		//TODO
+	void Curveball::restructure_graph(const bool verbose) {
+		if (verbose)
+			std::cout << "Restructure graph:" << std::endl;
 
+		// compute degree sequence
+		degree_vector degrees;
+		degrees.reserve(_num_nodes);
+		edgeid_t degree_sum = 0;
+		NetworKit::Graph G = getGraph();
+		G.forNodes([&](node_t v) {
+			degrees.push_back(G.degree(v));
+			degree_sum += G.degree(v);
+		});
+		if (verbose)
+			std::cout << "Computed degree sequence..." << std::endl;
+
+		_adj_list.initialize(degrees, degree_sum);
+		_trade_list.initialize(_trades, _num_nodes);
+
+		// insert to adjacency list
+		if (verbose)
+			std::cout << "Direct edges according to trades:" << std::endl;
+		G.forEdges([&](node_t u, node_t v) {
+			update(u, v);
+		});
 		return;
 	}
 
@@ -68,12 +89,14 @@ namespace CurveBall {
 		_trades = trades;
 		if (!hasRun)
 			load_from_graph();
-		//else
-		//	restructure_graph();
+		else
+			restructure_graph();
 
 		NetworKit::count trade_count = 0;
 		for (const auto trade : _trades) {
-			std::cout << "Processing trade: " << trade << std::endl;
+			//if (verbose)
+			std::cout << "Processing trade (" << trade_count << "): " << trade << std::endl;
+
 			// It's important to determine, if both share an edge for later communication
 			bool shared = false;
 		
@@ -95,7 +118,8 @@ namespace CurveBall {
 					continue;
 				}
 				fst_neigh.push_back(*n_it);
-				std::cout << *n_it << " ";
+				if (verbose)
+					std::cout << *n_it << " ";
 			}
 			if (verbose)
 				std::cout << std::endl;
@@ -108,7 +132,8 @@ namespace CurveBall {
 					continue;
 				}
 				snd_neigh.push_back(*n_it);
-				std::cout << *n_it << " ";
+				if (verbose)
+					std::cout << *n_it << " ";
 			}
 			if (verbose)
 				std::cout << std::endl;
