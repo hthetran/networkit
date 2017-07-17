@@ -2397,6 +2397,46 @@ cdef class RmatGenerator:
 		print("random nodes to delete to achieve target node count: ", reduceNodes)
 		return RmatGenerator(scaleParameter, edgeFactor, a, b, c, d, False, reduceNodes)
 
+cdef extern from "cpp/curveball/UniformTradeGenerator.h":
+	cdef cppclass _UniformTradeGenerator "CurveBall::UniformTradeGenerator":
+		_UniformTradeGenerator(count runLength, count numNodes) except +
+		vector[pair[node, node]] generate() nogil except +
+
+cdef class UniformTradeGenerator:
+	"""
+	TODO document
+	"""
+	cdef _UniformTradeGenerator *_this
+
+	def __cinit__(self, count runLength, count numNodes):
+		self._this = new _UniformTradeGenerator(runLength, numNodes)
+
+	def __dealloc__(self):
+		del self._this
+
+	def generate(self):
+		return self._this.generate()
+
+cdef extern from "cpp/curveball/GlobalTradeGenerator.h":
+	cdef cppclass _GlobalTradeGenerator "CurveBall::GlobalTradeGenerator":
+		_GlobalTradeGenerator(count runLength, count numNodes) except +
+		vector[pair[node, node]] generate() nogil except +
+
+cdef class GlobalTradeGenerator:
+	"""
+	TODO document
+	"""
+	cdef _GlobalTradeGenerator *_this
+
+	def __cinit__(self, count runLength, count numNodes):
+		self._this = new _GlobalTradeGenerator(runLength, numNodes)
+
+	def __dealloc__(self):
+		del self._this
+
+	def generate(self):
+		return self._this.generate()
+
 cdef extern from "cpp/curveball/Curveball.h":
 	cdef cppclass _Curveball "CurveBall::Curveball":
 		_Curveball(_Graph) except +
