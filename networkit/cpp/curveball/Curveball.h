@@ -31,7 +31,7 @@ namespace CurveBall {
 
         void load_from_graph(bool verbose = true);
 
-        void restructure_graph();
+        void restructure_graph(bool verbose = true);
 
     public:
         Curveball(const NetworKit::Graph& G);
@@ -40,13 +40,13 @@ namespace CurveBall {
 			std::runtime_error("Invalid use of algorithm, provide trades!");
 		};
 
-        void run(const trade_vector& trades, const bool verbose = true);
+        void run(const trade_vector& trades, const bool verbose = false);
 
         bool isParallel() const {
             return false;
         }
 
-		void update(node_t a, node_t b, bool verbose = true);
+		void update(node_t a, node_t b, bool verbose = false);
 
         NetworKit::Graph getGraph();
     };
