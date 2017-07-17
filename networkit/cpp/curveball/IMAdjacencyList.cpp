@@ -23,6 +23,7 @@ using cneighbour_it = neighbour_vector::const_iterator;
  *
  */
 void IMAdjacencyList::initialize(const degree_vector& degrees, const edgeid_t degree_count) {
+	_offsets.clear();
 	_offsets.resize(degrees.size());
 	_neighbours.resize(degree_count + degrees.size());
 	_begin.resize(degrees.size());

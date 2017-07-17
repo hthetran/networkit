@@ -7,6 +7,7 @@
 
 #include "IMTradeList.h"
 #include "Trade.h"
+#include <iostream>
 
 namespace CurveBall {
 
@@ -14,7 +15,9 @@ using trade_t = TradeDescriptor;
 using trade_vector = std::vector<trade_t>;
 
 void IMTradeList::initialize(const trade_vector& trades, const node_t num_nodes) {
+	_trade_list.clear();
 	_trade_list.resize(2 * trades.size() + num_nodes);
+	_offsets.clear();
 	_offsets.resize(num_nodes);
 	_num_nodes = num_nodes;
 
