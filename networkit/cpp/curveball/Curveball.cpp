@@ -21,10 +21,11 @@ namespace CurveBall {
 	using neighbour_vector = std::vector<node_t>;
 
 	Curveball::Curveball(const NetworKit::Graph& G)
-        : _G(G)
+		: _G(G)
 		, _num_nodes(G.numberOfNodes())
 		, hasRun(false)
-    { 
+	{ 
+		assert(G.numberOfNodes == 0);
 		assert(_num_nodes > 0);
 	}
 
@@ -43,13 +44,13 @@ namespace CurveBall {
 		if (verbose)
 			std::cout << "Computed degree sequence..." << std::endl;
 
-        _adj_list.initialize(degrees, degree_sum);
+		_adj_list.initialize(degrees, degree_sum);
 		_trade_list.initialize(_trades, _num_nodes);
 
 		// insert to adjacency list
 		if (verbose)
 			std::cout << "Direct edges:" << std::endl;
-        _G.forEdges([&](node_t u, node_t v) {
+		_G.forEdges([&](node_t u, node_t v) {
 			update(u, v);
 		});
 		return;
@@ -59,19 +60,10 @@ namespace CurveBall {
 		if (verbose)
 			std::cout << "Restructure graph:" << std::endl;
 
-		// compute degree sequence
-		degree_vector degrees;
-		degrees.reserve(_num_nodes);
-		edgeid_t degree_sum = 0;
+		// degree sequence of G should be the same as _G
 		NetworKit::Graph G = getGraph();
-		G.forNodes([&](node_t v) {
-			degrees.push_back(G.degree(v));
-			degree_sum += G.degree(v);
-		});
-		if (verbose)
-			std::cout << "Computed degree sequence..." << std::endl;
 
-		_adj_list.initialize(degrees, degree_sum);
+		_adj_list.restructure();
 		_trade_list.initialize(_trades, _num_nodes);
 
 		// insert to adjacency list
@@ -105,8 +97,8 @@ namespace CurveBall {
 
 			// we shift the trade_list pointer for these two
 			// (is currently at trade_count)
-			_trade_list.shift_offset(fst, 1);
-			_trade_list.shift_offset(snd, 1);
+			_trade_list.inc_offset(fst);
+			_trade_list.inc_offset(snd);
 			
 			// retrieve neighbours
 			if (verbose)
@@ -139,6 +131,7 @@ namespace CurveBall {
 				std::cout << std::endl;
 			// we rewrite all neighbours anyway no need to keep track of direct positions
 			// get common and disjoint neighbours
+			// TODO: here sort and parallel scan, is there something better?
 			std::sort(fst_neigh.begin(), fst_neigh.end());
 			std::sort(snd_neigh.begin(), snd_neigh.end());
 			neighbour_vector common_neigh;

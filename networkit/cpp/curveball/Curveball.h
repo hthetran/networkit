@@ -25,28 +25,28 @@ namespace CurveBall {
         trade_vector _trades;
         const NetworKit::Graph& _G;
         const node_t _num_nodes;
-		IMAdjacencyList _adj_list;
-		IMTradeList _trade_list;
-		bool hasRun;
+	IMAdjacencyList _adj_list;
+	IMTradeList _trade_list;
+	bool hasRun;
 
-        void load_from_graph(bool verbose = true);
+        void load_from_graph(bool verbose = false);
 
-        void restructure_graph(bool verbose = true);
+        void restructure_graph(bool verbose = false);
 
     public:
         Curveball(const NetworKit::Graph& G);
 
-		void run() {
-			std::runtime_error("Invalid use of algorithm, provide trades!");
-		};
+	void run() {
+		std::runtime_error("Invalid use of algorithm, provide trades!");
+	};
 
         void run(const trade_vector& trades, const bool verbose = false);
 
         bool isParallel() const {
-            return false;
+		return false;
         }
 
-		void update(node_t a, node_t b, bool verbose = false);
+	void update(node_t a, node_t b, bool verbose = false);
 
         NetworKit::Graph getGraph();
     };
