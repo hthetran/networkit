@@ -2,4 +2,4 @@
 
 __author__ = "Hung Tran"
 
-from _Networkit import Curveball, GlobalTradeGenerator, UniformTradeGenerator
+from _NetworKit import Curveball, GlobalTradeGenerator, UniformTradeGenerator
