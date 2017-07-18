@@ -1,6 +1,8 @@
 /**
- * @brief Implements the Trade List for each Node
- * @author Hung Tran
+ * IMTradeList.h
+ *
+ *  Created on: Jul 18, 2017
+ *      Author: Hung Tran
  */
 
 #pragma once
