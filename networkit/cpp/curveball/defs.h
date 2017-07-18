@@ -1,8 +1,8 @@
 /**
- * @file
- * @brief	Defines all global data types and constants 
- * 			(should be included in all files)
- * @author	Hung Tran
+ * defs.h
+ *
+ *  Created on: Jul 10, 2017
+ *      Author: Hung Tran
  */
 
 #pragma once

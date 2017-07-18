@@ -1,7 +1,8 @@
 /**
- * @file
- * @brief Trade Descriptor
- * @author Hung Tran
+ * Trade.h
+ *
+ *  Created on: Jul 10, 2017
+ *      Author: Hung Tran
  */
 
 #pragma once
