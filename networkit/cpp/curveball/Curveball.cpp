@@ -36,7 +36,7 @@ namespace CurveBall {
 		if (verbose)
 			std::cout << "Load from graph:" << std::endl;
 
-		// compute degree sequence
+		// Compute degree sequence
 		degree_vector degrees;
 	   	degrees.reserve(_num_nodes);
 		edgeid_t degree_sum = 0;
@@ -50,9 +50,10 @@ namespace CurveBall {
 		_adj_list.initialize(degrees, degree_sum);
 		_trade_list.initialize(trades);
 
-		// insert to adjacency list
 		if (verbose)
 			std::cout << "Direct edges:" << std::endl;
+		
+                // Insert to adjacency list, directed according trades
 		_G.forEdges([&](node_t u, node_t v) {
 			update(u, v);
 		});
@@ -63,15 +64,17 @@ namespace CurveBall {
 		if (verbose)
 			std::cout << "Restructure graph:" << std::endl;
 
-		// degree sequence of G should be the same as _G
-		const NetworKit::Graph G = getGraph();
+		// Degree sequence of G should be the same as _G
+		// TODO: NetworKit bottleneck
+                const NetworKit::Graph G = getGraph();
 
 		_adj_list.restructure();
 		_trade_list.initialize(trades);
 
-		// insert to adjacency list
 		if (verbose)
 			std::cout << "Direct edges according to trades:" << std::endl;
+		
+                // Insert to adjacency list, directed according trades
 		G.forEdges([&](node_t u, node_t v) {
 			update(u, v);
 		});
