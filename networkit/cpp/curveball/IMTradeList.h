@@ -25,16 +25,16 @@ public:
 protected:
 	tradeid_vector _trade_list;
 	offset_vector _offsets;
-	node_t _num_nodes;
+	const node_t _num_nodes;
 
 public:
-	IMTradeList() = default;
+	IMTradeList(const node_t num_nodes);
 
 	// Receives the edge_vector to initialize 
 	IMTradeList(const trade_vector& trades, const node_t num_nodes);
 
 	// Initialize method
-	void initialize(const trade_vector& trades, const node_t num_nodes);
+	void initialize(const trade_vector& trades);
 
 	// No Copy Constructor
 	IMTradeList(const IMTradeList&) = delete;

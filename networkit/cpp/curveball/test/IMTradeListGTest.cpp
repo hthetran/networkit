@@ -144,8 +144,8 @@ TEST_F(IMTradeListGTest, testCenteredEmptyTradesViaInitialize) {
 
 	const node_t num_nodes = 12;
 
-	IMTradeList trade_list;
-	trade_list.initialize(trades, num_nodes);
+	IMTradeList trade_list(num_nodes);
+	trade_list.initialize(trades);
 
 	auto trade_iter = trade_list.get_trades(0);
 	ASSERT_EQ(*trade_iter, TRADELIST_END);

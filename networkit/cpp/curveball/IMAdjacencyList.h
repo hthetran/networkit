@@ -36,8 +36,7 @@ public:
 	
 	// Receives the degree_vector to initialize
 	// As trades permute neighbours the degrees don't change
-	IMAdjacencyList(const degree_vector& degrees,
-					const edgeid_t degree_count); // edge count // graph? // tradelist
+	IMAdjacencyList(const degree_vector& degrees, const edgeid_t degree_count);
 
 	void initialize(const degree_vector& degrees, const edgeid_t degree_count);
 
@@ -55,8 +54,8 @@ public:
 	cneighbour_it cend(const node_t node_id) const;
 
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
-		auto pos = begin(node_id) + _offsets[node_id];
-		// for debug
+		const auto pos = begin(node_id) + _offsets[node_id];
+
 		if (*pos == LISTROW_END) {
 			std::cout << "Tried to write into sentinel??? to: " << node_id << " with " << neighbour << std::endl;
 			std::cout << "Look at current entries:" << std::endl;
@@ -68,6 +67,7 @@ public:
 
 			assert(*pos != LISTROW_END);
 		}
+
 		*pos = neighbour;
 
 		_offsets[node_id]++;

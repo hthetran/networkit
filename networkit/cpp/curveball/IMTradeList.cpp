@@ -14,24 +14,27 @@ namespace CurveBall {
 using trade_t = TradeDescriptor;
 using trade_vector = std::vector<trade_t>;
 
-void IMTradeList::initialize(const trade_vector& trades, const node_t num_nodes) {
-	_trade_list.clear();
-	_trade_list.resize(2 * trades.size() + num_nodes);
-	_offsets.clear();
-	_offsets.resize(num_nodes);
-	_num_nodes = num_nodes;
+IMTradeList::IMTradeList(const node_t num_nodes) 
+    : _num_nodes(num_nodes)
+{ }
 
-	assert(num_nodes > 0);
+void IMTradeList::initialize(const trade_vector& trades) {
+	_trade_list.clear();
+	_trade_list.resize(2 * trades.size() + _num_nodes);
+	_offsets.clear();
+	_offsets.resize(_num_nodes);
+
+	assert(_num_nodes > 0);
 	assert(trades.size() > 0);
 
-	std::vector<tradeid_t> trade_count(num_nodes);
+	std::vector<tradeid_t> trade_count(_num_nodes);
 
 	// Push occurences
 	for (const trade_t trade : trades) {
 		assert(trade.first >= 0);
-		assert(trade.first < num_nodes);
+		assert(trade.first < _num_nodes);
 		assert(trade.second >= 0);
-		assert(trade.second < num_nodes);
+		assert(trade.second < _num_nodes);
 
 		trade_count[trade.first]++;
 		trade_count[trade.second]++;
@@ -43,18 +46,18 @@ void IMTradeList::initialize(const trade_vector& trades, const node_t num_nodes)
 	node_t curr_node = 1;
 
 	do {
-		assert(curr_node < num_nodes);
+		assert(curr_node < _num_nodes);
 		_offsets[curr_node] = pre_sum + *count_it + 1;
 		pre_sum = _offsets[curr_node];
 		_trade_list[_offsets[curr_node] - 1] = TRADELIST_END;
 		count_it++;
 		curr_node++;
-	} while (curr_node < num_nodes);
+	} while (curr_node < _num_nodes);
 	
 	// set last entry as sentinel
 	_trade_list.back() = TRADELIST_END;
 
-	std::vector<tradeid_t> tmp_counter(num_nodes);
+	std::vector<tradeid_t> tmp_counter(_num_nodes);
 
 	tradeid_t trade_id = 0;
 	for (const trade_t trade : trades) {
