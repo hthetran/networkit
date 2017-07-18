@@ -10,6 +10,7 @@ namespace CurveBall {
     
     NetworKit::Graph IMAdjacencyListMaterialization::materialize(const IMAdjacencyList& adj_list) const {
         //TODO
+        NetworKit::Graph G(adj_list.numberOfNodes());
         return NetworKit::Graph(5);
     }
 

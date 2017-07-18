@@ -74,6 +74,10 @@ public:
 		_end[node_id]++;
 	}
 
+        node_t numberOfNodes() const {
+            return static_cast<node_t>(_offsets.size());
+        }
+
 	void reset_row(const node_t node_id) {
 		_offsets[node_id] = 0;
 		_end[node_id] = _begin[node_id];
