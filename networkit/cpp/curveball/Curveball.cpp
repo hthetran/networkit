@@ -19,17 +19,20 @@ namespace CurveBall {
 	using degree_vector = std::vector<degree_t>;
 	using trade_vector = std::vector<TradeDescriptor>;
 	using neighbour_vector = std::vector<node_t>;
+        using node_vector = std::vector<node_t>;
 
 	Curveball::Curveball(const NetworKit::Graph& G)
 		: _G(G)
 		, _num_nodes(G.numberOfNodes())
-		, hasRun(false)
-	{ 
-		assert(G.numberOfSelfLoops() != 0);
+		, _trade_list(G.numberOfNodes())
+                , hasRun(false)
+	{
+                assert(G.checkConsistency());
+		assert(G.numberOfSelfLoops() == 0);
 		assert(_num_nodes > 0);
 	}
 
-	void Curveball::load_from_graph(const bool verbose) {
+	void Curveball::load_from_graph(const trade_vector& trades, const bool verbose) {
 		if (verbose)
 			std::cout << "Load from graph:" << std::endl;
 
@@ -45,7 +48,7 @@ namespace CurveBall {
 			std::cout << "Computed degree sequence..." << std::endl;
 
 		_adj_list.initialize(degrees, degree_sum);
-		_trade_list.initialize(_trades, _num_nodes);
+		_trade_list.initialize(trades);
 
 		// insert to adjacency list
 		if (verbose)
@@ -56,15 +59,15 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::restructure_graph(const bool verbose) {
+	void Curveball::restructure_graph(const trade_vector& trades, const bool verbose) {
 		if (verbose)
 			std::cout << "Restructure graph:" << std::endl;
 
 		// degree sequence of G should be the same as _G
-		NetworKit::Graph G = getGraph();
+		const NetworKit::Graph G = getGraph();
 
 		_adj_list.restructure();
-		_trade_list.initialize(_trades, _num_nodes);
+		_trade_list.initialize(trades);
 
 		// insert to adjacency list
 		if (verbose)
@@ -78,29 +81,27 @@ namespace CurveBall {
 	void Curveball::run(const trade_vector& trades, const bool verbose) {
 		if (verbose)
 			std::cout << "===== Algorithm Run ====="<< std::endl;
-		_trades = trades;
 		if (!hasRun)
-			load_from_graph();
+			load_from_graph(trades);
 		else
-			restructure_graph();
+			restructure_graph(trades);
 
 		NetworKit::count trade_count = 0;
-		for (const auto trade : _trades) {
+		for (const auto trade : trades) {
 			if (verbose)
 				std::cout << "Processing trade (" << trade_count << "): " << trade << std::endl;
 
 			// It's important to determine, if both share an edge for later communication
 			bool shared = false;
 		
-			const node_t fst = trade.first;
+                        const node_t fst = trade.first;
 			const node_t snd = trade.second;
 
-			// we shift the trade_list pointer for these two
-			// (is currently at trade_count)
+			// Shift the _trade_list offset for these two, currently was set to trade_count
 			_trade_list.inc_offset(fst);
 			_trade_list.inc_offset(snd);
 			
-			// retrieve neighbours
+			// Retrieve respective neighbours
 			if (verbose)
 				std::cout << "Neighbours of " << fst << " :" << std::endl;
 			neighbour_vector fst_neigh;
@@ -129,8 +130,9 @@ namespace CurveBall {
 			}
 			if (verbose)
 				std::cout << std::endl;
-			// we rewrite all neighbours anyway no need to keep track of direct positions
-			// get common and disjoint neighbours
+			
+                        // No need to keep track of direct positions
+			// Get common and disjoint neighbours
 			// TODO: here sort and parallel scan, is there something better?
 			std::sort(fst_neigh.begin(), fst_neigh.end());
 			std::sort(snd_neigh.begin(), snd_neigh.end());
@@ -174,25 +176,23 @@ namespace CurveBall {
 				std::cout << std::endl;
 			}
 
-			// reset fst/snd row
+			// Reset fst/snd row
 			_adj_list.reset_row(fst);
 			_adj_list.reset_row(snd);
 
-			// TODO: best way to perform permutation? std::shuffle then reassign? done here...
-			// TODO: optimize, if one is empty nothing needs to be done
-			const degree_t fst_sample_size = static_cast<degree_t>(fst_neigh.size() - common_neigh.size());
-			const degree_t snd_sample_size = static_cast<degree_t>(snd_neigh.size() - common_neigh.size()); // not nec. needed
+			const degree_t fst_set_size = static_cast<degree_t>(fst_neigh.size() - common_neigh.size());
+			const degree_t snd_set_size = static_cast<degree_t>(snd_neigh.size() - common_neigh.size()); // not nec. needed
 			std::shuffle(disjoint_neigh.begin(), disjoint_neigh.end(), Aux::Random::getURNG());
 			
-			// assign first fst_sample_size to fst and last snd_sample_size to snd
+			// Assign first fst_set_size to fst and last snd_set_size to snd
 			// if not existent then max value, and below compare goes in favor of partner, if partner
 			// has no more neighbours as well then their values are equal (max and equal)
 			// and tiebreaking is applied
-			for (degree_t counter = 0; counter < fst_sample_size; counter++) {
+			for (degree_t counter = 0; counter < fst_set_size; counter++) {
 				const node_t swapped = disjoint_neigh[counter];
 				update(fst, swapped);
 			}
-			for (degree_t counter = fst_sample_size; counter < fst_sample_size + snd_sample_size; counter++) {
+			for (degree_t counter = fst_set_size; counter < fst_set_size + snd_set_size; counter++) {
 				const node_t swapped = disjoint_neigh[counter];
 				update(snd, swapped);
 			}
@@ -201,7 +201,7 @@ namespace CurveBall {
 				update(fst, common);
 				update(snd, common);
 			}
-			// Do not forget edge between fst and snd......................(!!!!) if it exists...........
+			// Do not forget edge between fst and snd
 			if (shared)
 				update(fst, snd);
 
@@ -213,7 +213,7 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::update(const node_t a, const node_t b, bool verbose) {
+	inline void Curveball::update(const node_t a, const node_t b, bool verbose) {
 		const tradeid_t ta = *(_trade_list.get_trades(a));
 		const tradeid_t tb = *(_trade_list.get_trades(b));
 		if (ta < tb) {
@@ -236,13 +236,20 @@ namespace CurveBall {
 		}
 	}
 
-	NetworKit::Graph Curveball::getGraph() {
+	NetworKit::Graph Curveball::getGraph(bool verbose) const {
 		NetworKit::GraphBuilder gb(_num_nodes);
 
+                if (verbose)
+                    std::cout << "Building graph" << std::endl;
+
 		for (node_t node_id = 0; node_id < _num_nodes; node_id++) {
-			for (auto row_it = _adj_list.cbegin(node_id); row_it != _adj_list.cend(node_id); row_it++) {
-				gb.addHalfEdge(node_id, *row_it);
-			}
+		    if (verbose)
+                        std::cout << "At node: " << node_id << std::endl; 
+                    for (auto row_it = _adj_list.cbegin(node_id); row_it != _adj_list.cend(node_id); row_it++) {
+                        //if (verbose)
+                        //    std::cout << "Neighbour: " << *row_it << std::endl;
+                        gb.addHalfEdge(node_id, *row_it);
+		    }
 		}
 
 		return gb.toGraph(true);
