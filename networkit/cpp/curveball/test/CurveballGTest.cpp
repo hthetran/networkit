@@ -41,15 +41,6 @@ TEST_F(CurveballGTest, testRunSingleTrades) {
 	ASSERT_TRUE(tGOut.hasEdge(6, 7));
 	ASSERT_TRUE(tGOut.hasEdge(7, 6));
 	ASSERT_EQ(tGOut.numberOfEdges(), 9);
-
-	/*
-	NetworKit::Graph tGOutNew = algo.getMaterializedGraph();
-	ASSERT_TRUE(tGOutNew.hasEdge(6, 7));
-	tGOutNew.forNodes([&](node_t u) {
-		ASSERT_EQ(tGOutNew.degree(u), tGOut.degree(u));
-	});
-	ASSERT_EQ(tGOutNew.numberOfEdges(), tGOut.numberOfEdges());
-	*/
 }
 
 TEST_F(CurveballGTest, testRunManyTrades) {
@@ -128,9 +119,8 @@ TEST_F(CurveballGTest, testManyRandomRunsErdosRenyi) {
 	const tradeid_t numTrades = 20;
 	const NetworKit::count numRuns = 5;
 	const NetworKit::count numTradeRuns = 5;
-	const NetworKit::count pow = 4;
+	const NetworKit::count pow = 3;
 	for (NetworKit::count n = numNodes; n <= std::pow(numNodes, pow); n*=10) {
-		std::cout << n << std::endl;
 		for (NetworKit::count run = 0; run < numRuns; run++) {
 			NetworKit::ErdosRenyiGenerator generator(n, 0.5);
 			NetworKit::Graph G = generator.generate();
@@ -162,10 +152,10 @@ TEST_F(CurveballGTest, testManyRandomRunsErdosRenyi) {
 }
 
 TEST_F(CurveballGTest, testManyRandomRunsHyperbolic) {
-	const node_t numNodes = 50;
-	const tradeid_t numTrades = 10;
-	const NetworKit::count numRuns = 10000;
-	const NetworKit::count numTradeRuns = 3;
+	const node_t numNodes = 5000;
+	const tradeid_t numTrades = 200;
+	const NetworKit::count numRuns = 10;
+	const NetworKit::count numTradeRuns = 10;
 
 	for (NetworKit::count run = 0; run < numRuns; run++) {
 		NetworKit::HyperbolicGenerator generator(numNodes, 2);
