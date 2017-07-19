@@ -16,8 +16,6 @@
 
 namespace NetworKit {
 
-	using degree_vector = std::vector<degree_t>;
-
     class IMAdjacencyListMaterialization {
 
     protected:

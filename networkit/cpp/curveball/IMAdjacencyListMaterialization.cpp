@@ -12,7 +12,7 @@ namespace NetworKit {
 using networkit_adjlist = std::vector< std::vector<node_t> >;
 using networkit_edgeweights = std::vector < std::vector<node_t> >;
 
-	NetworKit::Graph IMAdjacencyListMaterialization::materialize(const CurveBall::IMAdjacencyList& adj_list) const {
+NetworKit::Graph IMAdjacencyListMaterialization::materialize(const CurveBall::IMAdjacencyList& adj_list) const {
 	const node_t numNodes = adj_list.numberOfNodes();
 	NetworKit::Graph G(numNodes);
         // Implements "toGraphSequential" of GraphBuilder
