@@ -16,7 +16,7 @@ namespace CurveBall {
     // If num_nodes is even, nothing changes
     // If num_nodes is odd, we don't have a trading partner for the last node, therefore we omit the last node
     // probably will be amortised when run_length is wisely chosen
-    GlobalTradeGenerator::GlobalTradeGenerator(const uint64_t run_length, const node_t num_nodes)
+    GlobalTradeGenerator::GlobalTradeGenerator(const tradeid_t run_length, const node_t num_nodes)
         : _num_nodes(num_nodes)
         , _run_length(run_length)
         , _trades_per_run((tradeid_t) (num_nodes / 2))
