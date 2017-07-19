@@ -19,12 +19,12 @@ namespace CurveBall {
 
     protected:
         const node_t _num_nodes;
-        const uint64_t _run_length;
+        const tradeid_t _run_length;
         const tradeid_t _trades_per_run;
         value_type _trades_out;
 
     public:
-        GlobalTradeGenerator(const uint64_t run_length, const node_t num_nodes);
+        GlobalTradeGenerator(const tradeid_t run_length, const node_t num_nodes);
 
         const value_type& generate();
     };
