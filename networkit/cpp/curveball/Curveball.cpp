@@ -81,7 +81,9 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::run(const trade_vector& trades, const bool verbose) {
+	void Curveball::run(const trade_vector& trades) {
+		const bool verbose = false;		
+
 		if (verbose)
 			std::cout << "===== Algorithm Run ====="<< std::endl;
 		if (!hasRun)
