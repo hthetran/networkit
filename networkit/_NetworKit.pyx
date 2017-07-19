@@ -2440,8 +2440,7 @@ cdef class GlobalTradeGenerator:
 cdef extern from "cpp/curveball/Curveball.h":
 	cdef cppclass _Curveball "CurveBall::Curveball":
 		_Curveball(_Graph) except +
-		void run(vector[pair[node, node]] trades, bool verbose) nogil except +
-		bool isParallel() except +
+		void run(vector[pair[node, node]] trades) nogil except +
 		_Graph getGraph() except +
 
 cdef class Curveball:
@@ -2458,13 +2457,9 @@ cdef class Curveball:
 	def __dealloc__(self):
 		del self._this
 
-	def run(self, trades):
-		cdef bool x = False
-		if isinstance(trades, collections.Iterable):
-			self._this.run(trades, x)
-
-	def isParallel(self):
-		return self._this.isParallel()
+	def run(self, vector[pair[node, node]] trades):
+		with nogil:	
+			(<_Curveball*>(self._this)).run(trades)
 
 	def getGraph(self):
 		return Graph().setThis(self._this.getGraph())
