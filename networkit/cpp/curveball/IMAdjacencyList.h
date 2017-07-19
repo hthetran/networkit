@@ -88,11 +88,31 @@ public:
             return static_cast<node_t>(_offsets.size());
         }
 
+	node_t numberOfEdges() const {
+		return static_cast<edgeid_t>(_degree_count);
+	}
+
+	void sortRow(const node_t node_id) {
+		std::sort(begin(node_id), end(node_id));
+
+		return;
+	}
+
 	void reset_row(const node_t node_id) {
+		assert(node_id >= 0);
+		assert(node_id < static_cast<node_t>(_offsets.size()));
+
 		_offsets[node_id] = 0;
 		_end[node_id] = _begin[node_id];
 
 		return;
+	}
+
+	degree_t degreeAt(node_t node_id) const {
+		assert(node_id < static_cast<node_t>(_offsets.size()));
+		assert(node_id >= 0);
+
+		return _degrees[node_id];
 	}
 };
 
