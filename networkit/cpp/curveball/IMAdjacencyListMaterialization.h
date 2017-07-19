@@ -14,7 +14,9 @@
 #include "../Globals.h"
 #include "../graph/Graph.h"
 
-namespace CurveBall {
+namespace NetworKit {
+
+	using degree_vector = std::vector<degree_t>;
 
     class IMAdjacencyListMaterialization {
 
@@ -23,7 +25,7 @@ namespace CurveBall {
     public:
         IMAdjacencyListMaterialization() = default;
 
-        NetworKit::Graph materialize(const IMAdjacencyList& adj_list) const;
+	NetworKit::Graph materialize(const CurveBall::IMAdjacencyList& adj_list) const;
     };
 }
 

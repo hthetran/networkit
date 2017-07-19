@@ -49,7 +49,9 @@ namespace CurveBall {
 		return false;
         }
 
-        NetworKit::Graph getGraph(const bool verbose = false) const;
+        NetworKit::Graph getGraph(const bool verbose = false);
+
+	//NetworKit::Graph getMaterializedGraph(const bool verbose = false);
     };
 }
 

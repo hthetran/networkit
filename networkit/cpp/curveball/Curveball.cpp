@@ -13,6 +13,7 @@
 #include "../graph/Graph.h"
 #include "../graph/GraphBuilder.h"
 #include "../Globals.h"
+#include "IMAdjacencyListMaterialization.h"
 
 namespace CurveBall {
 
@@ -237,7 +238,8 @@ namespace CurveBall {
 			}
 		}
 	}
-
+/*
+ *  Deprecated using slow GraphBuilder bypass.
 	NetworKit::Graph Curveball::getGraph(bool verbose) const {
 		NetworKit::GraphBuilder gb(_num_nodes);
 
@@ -255,6 +257,16 @@ namespace CurveBall {
 		}
 
 		return gb.toGraph(true);
-	}
+	}*/
 
+	// previously getMaterializedGraph
+	// sadly not const return
+	NetworKit::Graph Curveball::getGraph(bool verbose) {
+		for (node_t nid = 0; nid < _num_nodes; nid++) {
+			_adj_list.sortRow(nid);
+		}
+
+		NetworKit::IMAdjacencyListMaterialization gb;
+		return gb.materialize(_adj_list);
+	}
 }
