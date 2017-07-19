@@ -1,9 +1,9 @@
 /**
- * @file
- * @brief Test cases for the IM Trade List
- * @author Hung Tran
+ * IMTradeListGTest.cpp
+ *
+ *  Created on: Jul 11, 2017
+ *	Author: Hung Tran
  */
-
 
 #include "IMTradeListGTest.h"
 #include "../IMTradeList.h"

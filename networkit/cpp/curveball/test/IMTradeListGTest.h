@@ -1,6 +1,9 @@
-//
-// Created by hung on 10.07.17.
-//
+/*
+ * IMTradeListGTest.h
+ *
+ *  Created on: Jul 10, 2017
+ *	Author: Hung Tran
+ */
 
 #ifndef CB_IMTRADELISTGTEST_H_
 #define CB_IMTRADELISTGTEST_H_

@@ -1,6 +1,9 @@
-//
-// Created by hung on 10.07.17.
-//
+/*
+ * IMAdjacencyListGTest.h
+ *
+ *  Created on: Jul 10, 2017
+ *	Author: Hung Tran
+ */
 
 #ifndef CB_IMADJACENCYLISTGTEST_H_
 #define CB_IMADJACENCYLISTGTEST_H_
