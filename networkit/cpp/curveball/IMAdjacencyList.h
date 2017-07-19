@@ -22,6 +22,7 @@ public:
 	using pos_it = pos_vector::iterator;
 	using neighbour_it = neighbour_vector::iterator;
 	using cneighbour_it = neighbour_vector::const_iterator;
+	using edge_vector = std::vector<edge_t>;
 
 protected:
 	degree_vector _offsets;
@@ -52,6 +53,15 @@ public:
 	cneighbour_it cbegin(const node_t node_id) const;
 	
 	cneighbour_it cend(const node_t node_id) const;
+
+	void getEdges(edge_vector& edges) {
+		edges.reserve(_degree_count);
+		for (node_t nodeid = 0; nodeid < static_cast<node_t>(_offsets.size()); nodeid++) {
+			for (auto it = cbegin(nodeid); it != cend(nodeid); it++) {
+				edges.push_back(edge_t{nodeid, *it});
+			}
+		}
+	}
 
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
 		const auto pos = begin(node_id) + _offsets[node_id];

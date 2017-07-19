@@ -63,10 +63,9 @@ namespace CurveBall {
 	void Curveball::restructure_graph(const trade_vector& trades, const bool verbose) {
 		if (verbose)
 			std::cout << "Restructure graph:" << std::endl;
-
-		// Degree sequence of G should be the same as _G
-		// TODO: NetworKit bottleneck
-                const NetworKit::Graph G = getGraph();
+	
+		std::vector<edge_t> edges;
+		_adj_list.getEdges(edges);
 
 		_adj_list.restructure();
 		_trade_list.initialize(trades);
@@ -74,10 +73,10 @@ namespace CurveBall {
 		if (verbose)
 			std::cout << "Direct edges according to trades:" << std::endl;
 		
-                // Insert to adjacency list, directed according trades
-		G.forEdges([&](node_t u, node_t v) {
-			update(u, v);
-		});
+		for (const auto edge : edges) {
+			update(edge.first, edge.second);
+		}
+
 		return;
 	}
 
