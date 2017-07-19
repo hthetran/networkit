@@ -43,7 +43,7 @@ namespace CurveBall {
             return;
         };
 
-        void run(const trade_vector& trades, const bool verbose = false);
+        void run(const trade_vector& trades);
 
         bool isParallel() const {
 		return false;
