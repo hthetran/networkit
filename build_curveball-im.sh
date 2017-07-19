@@ -24,7 +24,6 @@ echo " python: $PYTHON"
 echo " g++:    $CXX"
 
 echo "Will build within current directory; Press CTRL+C to abort"
-pause
 
 INST_DIR=$(pwd)
 
@@ -76,4 +75,4 @@ deactivate
 pip install scons
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INST_DIR/curveball-im/googletest/googletest/build/
 cd curveball-im
-scons --optimize=Dbg --target=Tests
+scons --optimize=Dbg --target=Tests --jobs=20
