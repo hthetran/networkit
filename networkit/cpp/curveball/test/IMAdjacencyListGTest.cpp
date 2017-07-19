@@ -1,7 +1,8 @@
-/**
- * @file
- * @brief Test cases for the IM Adjacency List
- * @author Hung Tran
+/*
+ * IMAdjacencyListGTest.cpp
+ *
+ *  Created on: Jul 10, 2017
+ *	Author: Hung Tran
  */
 
 #include "IMAdjacencyListGTest.h"

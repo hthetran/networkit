@@ -1,7 +1,8 @@
-/**
- * @file
- * @brief Test cases for the Curveball algorithm
- * @author Hung Tran
+/*
+ * CurveballGTest.h
+ *
+ *  Created on: Jul 12, 2017
+ *	Author: Hung Tran
  */
 
 #include "CurveballGTest.h"
@@ -38,7 +39,17 @@ TEST_F(CurveballGTest, testRunSingleTrades) {
 
 	NetworKit::Graph tGOut = algo.getGraph();	
 	ASSERT_TRUE(tGOut.hasEdge(6, 7));
+	ASSERT_TRUE(tGOut.hasEdge(7, 6));
 	ASSERT_EQ(tGOut.numberOfEdges(), 9);
+
+	/*
+	NetworKit::Graph tGOutNew = algo.getMaterializedGraph();
+	ASSERT_TRUE(tGOutNew.hasEdge(6, 7));
+	tGOutNew.forNodes([&](node_t u) {
+		ASSERT_EQ(tGOutNew.degree(u), tGOut.degree(u));
+	});
+	ASSERT_EQ(tGOutNew.numberOfEdges(), tGOut.numberOfEdges());
+	*/
 }
 
 TEST_F(CurveballGTest, testRunManyTrades) {
@@ -113,27 +124,80 @@ TEST_F(CurveballGTest, testRunManyTradesMultiple) {
 }
 
 TEST_F(CurveballGTest, testManyRandomRunsErdosRenyi) {
-	const node_t numNodes = 100;
+	const node_t numNodes = 10;
 	const tradeid_t numTrades = 20;
-	const NetworKit::count numRuns = 10;
+	const NetworKit::count numRuns = 5;
+	const NetworKit::count numTradeRuns = 5;
+	const NetworKit::count pow = 4;
+	for (NetworKit::count n = numNodes; n <= std::pow(numNodes, pow); n*=10) {
+		std::cout << n << std::endl;
+		for (NetworKit::count run = 0; run < numRuns; run++) {
+			NetworKit::ErdosRenyiGenerator generator(n, 0.5);
+			NetworKit::Graph G = generator.generate();
+			std::vector<degree_t> degrees;
+			degrees.reserve(numNodes);
+			G.forNodes([&](node_t u) {
+				if (G.degree(u) > 0)
+					degrees.push_back(G.degree(u));
+				else {
+					// Prevent isolated nodes
+					G.addEdge(u, 0);
+					degrees[0]++;
+					degrees.push_back(1);
+				}
+			});
+
+			Curveball algo(G);
+			for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
+				UniformTradeGenerator gen(numTrades, n);
+				algo.run(gen.generate());
+			}
+
+			NetworKit::Graph outG = algo.getGraph();
+			outG.forNodes([&](node_t u){
+				ASSERT_EQ(degrees[u], outG.degree(u));
+			});
+		}
+	}
+}
+
+TEST_F(CurveballGTest, testManyRandomRunsHyperbolic) {
+	const node_t numNodes = 50;
+	const tradeid_t numTrades = 10;
+	const NetworKit::count numRuns = 10000;
 	const NetworKit::count numTradeRuns = 3;
 
 	for (NetworKit::count run = 0; run < numRuns; run++) {
-		std::cout << "At test " << run << std::endl;
-		NetworKit::ErdosRenyiGenerator generator(numNodes, 0.8);
+		NetworKit::HyperbolicGenerator generator(numNodes, 2);
 		NetworKit::Graph G = generator.generate();
 		std::vector<degree_t> degrees;
 		degrees.reserve(numNodes);
+		bool zeroisolated = false;
 		G.forNodes([&](node_t u) {
 			if (G.degree(u) > 0)
 				degrees.push_back(G.degree(u));
 			else {
 				// Prevent isolated nodes
-				G.addEdge(u, 0);
-				degrees[0]++;
-				degrees.push_back(1);
+				if (u != 0) {
+					G.addEdge(u, 0);
+					degrees[0]++;
+					degrees.push_back(1);
+				} else {
+					degrees.push_back(0);
+					zeroisolated = true;
+				}
 			}
 		});
+		if (zeroisolated) {
+			for (node_t nodeid = 1; nodeid < numNodes; nodeid++) {
+				if (!G.hasEdge(0, nodeid)) {
+					G.addEdge(0, nodeid);
+					degrees[0]++;
+					degrees[nodeid]++; 
+				} else
+					continue;
+			}
+		}
 
 		Curveball algo(G);
 		for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
@@ -145,42 +209,6 @@ TEST_F(CurveballGTest, testManyRandomRunsErdosRenyi) {
 		outG.forNodes([&](node_t u){
 			ASSERT_EQ(degrees[u], outG.degree(u));
 		});
-	}
-}
-
-TEST_F(CurveballGTest, testManyRandomRunsHyperbolic) {
-	const node_t numNodes = 100;
-	const tradeid_t numTrades = 20;
-	const NetworKit::count numRuns = 10;
-	const NetworKit::count numTradeRuns = 3;
-
-	for (NetworKit::count run = 0; run < numRuns; run++) {
-	std::cout << "At test " << run << std::endl;
-	NetworKit::HyperbolicGenerator generator(numNodes, 2);
-	NetworKit::Graph G = generator.generate();
-	std::vector<degree_t> degrees;
-	degrees.reserve(numNodes);
-	G.forNodes([&](node_t u) {
-	if (G.degree(u) > 0)
-	degrees.push_back(G.degree(u));
-	else {
-	// Prevent isolated nodes
-	G.addEdge(u, 0);
-	degrees[0]++;
-	degrees.push_back(1);
-	}
-	});
-
-	Curveball algo(G);
-	for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
-	UniformTradeGenerator gen(numTrades, numNodes);
-	algo.run(gen.generate());
-	}
-
-	NetworKit::Graph outG = algo.getGraph();
-	outG.forNodes([&](node_t u){
-	ASSERT_EQ(degrees[u], outG.degree(u));
-	});
 	}
 }
 
