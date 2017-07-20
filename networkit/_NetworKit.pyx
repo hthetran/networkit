@@ -2438,18 +2438,16 @@ cdef class GlobalTradeGenerator:
 		return self._this.generate()
 
 cdef extern from "cpp/curveball/Curveball.h":
-	cdef cppclass _Curveball "CurveBall::Curveball":
+	cdef cppclass _Curveball "CurveBall::Curveball"(_Algorithm):
 		_Curveball(_Graph) except +
 		void run(vector[pair[node, node]] trades) nogil except +
 		_Graph getGraph() except +
 
-cdef class Curveball:
+cdef class Curveball(Algorithm):
 	"""
 	TODO document
 	TODO nogil?
 	"""
-	cdef _Curveball *_this
-
 	def __cinit__(self, G):
 		if isinstance(G, Graph):
 			self._this = new _Curveball((<Graph>G)._this)
@@ -2460,9 +2458,10 @@ cdef class Curveball:
 	def run(self, vector[pair[node, node]] trades):
 		with nogil:	
 			(<_Curveball*>(self._this)).run(trades)
+		return self
 
 	def getGraph(self):
-		return Graph().setThis(self._this.getGraph())
+		return Graph().setThis((<_Curveball*>self._this).getGraph())
 
 cdef extern from "cpp/generators/PowerlawDegreeSequence.h":
 	cdef cppclass _PowerlawDegreeSequence "NetworKit::PowerlawDegreeSequence":
