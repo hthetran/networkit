@@ -98,117 +98,118 @@ namespace CurveBall {
 
 			// It's important to determine, if both share an edge for later communication
 			bool shared = false;
-		
-                        const node_t fst = trade.first;
-			const node_t snd = trade.second;
+	
+			// Trade partners u and v	
+                        const node_t u = trade.first;
+			const node_t v = trade.second;
 
 			// Shift the _trade_list offset for these two, currently was set to trade_count
-			_trade_list.inc_offset(fst);
-			_trade_list.inc_offset(snd);
+			_trade_list.inc_offset(u);
+			_trade_list.inc_offset(v);
 			
 			// Retrieve respective neighbours
 			if (verbose)
-				std::cout << "Neighbours of " << fst << " :" << std::endl;
-			neighbour_vector fst_neigh;
-			for (auto n_it = _adj_list.cbegin(fst); n_it != _adj_list.cend(fst); n_it++) {
-				if (*n_it == snd) {
+				std::cout << "Neighbours of " << u << " :" << std::endl;
+			neighbour_vector u_neighbours;
+			for (auto n_it = _adj_list.cbegin(u); n_it != _adj_list.cend(u); n_it++) {
+				if (*n_it == v) {
 					shared = true;
 					continue;
 				}
-				fst_neigh.push_back(*n_it);
+				u_neighbours.push_back(*n_it);
 				if (verbose)
 					std::cout << *n_it << " ";
 			}
 			if (verbose)
 				std::cout << std::endl;
 			if (verbose)
-				std::cout << "Neighbours of " << snd << " :" << std::endl;
-			neighbour_vector snd_neigh;
-			for (auto n_it = _adj_list.cbegin(snd); n_it != _adj_list.cend(snd); n_it++) {
-				if (*n_it == fst) {
+				std::cout << "Neighbours of " << v << " :" << std::endl;
+			neighbour_vector v_neighbours;
+			for (auto n_it = _adj_list.cbegin(v); n_it != _adj_list.cend(v); n_it++) {
+				if (*n_it == u) {
 					shared = true;
 					continue;
 				}
-				snd_neigh.push_back(*n_it);
+				v_neighbours.push_back(*n_it);
 				if (verbose)
 					std::cout << *n_it << " ";
 			}
 			if (verbose)
 				std::cout << std::endl;
 			
-                        // No need to keep track of direct positions
+			// No need to keep track of direct positions
 			// Get common and disjoint neighbours
 			// TODO: here sort and parallel scan, is there something better?
-			std::sort(fst_neigh.begin(), fst_neigh.end());
-			std::sort(snd_neigh.begin(), snd_neigh.end());
-			neighbour_vector common_neigh;
-			neighbour_vector disjoint_neigh;
+			std::sort(u_neighbours.begin(), u_neighbours.end());
+			std::sort(v_neighbours.begin(), v_neighbours.end());
+			neighbour_vector common_neighbours;
+			neighbour_vector disjoint_neighbours;
 
-			auto fst_it = fst_neigh.cbegin();
-			auto snd_it = snd_neigh.cbegin();
-			while ((fst_it != fst_neigh.cend()) && (snd_it != snd_neigh.cend())) {
-				if (*fst_it == *snd_it) {
-					common_neigh.push_back(*fst_it);
-					//std::cout << "common: " << *fst_it << std::endl;
-					fst_it++;
-					snd_it++;
+			auto u_nit = u_neighbours.cbegin();
+			auto v_nit = v_neighbours.cbegin();
+			while ((u_nit != u_neighbours.cend()) && (v_nit != v_neighbours.cend())) {
+				if (*u_nit == *v_nit) {
+					common_neighbours.push_back(*u_nit);
+					//std::cout << "common: " << *u_nit << std::endl;
+					u_nit++;
+					v_nit++;
 					continue;
 				}
-				if (*fst_it > *snd_it) {
-					disjoint_neigh.push_back(*snd_it);
-					snd_it++;
+				if (*u_nit > *v_nit) {
+					disjoint_neighbours.push_back(*v_nit);
+					v_nit++;
 					continue;
 				}
-				if (*fst_it < *snd_it) {
-					disjoint_neigh.push_back(*fst_it);
-					fst_it++;
+				if (*u_nit < *v_nit) {
+					disjoint_neighbours.push_back(*u_nit);
+					u_nit++;
 					continue;
 				}
 			}
-			if (fst_it == fst_neigh.cend())
-				disjoint_neigh.insert(disjoint_neigh.end(), snd_it, snd_neigh.cend());
+			if (u_nit == u_neighbours.cend())
+				disjoint_neighbours.insert(disjoint_neighbours.end(), v_nit, v_neighbours.cend());
 			else
-				disjoint_neigh.insert(disjoint_neigh.end(), fst_it, fst_neigh.cend());
+				disjoint_neighbours.insert(disjoint_neighbours.end(), u_nit, u_neighbours.cend());
 
 			if (verbose) {
 				std::cout << "Common neighbours: " << std::endl;
-			   	for (const auto common : common_neigh) 
+				for (const auto common : common_neighbours) 
 					std::cout << common << " ";
 				std::cout << std::endl;
 				std::cout << "Disjoint neighbours: " << std::endl;
-				for (const auto dis : disjoint_neigh) 
+				for (const auto dis : disjoint_neighbours) 
 					std::cout << dis << " ";
 				std::cout << std::endl;
 			}
 
 			// Reset fst/snd row
-			_adj_list.reset_row(fst);
-			_adj_list.reset_row(snd);
+			_adj_list.reset_row(u);
+			_adj_list.reset_row(v);
 
-			const degree_t fst_set_size = static_cast<degree_t>(fst_neigh.size() - common_neigh.size());
-			const degree_t snd_set_size = static_cast<degree_t>(snd_neigh.size() - common_neigh.size()); // not nec. needed
-			std::shuffle(disjoint_neigh.begin(), disjoint_neigh.end(), Aux::Random::getURNG());
+			const degree_t u_setsize = static_cast<degree_t>(u_neighbours.size() - common_neighbours.size());
+			const degree_t v_setsize = static_cast<degree_t>(v_neighbours.size() - common_neighbours.size()); // not nec. needed
+			std::shuffle(disjoint_neighbours.begin(), disjoint_neighbours.end(), Aux::Random::getURNG());
 			
-			// Assign first fst_set_size to fst and last snd_set_size to snd
+			// Assign first u_setsize to fst and last v_setsize to snd
 			// if not existent then max value, and below compare goes in favor of partner, if partner
 			// has no more neighbours as well then their values are equal (max and equal)
 			// and tiebreaking is applied
-			for (degree_t counter = 0; counter < fst_set_size; counter++) {
-				const node_t swapped = disjoint_neigh[counter];
-				update(fst, swapped);
+			for (degree_t counter = 0; counter < u_setsize; counter++) {
+				const node_t swapped = disjoint_neighbours[counter];
+				update(u, swapped);
 			}
-			for (degree_t counter = fst_set_size; counter < fst_set_size + snd_set_size; counter++) {
-				const node_t swapped = disjoint_neigh[counter];
-				update(snd, swapped);
+			for (degree_t counter = u_setsize; counter < u_setsize + v_setsize; counter++) {
+				const node_t swapped = disjoint_neighbours[counter];
+				update(v, swapped);
 			}
 			// Distribute common edges
-			for (const auto common : common_neigh) {
-				update(fst, common);
-				update(snd, common);
+			for (const auto common : common_neighbours) {
+				update(u, common);
+				update(v, common);
 			}
-			// Do not forget edge between fst and snd
+			// Do not forget edge between u and v
 			if (shared)
-				update(fst, snd);
+				update(u, v);
 
 			trade_count++;
 		}
@@ -264,9 +265,9 @@ namespace CurveBall {
 	// previously getMaterializedGraph
 	// sadly not const return
 	NetworKit::Graph Curveball::getGraph(bool verbose) {
-		for (node_t nid = 0; nid < _num_nodes; nid++) {
-			_adj_list.sortRow(nid);
-		}
+		//for (node_t nid = 0; nid < _num_nodes; nid++) {
+		//	_adj_list.sortRow(nid);
+		//}
 
 		NetworKit::IMAdjacencyListMaterialization gb;
 		return gb.materialize(_adj_list);
