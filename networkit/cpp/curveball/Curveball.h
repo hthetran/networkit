@@ -1,7 +1,7 @@
 /*
  * Curveball.h
  *
- *  Created on: Jul 12 2017
+ *  Created on: Jul 12, 2017
  *      Author: Hung Tran
  */
 #pragma once
