@@ -11,7 +11,7 @@
 namespace CurveBall {
 
 	EdgeSwitchingMarkovChainRandomization::EdgeSwitchingMarkovChainRandomization(const NetworKit::Graph& G) {
-
+		const auto edges = G.edges();
 	}
 
 }

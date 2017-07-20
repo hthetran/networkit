@@ -12,6 +12,7 @@
 #include "../base/Algorithm.h"
 #include "../graph/Graph.h"
 #include "defs.h"
+#include "stx/btree_map.h"
 
 namespace CurveBall {
 
