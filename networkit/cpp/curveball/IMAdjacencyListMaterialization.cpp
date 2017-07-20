@@ -46,6 +46,10 @@ NetworKit::Graph IMAdjacencyListMaterialization::materialize(const CurveBall::IM
 			G.outEdges[u].push_back(v);
 		}
 	});
+	// Sort neighbours
+	G.forNodes([&](node_t v) {
+		std::sort(G.outEdges[v].begin(), G.outEdges[v].end());
+	});
 	// Set node degrees
 	G.forNodes([&](node_t v) {
 		G.outDeg[v] = adj_list.degreeAt(v);

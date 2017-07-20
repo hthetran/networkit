@@ -265,11 +265,7 @@ namespace CurveBall {
 	// previously getMaterializedGraph
 	// sadly not const return
 	NetworKit::Graph Curveball::getGraph(bool verbose) {
-		//for (node_t nid = 0; nid < _num_nodes; nid++) {
-		//	_adj_list.sortRow(nid);
-		//}
-
-		NetworKit::IMAdjacencyListMaterialization gb;
+		const NetworKit::IMAdjacencyListMaterialization gb;
 		return gb.materialize(_adj_list);
 	}
 }
