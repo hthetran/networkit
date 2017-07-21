@@ -17,12 +17,14 @@
 namespace CurveBall {
 
 using edgeswap_vector = std::vector< std::pair<edgeid_t, edgeid_t> >;
-using edge_vector = std::vector< std::pair<node_t, node_t> >;
+using edge_vector = std::vector<edge_t>;
+using degree_vector = std::vector<degree_t>;
 
 class EdgeSwitchingMarkovChainRandomization : public NetworKit::Algorithm {
 
 protected:
 	edge_vector _edges;
+	degree_vector _degrees;
 	stx::btree_map<edge_t, edgeid_t> _edgeid_map;
 
 public:
@@ -34,9 +36,8 @@ public:
 
 	void run(const edgeswap_vector& swaps);
 
-	// is const return necessary?
 	// TODO: EdgeVectorMaterialization
-	NetworKit::Graph getGraph();
+	NetworKit::Graph getGraph() const;
 };
 
 }
