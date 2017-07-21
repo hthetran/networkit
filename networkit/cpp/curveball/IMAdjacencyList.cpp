@@ -110,4 +110,15 @@ cneighbour_it IMAdjacencyList::cend(const node_t node_id) const {
 	return _neighbours.cbegin() + _end[node_id];
 }
 
+void IMAdjacencyList::getEdges(edge_vector& edges) {
+	edges.reserve(_degree_count);
+	for (node_t nodeid = 0; nodeid < static_cast<node_t>(_offsets.size()); nodeid++) {
+		for (auto it = cbegin(nodeid); it != cend(nodeid); it++) {
+			edges.push_back(edge_t{nodeid, *it});
+		}
+	}
+	
+	return;
+}
+
 }
