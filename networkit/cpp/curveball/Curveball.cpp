@@ -65,8 +65,6 @@ namespace CurveBall {
 	}
 
 	void Curveball::restructure_graph(const trade_vector& trades, const bool verbose) {
-		if (verbose)
-			std::cout << "Restructure graph:" << std::endl;
 	
 		std::vector<edge_t> edges;
 		_adj_list.getEdges(edges);
@@ -74,9 +72,6 @@ namespace CurveBall {
 		_adj_list.restructure();
 		_trade_list.initialize(trades);
 
-		if (verbose)
-			std::cout << "Direct edges according to trades:" << std::endl;
-		
 		for (const auto edge : edges) {
 			update(edge.first, edge.second);
 		}
@@ -91,19 +86,12 @@ namespace CurveBall {
 			restructure_graph(trades);
 
 		NetworKit::count trade_count = 0;
-		neighbour_vector u_neighbours;
-		neighbour_vector v_neighbours;
         neighbour_vector common_neighbours;
         neighbour_vector disjoint_neighbours;
 
-        u_neighbours.reserve(_max_degree);
-        v_neighbours.reserve(_max_degree);
         common_neighbours.reserve(_max_degree);
         disjoint_neighbours.reserve(_max_degree);
 		for (const auto& trade : trades) {
-			// It's important to determine, if both share an edge for later communication
-			bool shared = false;
-	
 			// Trade partners u and v
 			const node_t u = trade.first;
 			const node_t v = trade.second;
@@ -113,91 +101,43 @@ namespace CurveBall {
 			_trade_list.inc_offset(v);
 			
 			// Retrieve respective neighbours
-
-                        // Manuel: why do you copy the values? Is it not possible to operate on
-                        // on _adj_list.begin/end() directly?
-
-                        // Manuel: If you do not copy, you may use std::search to find shared (and swap it with end to remove it)
-
-                        // Manuel: You can use lambdas to avoid redudancy
-                        //  auto copyVector = [&] (node u) { ... };
-                        //  u_neigh = copyVector(u);
-                        //  v_neigh = copyVector(v);
-            const bool myshared = (std::find(_adj_list.cbegin(u), _adj_list.cend(u), v) != _adj_list.cend(u))
-                                  || (std::find(_adj_list.cbegin(v), _adj_list.cend(v), u) != _adj_list.cend(v));
-            auto organize_nodes = [&](node_t u, node_t v) {
-                std::cout << "u: " << u << std::endl;
-                std::cout << "v: " << v << std::endl;
-
-                std::cout << "=====================IT-BEG=====================" << std::endl;
-                for (auto it = _adj_list.cbegin(u); it != _adj_list.cend(u); it++)
-                    std::cout << *it << std::endl;
-
-                std::cout << "================================================" << std::endl;
-                std::cout << *_adj_list.cend(u)<< std::endl;
-                std::cout << "=====================IT-END=====================" << std::endl;
-                std::cout << "=====================IT-BEG=====================" << std::endl;
-                for(auto it = _adj_list.cbegin(u); it != _adj_list.cbegin(u + 1); it++)
-                    std::cout << *it << std::endl;
-                std::cout << "==================NEXT--IT-BEG==================" << std::endl;
-                std::cout << "=" << std::endl;
-                auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
-                std::cout << "What is found? " << *pos << std::endl;
-                std::cout << "=" << std::endl;
-                std::sort(_adj_list.begin(u), _adj_list.end(u));
-                std::cout << "===============SORTEDIT-BEG=====================" << std::endl;
-                if (u != _num_nodes - 1)
-                    for(auto it = _adj_list.cbegin(u); it != _adj_list.cbegin(u + 1); it++)
-                        std::cout << *it << std::endl;
-                std::cout << "============SORTEDNEXT--IT-BEG==================" << std::endl;
-                // TODO: swap with begin(u + 1) - 1; that has the sentinel! otherwise it can happen that one swaps with uninitialized location with a zero!
-/*
-                auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
-                std::cout << "Setting end(u) - 1 which was " << *(_adj_list.end(u) - 1) << " to *pos which is " << *pos << std::endl;
-                *(_adj_list.end(u)) = *pos;
-                *pos = LISTROW_END;
-                std::sort(_adj_list.begin(u), _adj_list.end(u) - 1);
-                *(_adj_list.end(u) - 1) = *(_adj_list.end(u));
-                *(_adj_list.end(u)) = LISTROW_END;
-
-                std::cout << "==========" << std::endl;
-
-                for (auto it = _adj_list.cbegin(u); it != _adj_list.cend(u); it++)
-                    std::cout << *it << std::endl;*/
-            };
-
-			u_neighbours.clear();
-            v_neighbours.clear();
-            organize_nodes(u, v);
-            organize_nodes(v, u);
-			for (auto n_it = _adj_list.cbegin(u); n_it != _adj_list.cend(u); n_it++) {
-				if (*n_it == v) {
-					shared = true;
-					continue;
-				}
-				u_neighbours.push_back(*n_it);
+		    const bool shared = (std::find(_adj_list.cbegin(u), _adj_list.cend(u), v) != _adj_list.cend(u))
+					  || (std::find(_adj_list.cbegin(v), _adj_list.cend(v), u) != _adj_list.cend(v));
+		    // we return whether u has v in his neighbors or vice-versa
+		    auto organize_neighbors = [&](node_t u, node_t v) {
+			auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
+			if (pos == _adj_list.cend(u))
+				return false;
+			else {
+				(*_adj_list.end(u)) = *pos;
+				*pos = LISTROW_END;
+				std::sort(_adj_list.begin(u), _adj_list.end(u));
+				*(_adj_list.end(u) - 1) = *_adj_list.end(u);
+				// this datastructure doesn't want LISTROW_ENDs not in the end,
+				// therefore write 0 if not the case, because there is an assertion in IMAdjacencyList
+				if (_adj_list.end(u) + 1 == _adj_list.begin(u + 1))
+					*_adj_list.end(u) = LISTROW_END;
+				else
+					*_adj_list.end(u) = 0;
+				return true;
 			}
-			for (auto n_it = _adj_list.cbegin(v); n_it != _adj_list.cend(v); n_it++) {
-				if (*n_it == u) {
-					shared = true;
-					continue;
-				}
-				v_neighbours.push_back(*n_it);
-			}
+		    };
 
-            assert(myshared == shared);
+			const bool u_share = organize_neighbors(u, v);
+			const bool v_share = organize_neighbors(v, u);
+			auto u_end = (u_share ? _adj_list.cend(u) - 1 : _adj_list.cend(u));
+			auto v_end = (v_share ? _adj_list.cend(v) - 1 : _adj_list.cend(v));
+		
+			assert((!u_share && !v_share) || (u_share != v_share));
 
 			// No need to keep track of direct positions
-			// Get common and disjoint neighbours
-			// TODO: here sort and parallel scan, is there something better?
-			std::sort(u_neighbours.begin(), u_neighbours.end());
-			std::sort(v_neighbours.begin(), v_neighbours.end());
-
-            common_neighbours.clear();
-            disjoint_neighbours.clear();
-			auto u_nit = u_neighbours.cbegin();
-			auto v_nit = v_neighbours.cbegin();
-			while ((u_nit != u_neighbours.cend()) && (v_nit != v_neighbours.cend())) {
+			// Get common and disjoint neighbors
+			// Here sort and parallel scan
+			common_neighbours.clear();
+			disjoint_neighbours.clear();
+			auto u_nit = _adj_list.cbegin(u);
+			auto v_nit = _adj_list.cbegin(v);
+			while ((u_nit != u_end) && (v_nit != v_end)) {
 				if (*u_nit > *v_nit) {
 					disjoint_neighbours.push_back(*v_nit);
 					v_nit++;
@@ -215,17 +155,19 @@ namespace CurveBall {
 					v_nit++;
 				}
 			}
-			if (u_nit == u_neighbours.cend())
-				disjoint_neighbours.insert(disjoint_neighbours.end(), v_nit, v_neighbours.cend());
+			if (u_nit == u_end)
+				disjoint_neighbours.insert(disjoint_neighbours.end(), v_nit, v_end);
 			else
-				disjoint_neighbours.insert(disjoint_neighbours.end(), u_nit, u_neighbours.cend());
+				disjoint_neighbours.insert(disjoint_neighbours.end(), u_nit, u_end);
+
+			const degree_t u_setsize = static_cast<degree_t>(u_end - _adj_list.cbegin(u) - common_neighbours.size());
+			const degree_t v_setsize = static_cast<degree_t>(v_end - _adj_list.cbegin(v) - common_neighbours.size());
+			// v_setsize not necessary needed
 
 			// Reset fst/snd row
 			_adj_list.reset_row(u);
 			_adj_list.reset_row(v);
 
-			const degree_t u_setsize = static_cast<degree_t>(u_neighbours.size() - common_neighbours.size());
-			const degree_t v_setsize = static_cast<degree_t>(v_neighbours.size() - common_neighbours.size()); // not nec. needed
 			std::shuffle(disjoint_neighbours.begin(), disjoint_neighbours.end(), Aux::Random::getURNG());
 			
 			// Assign first u_setsize to fst and last v_setsize to snd
