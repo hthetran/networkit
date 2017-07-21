@@ -51,32 +51,10 @@ void IMAdjacencyList::initialize(const degree_vector& degrees, const edgeid_t de
 	return;
 }
 
-// TODO: use protected variable _degree_count
 void IMAdjacencyList::restructure() {
 	std::fill(_offsets.begin(), _offsets.end(), 0);
 	_end = _begin;
-	/*std::fill(_neighbours.begin(), _neighbours.end(), 0);
-	std::fill(_begin.begin(), _begin.end(), 0);
-	std::fill(_end.begin(), _end.end(), 0);
 
-	degree_t sum = 0;
-	node_t node_id = 0;
-	for (const degree_t node_degree : _degrees) {
-		_begin[node_id] = sum;
-		_end[node_id] = sum;
-
-		assert(node_degree > 0);
-
-		sum += node_degree;
-		_neighbours[sum] = LISTROW_END;
-
-		// shift after Sentinel
-		sum += 1;
-		node_id++;
-	}
-	assert(sum == _degree_count + _degrees.size());
-	assert(node_id == _degrees.size());
-*/
 	return;
 }
 
