@@ -36,7 +36,6 @@ protected:
     	degree_vector _offsets;
 	pos_vector _begin;
 	pos_vector _end;
-	degree_vector _degrees;
 	edgeid_t _degree_count;	
 
 public:
@@ -102,7 +101,7 @@ public:
 		assert(node_id < static_cast<node_t>(_offsets.size()));
 		assert(node_id >= 0);
 
-		return _degrees[node_id];
+		return _begin[node_id + 1] - _begin[node_id] - 1;
 	}
 };
 
