@@ -61,16 +61,8 @@ public:
 	
 	cneighbour_it cend(const node_t node_id) const;
 
-    	// Manuel: Why not have it in the .cpp file?
-	void getEdges(edge_vector& edges) {
-		edges.reserve(_degree_count);
-		for (node_t nodeid = 0; nodeid < static_cast<node_t>(_offsets.size()); nodeid++) {
-			for (auto it = cbegin(nodeid); it != cend(nodeid); it++) {
-				edges.push_back(edge_t{nodeid, *it});
-			}
-		}
-	}
-
+	void getEdges(edge_vector& edges);
+	
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
 		const auto pos = begin(node_id) + _offsets[node_id];
 
