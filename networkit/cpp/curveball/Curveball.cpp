@@ -26,8 +26,8 @@ namespace CurveBall {
 		: _G(G)
 		, _num_nodes(G.numberOfNodes())
 		, _trade_list(G.numberOfNodes())
-                , hasRun(false)
 	{
+		hasRun = false;
                 assert(G.checkConsistency());
 		assert(G.numberOfSelfLoops() == 0);
 		assert(_num_nodes > 0);
@@ -45,6 +45,9 @@ namespace CurveBall {
 			degrees.push_back(_G.degree(v));
 			degree_sum += _G.degree(v);
 		});
+
+		_max_degree = *(std::max_element(degrees.cbegin(), degrees.cend()));
+
 		if (verbose)
 			std::cout << "Computed degree sequence..." << std::endl;
 
@@ -82,25 +85,27 @@ namespace CurveBall {
 	}
 
 	void Curveball::run(const trade_vector& trades) {
-		constexpr bool verbose = false;
-
-		if (verbose)
-			std::cout << "===== Algorithm Run ====="<< std::endl;
 		if (!hasRun)
 			load_from_graph(trades);
 		else
 			restructure_graph(trades);
 
 		NetworKit::count trade_count = 0;
-		for (const auto& trade : trades) {
-			if (verbose)
-				std::cout << "Processing trade (" << trade_count << "): " << trade << std::endl;
+		neighbour_vector u_neighbours;
+		neighbour_vector v_neighbours;
+        neighbour_vector common_neighbours;
+        neighbour_vector disjoint_neighbours;
 
+        u_neighbours.reserve(_max_degree);
+        v_neighbours.reserve(_max_degree);
+        common_neighbours.reserve(_max_degree);
+        disjoint_neighbours.reserve(_max_degree);
+		for (const auto& trade : trades) {
 			// It's important to determine, if both share an edge for later communication
 			bool shared = false;
 	
-			// Trade partners u and v	
-                        const node_t u = trade.first;
+			// Trade partners u and v
+			const node_t u = trade.first;
 			const node_t v = trade.second;
 
 			// Shift the _trade_list offset for these two, currently was set to trade_count
@@ -108,8 +113,6 @@ namespace CurveBall {
 			_trade_list.inc_offset(v);
 			
 			// Retrieve respective neighbours
-			if (verbose)
-				std::cout << "Neighbours of " << u << " :" << std::endl;
 
                         // Manuel: why do you copy the values? Is it not possible to operate on
                         // on _adj_list.begin/end() directly?
@@ -120,56 +123,74 @@ namespace CurveBall {
                         //  auto copyVector = [&] (node u) { ... };
                         //  u_neigh = copyVector(u);
                         //  v_neigh = copyVector(v);
-			neighbour_vector u_neighbours;
+            const bool myshared = (std::find(_adj_list.cbegin(u), _adj_list.cend(u), v) != _adj_list.cend(u))
+                                  || (std::find(_adj_list.cbegin(v), _adj_list.cend(v), u) != _adj_list.cend(v));
+            auto organize_nodes = [&](node_t u, node_t v) {
+                std::cout << "u: " << u << std::endl;
+                std::cout << "v: " << v << std::endl;
+
+                for (auto it = _adj_list.cbegin(u); it != _adj_list.cend(u); it++)
+                    std::cout << *it << std::endl;
+
+                std::cout << "===" << std::endl;
+                std::cout << *_adj_list.cend(u)<< std::endl;
+                std::cout << "=====================" << std::endl;
+                if (u != _num_nodes - 1)
+                    for(auto it = _adj_list.cbegin(u); it != _adj_list.cbegin(u + 1); it++)
+                        std::cout << *it << std::endl;
+                std::cout << "=====================" << std::endl;
+                std::cout << "=" << std::endl;
+                auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
+                std::cout << "What is found? " << *pos << std::endl;
+                std::cout << "=" << std::endl;
+                // TODO: swap with begin(u + 1) - 1; that has the sentinel! otherwise it can happen that one swaps with uninitialized location with a zero!
+/*
+                auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
+                std::cout << "Setting end(u) - 1 which was " << *(_adj_list.end(u) - 1) << " to *pos which is " << *pos << std::endl;
+                *(_adj_list.end(u)) = *pos;
+                *pos = LISTROW_END;
+                std::sort(_adj_list.begin(u), _adj_list.end(u) - 1);
+                *(_adj_list.end(u) - 1) = *(_adj_list.end(u));
+                *(_adj_list.end(u)) = LISTROW_END;
+
+                std::cout << "==========" << std::endl;
+
+                for (auto it = _adj_list.cbegin(u); it != _adj_list.cend(u); it++)
+                    std::cout << *it << std::endl;*/
+            };
+
+			u_neighbours.clear();
+            v_neighbours.clear();
+            organize_nodes(u, v);
+            organize_nodes(v, u);
 			for (auto n_it = _adj_list.cbegin(u); n_it != _adj_list.cend(u); n_it++) {
 				if (*n_it == v) {
 					shared = true;
 					continue;
 				}
 				u_neighbours.push_back(*n_it);
-				if (verbose)
-					std::cout << *n_it << " ";
 			}
-			if (verbose)
-				std::cout << std::endl;
-			if (verbose)
-				std::cout << "Neighbours of " << v << " :" << std::endl;
-			neighbour_vector v_neighbours;
 			for (auto n_it = _adj_list.cbegin(v); n_it != _adj_list.cend(v); n_it++) {
 				if (*n_it == u) {
 					shared = true;
 					continue;
 				}
 				v_neighbours.push_back(*n_it);
-				if (verbose)
-					std::cout << *n_it << " ";
 			}
-			if (verbose)
-				std::cout << std::endl;
-			
+
+            assert(myshared == shared);
+
 			// No need to keep track of direct positions
 			// Get common and disjoint neighbours
 			// TODO: here sort and parallel scan, is there something better?
 			std::sort(u_neighbours.begin(), u_neighbours.end());
 			std::sort(v_neighbours.begin(), v_neighbours.end());
 
-                        // Manuel: You should avoid to declare a vector within a for-loop,
-                        // as it incurs allocation/deallocation in every step.
-                        // Simply keep max degree of graph, and reserve space accordingly
-                        neighbour_vector common_neighbours;
-			neighbour_vector disjoint_neighbours;
-
+            common_neighbours.clear();
+            disjoint_neighbours.clear();
 			auto u_nit = u_neighbours.cbegin();
 			auto v_nit = v_neighbours.cbegin();
 			while ((u_nit != u_neighbours.cend()) && (v_nit != v_neighbours.cend())) {
-                                // Manuel: Shouldn't this be the exception? Move to back or mark as unlikely
-				if (*u_nit == *v_nit) {
-					common_neighbours.push_back(*u_nit);
-					//std::cout << "common: " << *u_nit << std::endl;
-					u_nit++;
-					v_nit++;
-					continue;
-				}
 				if (*u_nit > *v_nit) {
 					disjoint_neighbours.push_back(*v_nit);
 					v_nit++;
@@ -180,22 +201,17 @@ namespace CurveBall {
 					u_nit++;
 					continue;
 				}
+				// *u_nit == *v_nit
+				{
+					common_neighbours.push_back(*u_nit);
+					u_nit++;
+					v_nit++;
+				}
 			}
 			if (u_nit == u_neighbours.cend())
 				disjoint_neighbours.insert(disjoint_neighbours.end(), v_nit, v_neighbours.cend());
 			else
 				disjoint_neighbours.insert(disjoint_neighbours.end(), u_nit, u_neighbours.cend());
-
-			if (verbose) {
-				std::cout << "Common neighbours: " << std::endl;
-				for (const auto common : common_neighbours) 
-					std::cout << common << " ";
-				std::cout << std::endl;
-				std::cout << "Disjoint neighbours: " << std::endl;
-				for (const auto dis : disjoint_neighbours) 
-					std::cout << dis << " ";
-				std::cout << std::endl;
-			}
 
 			// Reset fst/snd row
 			_adj_list.reset_row(u);
@@ -234,60 +250,6 @@ namespace CurveBall {
 		return;
 	}
 
-	inline void Curveball::update(const node_t a, const node_t b, bool verbose) {
-                const tradeid_t ta = *(_trade_list.get_trades(a));
-                const tradeid_t tb = *(_trade_list.get_trades(b));
-                if (ta < tb) {
-                        if (verbose)
-                                std::cout << "node a: " << a << " [" << ta << "] before " << "node b: " << b << " [" << tb << "]" << std::endl;
-                        _adj_list.insert_neighbour(a, b);
-
-                        return;
-                }
-
-                if (ta > tb) {
-                        if (verbose)
-                                std::cout << "node a: " << a << " [" << ta << "] after " << "node b: " << b << " [" << tb << "]" << std::endl;
-
-                        _adj_list.insert_neighbour(b, a);
-
-                        return;
-                }
-
-                // ta == tb
-                {
-                        if (verbose)
-                                std::cout << "node a: " << a << " [" << ta << "] again with " << "node b: " << b << " [" << tb << "]" << std::endl;
-
-                        // Manuel: What's the impact of this randomisation?
-                        if (Aux::Random::integer(1))
-                                _adj_list.insert_neighbour(a, b);
-                        else
-                                _adj_list.insert_neighbour(b, a);
-		}
-	}
-/*
- *  Deprecated using slow GraphBuilder bypass.
-	NetworKit::Graph Curveball::getGraph(bool verbose) const {
-		NetworKit::GraphBuilder gb(_num_nodes);
-
-                if (verbose)
-                    std::cout << "Building graph" << std::endl;
-
-		for (node_t node_id = 0; node_id < _num_nodes; node_id++) {
-		    if (verbose)
-                        std::cout << "At node: " << node_id << std::endl; 
-                    for (auto row_it = _adj_list.cbegin(node_id); row_it != _adj_list.cend(node_id); row_it++) {
-                        //if (verbose)
-                        //    std::cout << "Neighbour: " << *row_it << std::endl;
-                        gb.addHalfEdge(node_id, *row_it);
-		    }
-		}
-
-		return gb.toGraph(true);
-	}*/
-
-	// previously getMaterializedGraph
 	NetworKit::Graph Curveball::getGraph(bool verbose) const {
 		const NetworKit::IMAdjacencyListMaterialization gb;
 		return gb.materialize(_adj_list);
