@@ -19,13 +19,11 @@ namespace CurveBall {
 	protected:
 		const node_t _num_nodes;
 		const tradeid_t _trade_num;
-		value_type _trades_out;
 
     public:
         UniformTradeGenerator(const tradeid_t trade_num, const node_t num_nodes);
 
-	// Manuel: Consider returning a vector
-        const value_type& generate();
+        const value_type generate();
     };
 }
 

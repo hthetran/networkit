@@ -17,7 +17,8 @@ namespace CurveBall {
 		, _trade_num(trade_num)
 	{ }
 
-	const value_type& UniformTradeGenerator::generate() {
+	const value_type UniformTradeGenerator::generate() {
+		value_type _trades_out;
 		_trades_out.clear();
 		_trades_out.reserve(_trade_num);
 
