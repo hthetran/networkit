@@ -23,7 +23,7 @@ class EdgeSwitchingMarkovChainRandomization : public NetworKit::Algorithm {
 
 protected:
 	edge_vector _edges;
-	stx::btree_map<edgeid_t, std::pair<node_t, node_t> > _edges_map;
+	stx::btree_map<edge_t, edgeid_t> _edgeid_map;
 
 public:
 	EdgeSwitchingMarkovChainRandomization(const NetworKit::Graph& G);
