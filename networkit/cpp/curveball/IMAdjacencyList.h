@@ -66,18 +66,7 @@ public:
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
 		const auto pos = begin(node_id) + _offsets[node_id];
 
-		// Manuel: This is only an assertion? Do we want that in productive code?
-		if (*pos == LISTROW_END) {
-			std::cout << "Tried to write into sentinel??? to: " << node_id << " with " << neighbour << std::endl;
-			std::cout << "Look at current entries:" << std::endl;
-			auto beg = begin(node_id);
-			while (beg != end(node_id)) {
-				std::cout << *beg << std::endl;
-				beg++;
-			}
-
-			assert(*pos != LISTROW_END);
-		}
+		assert(*pos != LISTROW_END);
 
 		*pos = neighbour;
 
@@ -113,7 +102,6 @@ public:
 		assert(node_id < static_cast<node_t>(_offsets.size()));
 		assert(node_id >= 0);
 
-		// Manuel: Why not have it in the .cpp file?
 		return _degrees[node_id];
 	}
 };
