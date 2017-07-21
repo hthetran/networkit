@@ -27,15 +27,8 @@ public:
 protected:
 
     	neighbour_vector _neighbours;
-
-    	// Manuel: Why do we need _begin, _end, _offsets AND degrees
-        // Manuel: Two should suffice ?
-	//   _end[i] = _begin[i] + _offset[i]
-	//   _degree[i] = _begin[i+1]-_begin[i] (need n+1 entries)
-	// add dummy at end
     	degree_vector _offsets;
 	pos_vector _begin;
-	pos_vector _end;
 	edgeid_t _degree_count;	
 
 public:
@@ -70,7 +63,6 @@ public:
 		*pos = neighbour;
 
 		_offsets[node_id]++;
-		_end[node_id]++;
 	}
 
         node_t numberOfNodes() const {
@@ -92,7 +84,6 @@ public:
 		assert(node_id < static_cast<node_t>(_offsets.size()));
 
 		_offsets[node_id] = 0;
-		_end[node_id] = _begin[node_id];
 
 		return;
 	}
