@@ -22,39 +22,42 @@ using cneighbour_it = neighbour_vector::const_iterator;
  * @brief Initialize method (when constructor can't be used)
  *
  */
-void IMAdjacencyList::initialize(const degree_vector& degrees, const edgeid_t degree_count) {
-	_offsets.resize(degrees.size());
-	_neighbours.resize(degree_count + degrees.size());
-	_begin.resize(degrees.size());
-	_end.resize(degrees.size());
-	_degrees = degrees;
-	_degree_count = degree_count;
+    void IMAdjacencyList::initialize(const degree_vector& degrees, const edgeid_t degree_count) {
+        _offsets.resize(degrees.size());
+        _neighbours.resize(degree_count + degrees.size() + 1);
+        _begin.resize(degrees.size() + 1);
+        _end.resize(degrees.size() + 1);
+        _degrees = degrees;
+        _degree_count = degree_count;
 
-	degree_t sum = 0;
-	node_t node_id = 0;
-	for (const degree_t node_degree : degrees) {
-		_begin[node_id] = sum;
-		_end[node_id] = sum;
+        degree_t sum = 0;
+        node_t node_id = 0;
+        for (const degree_t node_degree : degrees) {
+            _begin[node_id] = sum;
+            _end[node_id] = sum;
 
-		assert(node_degree > 0);
+            assert(node_degree > 0);
 
-		sum += node_degree;
-		_neighbours[sum] = LISTROW_END;
+            sum += node_degree;
+            _neighbours[sum] = LISTROW_END;
 
-		// shift after Sentinel
-		sum += 1;
-		node_id++;
-	}
-	assert(sum == degree_count + degrees.size());
-	assert(node_id == degrees.size());
+            // shift after Sentinel
+            sum += 1;
+            node_id++;
+        }
+        _neighbours[sum] = LISTROW_END;
+        _begin[degrees.size()] = sum;
+        _end[degrees.size()] = sum;
 
-	return;
-}
+        assert(sum == degree_count + degrees.size());
+        assert(node_id == degrees.size());
+
+        return;
+    }
 
 void IMAdjacencyList::restructure() {
 	std::fill(_offsets.begin(), _offsets.end(), 0);
 	_end = _begin;
-
 	return;
 }
 

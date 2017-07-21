@@ -129,20 +129,27 @@ namespace CurveBall {
                 std::cout << "u: " << u << std::endl;
                 std::cout << "v: " << v << std::endl;
 
+                std::cout << "=====================IT-BEG=====================" << std::endl;
                 for (auto it = _adj_list.cbegin(u); it != _adj_list.cend(u); it++)
                     std::cout << *it << std::endl;
 
-                std::cout << "===" << std::endl;
+                std::cout << "================================================" << std::endl;
                 std::cout << *_adj_list.cend(u)<< std::endl;
-                std::cout << "=====================" << std::endl;
-                if (u != _num_nodes - 1)
-                    for(auto it = _adj_list.cbegin(u); it != _adj_list.cbegin(u + 1); it++)
-                        std::cout << *it << std::endl;
-                std::cout << "=====================" << std::endl;
+                std::cout << "=====================IT-END=====================" << std::endl;
+                std::cout << "=====================IT-BEG=====================" << std::endl;
+                for(auto it = _adj_list.cbegin(u); it != _adj_list.cbegin(u + 1); it++)
+                    std::cout << *it << std::endl;
+                std::cout << "==================NEXT--IT-BEG==================" << std::endl;
                 std::cout << "=" << std::endl;
                 auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
                 std::cout << "What is found? " << *pos << std::endl;
                 std::cout << "=" << std::endl;
+                std::sort(_adj_list.begin(u), _adj_list.end(u));
+                std::cout << "===============SORTEDIT-BEG=====================" << std::endl;
+                if (u != _num_nodes - 1)
+                    for(auto it = _adj_list.cbegin(u); it != _adj_list.cbegin(u + 1); it++)
+                        std::cout << *it << std::endl;
+                std::cout << "============SORTEDNEXT--IT-BEG==================" << std::endl;
                 // TODO: swap with begin(u + 1) - 1; that has the sentinel! otherwise it can happen that one swaps with uninitialized location with a zero!
 /*
                 auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
