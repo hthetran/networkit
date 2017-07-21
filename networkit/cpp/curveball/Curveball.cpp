@@ -82,7 +82,7 @@ namespace CurveBall {
 	}
 
 	void Curveball::run(const trade_vector& trades) {
-		const bool verbose = false;		
+		constexpr bool verbose = false;
 
 		if (verbose)
 			std::cout << "===== Algorithm Run ====="<< std::endl;
@@ -92,7 +92,7 @@ namespace CurveBall {
 			restructure_graph(trades);
 
 		NetworKit::count trade_count = 0;
-		for (const auto trade : trades) {
+		for (const auto& trade : trades) {
 			if (verbose)
 				std::cout << "Processing trade (" << trade_count << "): " << trade << std::endl;
 
@@ -110,6 +110,16 @@ namespace CurveBall {
 			// Retrieve respective neighbours
 			if (verbose)
 				std::cout << "Neighbours of " << u << " :" << std::endl;
+
+                        // Manuel: why do you copy the values? Is it not possible to operate on
+                        // on _adj_list.begin/end() directly?
+
+                        // Manuel: If you do not copy, you may use std::search to find shared (and swap it with end to remove it)
+
+                        // Manuel: You can use lambdas to avoid redudancy
+                        //  auto copyVector = [&] (node u) { ... };
+                        //  u_neigh = copyVector(u);
+                        //  v_neigh = copyVector(v);
 			neighbour_vector u_neighbours;
 			for (auto n_it = _adj_list.cbegin(u); n_it != _adj_list.cend(u); n_it++) {
 				if (*n_it == v) {
@@ -142,12 +152,17 @@ namespace CurveBall {
 			// TODO: here sort and parallel scan, is there something better?
 			std::sort(u_neighbours.begin(), u_neighbours.end());
 			std::sort(v_neighbours.begin(), v_neighbours.end());
-			neighbour_vector common_neighbours;
+
+                        // Manuel: You should avoid to declare a vector within a for-loop,
+                        // as it incurs allocation/deallocation in every step.
+                        // Simply keep max degree of graph, and reserve space accordingly
+                        neighbour_vector common_neighbours;
 			neighbour_vector disjoint_neighbours;
 
 			auto u_nit = u_neighbours.cbegin();
 			auto v_nit = v_neighbours.cbegin();
 			while ((u_nit != u_neighbours.cend()) && (v_nit != v_neighbours.cend())) {
+                                // Manuel: Shouldn't this be the exception? Move to back or mark as unlikely
 				if (*u_nit == *v_nit) {
 					common_neighbours.push_back(*u_nit);
 					//std::cout << "common: " << *u_nit << std::endl;
@@ -220,25 +235,35 @@ namespace CurveBall {
 	}
 
 	inline void Curveball::update(const node_t a, const node_t b, bool verbose) {
-		const tradeid_t ta = *(_trade_list.get_trades(a));
-		const tradeid_t tb = *(_trade_list.get_trades(b));
-		if (ta < tb) {
-			if (verbose)
-				std::cout << "node a: " << a << " [" << ta << "] before " << "node b: " << b << " [" << tb << "]" << std::endl;
-			_adj_list.insert_neighbour(a, b);
-		} else {
-			if (ta > tb) {
-				if (verbose)
-					std::cout << "node a: " << a << " [" << ta << "] after " << "node b: " << b << " [" << tb << "]" << std::endl;
-				_adj_list.insert_neighbour(b, a);
-			} else {
-				if (verbose)
-					std::cout << "node a: " << a << " [" << ta << "] again with " << "node b: " << b << " [" << tb << "]" << std::endl;
-				if (Aux::Random::integer(1))
-					_adj_list.insert_neighbour(a, b);
-				else
-					_adj_list.insert_neighbour(b, a);
-			}
+                const tradeid_t ta = *(_trade_list.get_trades(a));
+                const tradeid_t tb = *(_trade_list.get_trades(b));
+                if (ta < tb) {
+                        if (verbose)
+                                std::cout << "node a: " << a << " [" << ta << "] before " << "node b: " << b << " [" << tb << "]" << std::endl;
+                        _adj_list.insert_neighbour(a, b);
+
+                        return;
+                }
+
+                if (ta > tb) {
+                        if (verbose)
+                                std::cout << "node a: " << a << " [" << ta << "] after " << "node b: " << b << " [" << tb << "]" << std::endl;
+
+                        _adj_list.insert_neighbour(b, a);
+
+                        return;
+                }
+
+                // ta == tb
+                {
+                        if (verbose)
+                                std::cout << "node a: " << a << " [" << ta << "] again with " << "node b: " << b << " [" << tb << "]" << std::endl;
+
+                        // Manuel: What's the impact of this randomisation?
+                        if (Aux::Random::integer(1))
+                                _adj_list.insert_neighbour(a, b);
+                        else
+                                _adj_list.insert_neighbour(b, a);
 		}
 	}
 /*

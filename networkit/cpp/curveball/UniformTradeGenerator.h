@@ -24,6 +24,7 @@ namespace CurveBall {
     public:
         UniformTradeGenerator(const tradeid_t trade_num, const node_t num_nodes);
 
+	// Manuel: Consider returning a vector
         const value_type& generate();
     };
 }

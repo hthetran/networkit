@@ -19,7 +19,7 @@ namespace CurveBall {
     GlobalTradeGenerator::GlobalTradeGenerator(const tradeid_t run_length, const node_t num_nodes)
         : _num_nodes(num_nodes)
         , _run_length(run_length)
-        , _trades_per_run((tradeid_t) (num_nodes / 2))
+        , _trades_per_run((tradeid_t) (num_nodes / 2)) // Manuel: use C++ casts
         //, _trades_out(run_length * _trades_per_run)
     { }
 

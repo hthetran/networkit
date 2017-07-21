@@ -26,18 +26,19 @@ namespace CurveBall {
         const node_t _num_nodes;
 	IMAdjacencyList _adj_list;
 	IMTradeList _trade_list;
-	bool hasRun;
+	bool hasRun; // Manuel: Override?
 
         void load_from_graph(const trade_vector& trades, bool verbose = false);
 
         void restructure_graph(const trade_vector& trades, bool verbose = false);
 
+        // Manuel: Inlining on function with external definition is not sensible
 	inline void update(node_t a, node_t b, bool verbose = false);
 
     public:
         Curveball(const NetworKit::Graph& G);
 
-	void run() {
+	void run() override {
 	    std::runtime_error("Invalid use of algorithm, provide trades!");
 
             return;
@@ -45,7 +46,7 @@ namespace CurveBall {
 
         void run(const trade_vector& trades);
 
-        bool isParallel() const {
+        bool isParallel() const override {
 		return false;
         }
 
