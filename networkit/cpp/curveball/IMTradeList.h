@@ -55,7 +55,7 @@ public:
 		else 
 			assert(1 <= static_cast<tradeid_t>(_trade_list.size()) - _offsets[nodeid] - 1);
 
-		_offsets[nodeid] += 1;
+		_offsets[nodeid]++;
 	}
 
 	node_t numberOfNodes() const {

@@ -26,6 +26,7 @@ namespace CurveBall {
     public:
         GlobalTradeGenerator(const tradeid_t run_length, const node_t num_nodes);
 
+        // Manuel: Consider returning the vector
         const value_type& generate();
     };
 }

@@ -25,8 +25,14 @@ public:
 	using edge_vector = std::vector<edge_t>;
 
 protected:
-	degree_vector _offsets;
-	neighbour_vector _neighbours;
+
+    	neighbour_vector _neighbours;
+
+    	// Manuel: Why do we need _begin, _end, _offsets AND degrees
+        // Manuel: Two should suffice ?
+	//   _end[i] = _begin[i] + _offset[i]
+	//   _degree[i] = _begin[i+1]-_begin[i] (need n+1 entries)
+    	degree_vector _offsets;
 	pos_vector _begin;
 	pos_vector _end;
 	degree_vector _degrees;
@@ -54,6 +60,7 @@ public:
 	
 	cneighbour_it cend(const node_t node_id) const;
 
+    	// Manuel: Why not have it in the .cpp file?
 	void getEdges(edge_vector& edges) {
 		edges.reserve(_degree_count);
 		for (node_t nodeid = 0; nodeid < static_cast<node_t>(_offsets.size()); nodeid++) {
@@ -66,6 +73,7 @@ public:
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
 		const auto pos = begin(node_id) + _offsets[node_id];
 
+		// Manuel: This is only an assertion? Do we want that in productive code?
 		if (*pos == LISTROW_END) {
 			std::cout << "Tried to write into sentinel??? to: " << node_id << " with " << neighbour << std::endl;
 			std::cout << "Look at current entries:" << std::endl;
@@ -112,6 +120,7 @@ public:
 		assert(node_id < static_cast<node_t>(_offsets.size()));
 		assert(node_id >= 0);
 
+		// Manuel: Why not have it in the .cpp file?
 		return _degrees[node_id];
 	}
 };

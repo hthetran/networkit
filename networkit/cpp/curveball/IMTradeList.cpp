@@ -29,7 +29,7 @@ void IMTradeList::initialize(const trade_vector& trades) {
 
 	std::vector<tradeid_t> trade_count(_num_nodes);
 
-	// Push occurences
+	// Push occurrences
 	for (const trade_t trade : trades) {
 		assert(trade.first >= 0);
 		assert(trade.first < _num_nodes);
@@ -41,10 +41,19 @@ void IMTradeList::initialize(const trade_vector& trades) {
 	}
 	
 	// calc prefix sums...
+	// Manuel: Consider putting short-lived variables into scope:
+	// {
+	//   tradeid_t pre_sum = 0;
+	//   for(..) {}
+	// }
 	auto count_it = trade_count.begin();
 	tradeid_t pre_sum = 0;
 	node_t curr_node = 1;
 
+
+	// Manuel:
+	//  - this is a for loop
+	//  - prefix sum can be computed with std::partial_sum
 	do {
 		assert(curr_node < _num_nodes);
 		_offsets[curr_node] = pre_sum + *count_it + 1;
@@ -57,16 +66,27 @@ void IMTradeList::initialize(const trade_vector& trades) {
 	// set last entry as sentinel
 	_trade_list.back() = TRADELIST_END;
 
+	// Manuel: Why not reuse trade_count?
 	std::vector<tradeid_t> tmp_counter(_num_nodes);
 
 	tradeid_t trade_id = 0;
-	for (const trade_t trade : trades) {
+	for (const trade_t& trade : trades) {
+		/* Manuel: Lambda?
+		auto updateNode = [&] (const node_t node) {
+		    const pos = _offsets[node] + tmp_counter[node];
+		    _trade_list[pos] = trade_id;
+		    tmp_counter[node]++;
+		};
+
+		updateNode(trade.first);
+		updateNode(trade.second);
+		trade_id++;
+		*/
+
+
 		// process first node
 		const node_t fst_node = trade.first;
 
-		const node_t fst_pos = _offsets[fst_node] + tmp_counter[fst_node];
-		_trade_list[fst_pos] = trade_id;
-		tmp_counter[fst_node]++;
 
 		// process second node
 		const node_t snd_node = trade.second;
@@ -87,6 +107,8 @@ IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
 	, _offsets(num_nodes)
 	, _num_nodes(num_nodes)
 {
+	// Manuel: see above
+
 	assert(num_nodes > 0);
 	assert(trades.size() > 0);
 

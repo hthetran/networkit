@@ -14,6 +14,7 @@
 
 namespace  CurveBall {
 
+// Manuel: Move to defs?
 using TradeDescriptor = std::pair<node_t, node_t>;
 
 /*struct TradeDescriptor : public std::pair<node_t, node_t> {
