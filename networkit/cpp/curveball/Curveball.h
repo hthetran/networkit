@@ -26,14 +26,40 @@ namespace CurveBall {
         const node_t _num_nodes;
 	IMAdjacencyList _adj_list;
 	IMTradeList _trade_list;
-	bool hasRun; // Manuel: Override?
+		degree_t _max_degree;
 
         void load_from_graph(const trade_vector& trades, bool verbose = false);
 
         void restructure_graph(const trade_vector& trades, bool verbose = false);
 
-        // Manuel: Inlining on function with external definition is not sensible
-	inline void update(node_t a, node_t b, bool verbose = false);
+		inline void update(const node_t a, const node_t b, bool verbose = false) {
+			const tradeid_t ta = *(_trade_list.get_trades(a));
+			const tradeid_t tb = *(_trade_list.get_trades(b));
+			if (ta < tb) {
+				if (verbose)
+					std::cout << "node a: " << a << " [" << ta << "] before " << "node b: " << b << " [" << tb << "]" << std::endl;
+				_adj_list.insert_neighbour(a, b);
+
+				return;
+			}
+
+			if (ta > tb) {
+				if (verbose)
+					std::cout << "node a: " << a << " [" << ta << "] after " << "node b: " << b << " [" << tb << "]" << std::endl;
+
+				_adj_list.insert_neighbour(b, a);
+
+				return;
+			}
+
+			// ta == tb
+			{
+				if (verbose)
+					std::cout << "node a: " << a << " [" << ta << "] again with " << "node b: " << b << " [" << tb << "]" << std::endl;
+
+				_adj_list.insert_neighbour(a, b);
+			}
+		}
 
     public:
         Curveball(const NetworKit::Graph& G);
