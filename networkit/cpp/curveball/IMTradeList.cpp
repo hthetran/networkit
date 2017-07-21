@@ -66,37 +66,21 @@ void IMTradeList::initialize(const trade_vector& trades) {
 	// set last entry as sentinel
 	_trade_list.back() = TRADELIST_END;
 
-	// Manuel: Why not reuse trade_count?
-	std::vector<tradeid_t> tmp_counter(_num_nodes);
+    std::fill(trade_count.begin(), trade_count.end(), 0);
+    {
+        tradeid_t trade_id = 0;
+        for (const trade_t& trade : trades) {
+            auto updateNode = [&] (const node_t node) {
+                const node_t pos = _offsets[node] + trade_count[node];
+                _trade_list[pos] = trade_id;
+                trade_count[node]++;
+            };
 
-	tradeid_t trade_id = 0;
-	for (const trade_t& trade : trades) {
-		/* Manuel: Lambda?
-		auto updateNode = [&] (const node_t node) {
-		    const pos = _offsets[node] + tmp_counter[node];
-		    _trade_list[pos] = trade_id;
-		    tmp_counter[node]++;
-		};
-
-		updateNode(trade.first);
-		updateNode(trade.second);
-		trade_id++;
-		*/
-
-
-		// process first node
-		const node_t fst_node = trade.first;
-
-
-		// process second node
-		const node_t snd_node = trade.second;
-
-		const node_t snd_pos = _offsets[snd_node] + tmp_counter[snd_node];
-		_trade_list[snd_pos] = trade_id;
-		tmp_counter[snd_node]++;
-
-		trade_id++;
-	}
+            updateNode(trade.first);
+            updateNode(trade.second);
+            trade_id++;
+        }
+    }
 }
 
 /**
@@ -142,26 +126,21 @@ IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
 	// set last entry as sentinel
 	_trade_list.back() = TRADELIST_END;
 
-	std::vector<tradeid_t> tmp_counter(num_nodes);
+    std::fill(trade_count.begin(), trade_count.end(), 0);
+    {
+        tradeid_t trade_id = 0;
+        for (const trade_t& trade : trades) {
+            auto updateNode = [&] (const node_t node) {
+                const node_t pos = _offsets[node] + trade_count[node];
+                _trade_list[pos] = trade_id;
+                trade_count[node]++;
+            };
 
-	tradeid_t trade_id = 0;
-	for (const trade_t trade : trades) {
-		// process first node
-		const node_t fst_node = trade.first;
-
-		const node_t fst_pos = _offsets[fst_node] + tmp_counter[fst_node];
-		_trade_list[fst_pos] = trade_id;
-		tmp_counter[fst_node]++;
-
-		// process second node
-		const node_t snd_node = trade.second;
-
-		const node_t snd_pos = _offsets[snd_node] + tmp_counter[snd_node];
-		_trade_list[snd_pos] = trade_id;
-		tmp_counter[snd_node]++;
-
-		trade_id++;
-	}
+            updateNode(trade.first);
+            updateNode(trade.second);
+            trade_id++;
+        }
+    }
 }
 
 }
