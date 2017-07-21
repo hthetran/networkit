@@ -32,6 +32,7 @@ protected:
         // Manuel: Two should suffice ?
 	//   _end[i] = _begin[i] + _offset[i]
 	//   _degree[i] = _begin[i+1]-_begin[i] (need n+1 entries)
+	// add dummy at end
     	degree_vector _offsets;
 	pos_vector _begin;
 	pos_vector _end;
