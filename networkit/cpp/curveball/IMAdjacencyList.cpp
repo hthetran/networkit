@@ -27,7 +27,6 @@ using cneighbour_it = neighbour_vector::const_iterator;
         _neighbours.resize(degree_count + degrees.size() + 1);
         _begin.resize(degrees.size() + 1);
         _end.resize(degrees.size() + 1);
-        _degrees = degrees;
         _degree_count = degree_count;
 
         degree_t sum = 0;
