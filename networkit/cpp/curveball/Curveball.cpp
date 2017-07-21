@@ -263,8 +263,7 @@ namespace CurveBall {
 	}*/
 
 	// previously getMaterializedGraph
-	// sadly not const return
-	NetworKit::Graph Curveball::getGraph(bool verbose) {
+	NetworKit::Graph Curveball::getGraph(bool verbose) const {
 		const NetworKit::IMAdjacencyListMaterialization gb;
 		return gb.materialize(_adj_list);
 	}
