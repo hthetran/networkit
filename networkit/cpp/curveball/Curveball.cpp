@@ -106,10 +106,12 @@ namespace CurveBall {
 		    // we return whether u has v in his neighbors or vice-versa
 		    auto organize_neighbors = [&](node_t u, node_t v) {
 			auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
-			if (pos == _adj_list.cend(u))
+			if (pos == _adj_list.cend(u)) {
+				// not found but still sort...
+				std::sort(_adj_list.begin(u), _adj_list.end(u));
 				return false;
-			else {
-				(*_adj_list.end(u)) = *pos;
+			} else {
+				(*_adj_list.end(u)) = v;
 				*pos = LISTROW_END;
 				std::sort(_adj_list.begin(u), _adj_list.end(u));
 				*(_adj_list.end(u) - 1) = *_adj_list.end(u);
@@ -119,6 +121,7 @@ namespace CurveBall {
 					*_adj_list.end(u) = LISTROW_END;
 				else
 					*_adj_list.end(u) = 0;
+
 				return true;
 			}
 		    };
@@ -127,7 +130,8 @@ namespace CurveBall {
 			const bool v_share = organize_neighbors(v, u);
 			auto u_end = (u_share ? _adj_list.cend(u) - 1 : _adj_list.cend(u));
 			auto v_end = (v_share ? _adj_list.cend(v) - 1 : _adj_list.cend(v));
-		
+
+			assert(shared == (u_share || v_share));	
 			assert((!u_share && !v_share) || (u_share != v_share));
 
 			// No need to keep track of direct positions
@@ -138,6 +142,8 @@ namespace CurveBall {
 			auto u_nit = _adj_list.cbegin(u);
 			auto v_nit = _adj_list.cbegin(v);
 			while ((u_nit != u_end) && (v_nit != v_end)) {
+				assert(*u_nit != v);
+				assert(*v_nit != u);
 				if (*u_nit > *v_nit) {
 					disjoint_neighbours.push_back(*v_nit);
 					v_nit++;
@@ -162,7 +168,7 @@ namespace CurveBall {
 
 			const degree_t u_setsize = static_cast<degree_t>(u_end - _adj_list.cbegin(u) - common_neighbours.size());
 			const degree_t v_setsize = static_cast<degree_t>(v_end - _adj_list.cbegin(v) - common_neighbours.size());
-			// v_setsize not necessary needed
+			// v_setsize not necessarily needed
 
 			// Reset fst/snd row
 			_adj_list.reset_row(u);
