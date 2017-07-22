@@ -23,6 +23,14 @@ TEST_F(EdgeSwitchingMarkovChainRandomizationGTest, testRunSingleTrade) {
 	const edgeswap_vector swaps = { std::make_pair(0, 1) };
 
 	algo.run(swaps);
+
+	NetworKit::Graph Gout = algo.getGraph();
+	if (Gout.hasEdge(0, 2)) {
+		ASSERT_TRUE(Gout.hasEdge(1, 3));
+	else {
+		ASSERT_TRUE(Gout.hasEdge(0, 3));
+		ASSERT_TRUE(Gout.hasEdge(1, 2));
+	}
 }
 
 }
