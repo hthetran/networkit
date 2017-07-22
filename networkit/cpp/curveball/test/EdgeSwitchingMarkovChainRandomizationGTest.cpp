@@ -25,7 +25,7 @@ TEST_F(EdgeSwitchingMarkovChainRandomizationGTest, testRunSingleTrade) {
 	algo.run(swaps);
 
 	NetworKit::Graph Gout = algo.getGraph();
-	if (Gout.hasEdge(0, 2)) {
+	if (Gout.hasEdge(0, 2)) 
 		ASSERT_TRUE(Gout.hasEdge(1, 3));
 	else {
 		ASSERT_TRUE(Gout.hasEdge(0, 3));
