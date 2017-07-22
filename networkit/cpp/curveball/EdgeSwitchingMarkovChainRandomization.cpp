@@ -16,7 +16,7 @@ namespace CurveBall {
 	
 	EdgeSwitchingMarkovChainRandomization::EdgeSwitchingMarkovChainRandomization(const NetworKit::Graph& G) 
 	{
-		_edges.reserve(G.numberOfEdges());
+/*		_edges.reserve(G.numberOfEdges());
 		edgeid_t id = 0;
 		for (const auto edge : G.edges()){
 			_edges.push_back((edge_t) edge);
@@ -27,10 +27,11 @@ namespace CurveBall {
 		_degrees.reserve(G.numberOfNodes());
 		G.forNodes([&](node_t v) {
 			_degrees.push_back(G.degree(v));
-		});
+		});*/
 	}
 
 	void EdgeSwitchingMarkovChainRandomization::run(const edgeswap_vector& swaps) {
+		/*
 		// TODO: get edges by find(id's)
 		// TODO: search the swapped by find again
 		for (const auto swap : swaps) {
@@ -60,11 +61,12 @@ namespace CurveBall {
 				_edgeid_map.insert(std::make_pair(swapped_a, swap.first));
 				_edgeid_map.insert(std::make_pair(swapped_b, swap.second));
 			}
-		}
+		}*/
 	}
 
 	NetworKit::Graph EdgeSwitchingMarkovChainRandomization::getGraph() const {
-		NetworKit::EdgeVectorMaterialization gb;
-		return gb.materialize(_edges, _degrees);
+		/*NetworKit::EdgeVectorMaterialization gb;
+		return gb.materialize(_edges, _degrees);*/
+		return NetworKit::Graph(5);
 	}
 }

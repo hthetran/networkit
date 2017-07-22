@@ -12,7 +12,6 @@
 #include "../base/Algorithm.h"
 #include "../graph/Graph.h"
 #include "defs.h"
-#include <stx/btree_map.h>
 
 namespace CurveBall {
 
@@ -25,7 +24,6 @@ class EdgeSwitchingMarkovChainRandomization : public NetworKit::Algorithm {
 protected:
 	edge_vector _edges;
 	degree_vector _degrees;
-	stx::btree_map<edge_t, edgeid_t> _edgeid_map;
 
 public:
 	EdgeSwitchingMarkovChainRandomization(const NetworKit::Graph& G);
