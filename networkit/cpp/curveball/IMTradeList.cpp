@@ -11,6 +11,7 @@
 
 namespace CurveBall {
 
+using tradeid_vector = std::vector<tradeid_t>;
 using trade_t = TradeDescriptor;
 using trade_vector = std::vector<trade_t>;
 
@@ -22,7 +23,7 @@ void IMTradeList::initialize(const trade_vector& trades) {
 	_trade_list.clear();
 	_trade_list.resize(2 * trades.size() + _num_nodes);
 	_offsets.clear();
-	_offsets.resize(_num_nodes);
+	_offsets.resize(_num_nodes + 1);
 
 	assert(_num_nodes > 0);
 	assert(trades.size() > 0);
@@ -39,56 +40,42 @@ void IMTradeList::initialize(const trade_vector& trades) {
 		trade_count[trade.first]++;
 		trade_count[trade.second]++;
 	}
-	
-	// calc prefix sums...
-	// Manuel: Consider putting short-lived variables into scope:
-	// {
-	//   tradeid_t pre_sum = 0;
-	//   for(..) {}
-	// }
-	auto count_it = trade_count.begin();
-	tradeid_t pre_sum = 0;
-	node_t curr_node = 1;
 
+	// add missing +1 for sentinel	
+	trade_count[0]++;
+	std::partial_sum(trade_count.cbegin(), trade_count.cend(), _offsets.begin() + 1, [&](const tradeid_t a, const tradeid_t b){
+		return a + b + 1;
+	});
+	// add dummy
+	_offsets[_num_nodes] = 2 * trades.size() + _num_nodes - 1;
 
-	// Manuel:
-	//  - this is a for loop
-	//  - prefix sum can be computed with std::partial_sum
-	do {
-		assert(curr_node < _num_nodes);
-		_offsets[curr_node] = pre_sum + *count_it + 1;
-		pre_sum = _offsets[curr_node];
-		_trade_list[_offsets[curr_node] - 1] = TRADELIST_END;
-		count_it++;
-		curr_node++;
-	} while (curr_node < _num_nodes);
-	
+	// set sentinels
+	for (node_t node = 1; node < _num_nodes; node++) {
+		_trade_list[_offsets[node] - 1] = TRADELIST_END;
+	}
 	// set last entry as sentinel
 	_trade_list.back() = TRADELIST_END;
+	
+	    std::fill(trade_count.begin(), trade_count.end(), 0);
+	    {
+		tradeid_t trade_id = 0;
+		for (const trade_t& trade : trades) {
+		    auto updateNode = [&] (const node_t node) {
+			const node_t pos = _offsets[node] + trade_count[node];
+			_trade_list[pos] = trade_id;
+			trade_count[node]++;
+		    };
 
-    std::fill(trade_count.begin(), trade_count.end(), 0);
-    {
-        tradeid_t trade_id = 0;
-        for (const trade_t& trade : trades) {
-            auto updateNode = [&] (const node_t node) {
-                const node_t pos = _offsets[node] + trade_count[node];
-                _trade_list[pos] = trade_id;
-                trade_count[node]++;
-            };
-
-            updateNode(trade.first);
-            updateNode(trade.second);
-            trade_id++;
-        }
-    }
+		    updateNode(trade.first);
+		    updateNode(trade.second);
+		    trade_id++;
+		}
+	    }
 }
 
-/**
- * Again use a sentinel.
- */
 IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
 	: _trade_list(2 * trades.size() + num_nodes)
-	, _offsets(num_nodes)
+	, _offsets(num_nodes + 1)
 	, _num_nodes(num_nodes)
 {
 	// Manuel: see above
@@ -108,38 +95,36 @@ IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
 		trade_count[trade.first]++;
 		trade_count[trade.second]++;
 	}
-	
-	// calc prefix sums...
-	auto count_it = trade_count.begin();
-	tradeid_t pre_sum = 0;
-	node_t curr_node = 1;
 
-	do {
-		assert(curr_node < num_nodes);
-		_offsets[curr_node] = pre_sum + *count_it + 1;
-		pre_sum = _offsets[curr_node];
-		_trade_list[_offsets[curr_node] - 1] = TRADELIST_END;
-		count_it++;
-		curr_node++;
-	} while (curr_node < num_nodes);
-	
+	// add missing +1 for sentinel	
+	trade_count[0]++;
+	std::partial_sum(trade_count.cbegin(), trade_count.cend(), _offsets.begin() + 1, [&](const tradeid_t a, const tradeid_t b){
+		return a + b + 1;
+	});
+	// add dummy
+	_offsets[num_nodes] = 2 * trades.size() + num_nodes - 1;
+
+	// set sentinels
+	for (node_t node = 1; node < _num_nodes; node++) {
+		_trade_list[_offsets[node] - 1] = TRADELIST_END;
+	}
 	// set last entry as sentinel
 	_trade_list.back() = TRADELIST_END;
 
-    std::fill(trade_count.begin(), trade_count.end(), 0);
-    {
-        tradeid_t trade_id = 0;
-        for (const trade_t& trade : trades) {
-            auto updateNode = [&] (const node_t node) {
-                const node_t pos = _offsets[node] + trade_count[node];
-                _trade_list[pos] = trade_id;
-                trade_count[node]++;
-            };
+    	std::fill(trade_count.begin(), trade_count.end(), 0);
+	{
+		tradeid_t trade_id = 0;
+		for (const trade_t& trade : trades) {
+		    auto updateNode = [&] (const node_t node) {
+			const node_t pos = _offsets[node] + trade_count[node];
+			_trade_list[pos] = trade_id;
+			trade_count[node]++;
+		    };
 
-            updateNode(trade.first);
-            updateNode(trade.second);
-            trade_id++;
-        }
+		    updateNode(trade.first);
+		    updateNode(trade.second);
+		    trade_id++;
+		}
     }
 }
 

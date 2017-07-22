@@ -50,10 +50,7 @@ public:
 	void inc_offset(const node_t nodeid) {
 		assert(nodeid >= 0);
 		assert(nodeid < _num_nodes);
-		if (nodeid < _num_nodes - 1)
-			assert(1 <= _offsets[nodeid + 1] - _offsets[nodeid]);
-		else 
-			assert(1 <= static_cast<tradeid_t>(_trade_list.size()) - _offsets[nodeid] - 1);
+		assert(1 <= _offsets[nodeid + 1] - _offsets[nodeid]);
 
 		_offsets[nodeid]++;
 	}
