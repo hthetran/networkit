@@ -101,8 +101,6 @@ namespace CurveBall {
 			_trade_list.inc_offset(v);
 			
 			// Retrieve respective neighbours
-		    const bool shared = (std::find(_adj_list.cbegin(u), _adj_list.cend(u), v) != _adj_list.cend(u))
-					  || (std::find(_adj_list.cbegin(v), _adj_list.cend(v), u) != _adj_list.cend(v));
 		    // we return whether u has v in his neighbors or vice-versa
 		    auto organize_neighbors = [&](node_t u, node_t v) {
 			auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
@@ -131,7 +129,8 @@ namespace CurveBall {
 			auto u_end = (u_share ? _adj_list.cend(u) - 1 : _adj_list.cend(u));
 			auto v_end = (v_share ? _adj_list.cend(v) - 1 : _adj_list.cend(v));
 
-			assert(shared == (u_share || v_share));	
+			const bool shared = u_share || v_share;
+			// both can't have each other, only inserted in one
 			assert((!u_share && !v_share) || (u_share != v_share));
 
 			// No need to keep track of direct positions
