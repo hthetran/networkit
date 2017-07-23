@@ -2460,6 +2460,28 @@ cdef class Curveball(Algorithm):
 	def getGraph(self):
 		return Graph().setThis((<_Curveball*>self._this).getGraph())
 
+cdef extern from "cpp/curveball/EdgeSwitchingMarkovChainRandomization.h":
+	cdef cppclass _EdgeSwitchingMarkovChainRandomization "CurveBall::EdgeSwitchingMarkovChainRandomization"(_Algorithm):
+		_EdgeSwitchingMarkovChainRandomization(_Graph) except +
+		void run(vector[pair[node, node]] swaps) nogil except + # node type = edgeid type
+		_Graph getGraph() except +
+
+cdef class EdgeSwitchingMarkovChainRandomization(Algorithm):
+	"""
+	TODO document
+	"""
+	def __cinit__(self, G):
+		if isinstance(G, Graph):
+			self._this = new _EdgeSwitchingMarkovChainRandomization((<Graph>G)._this)
+
+	def run(self, vector[pair[node, node]] swaps):
+		with nogil:
+			(<_EdgeSwitchingMarkovChainRandomization*>(self._this)).run(swaps)
+		return self
+
+	def getGraph(self):
+		return Graph().setThis((<_EdgeSwitchingMarkovChainRandomization*>self._this).getGraph())
+
 cdef extern from "cpp/generators/PowerlawDegreeSequence.h":
 	cdef cppclass _PowerlawDegreeSequence "NetworKit::PowerlawDegreeSequence":
 		_PowerlawDegreeSequence(count minDeg, count maxDeg, double gamma) except +
