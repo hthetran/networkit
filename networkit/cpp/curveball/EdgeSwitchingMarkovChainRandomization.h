@@ -23,7 +23,6 @@ class EdgeSwitchingMarkovChainRandomization : public NetworKit::Algorithm {
 
 protected:
 	edge_vector _edges;
-	degree_vector _degrees;
 	// maybe reference? change given graph, or new one
 	NetworKit::Graph _G;
 
