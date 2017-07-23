@@ -20,11 +20,6 @@ namespace CurveBall {
 		for (const auto edge : G.edges()){
 			_edges.push_back(static_cast<edge_t>(edge));
 		}
-
-		_degrees.reserve(G.numberOfNodes());
-		G.forNodes([&](node_t v) {
-			_degrees.push_back(G.degree(v));
-		});
 	}
 
 	void EdgeSwitchingMarkovChainRandomization::run(const edgeswap_vector& swaps) {
