@@ -18,12 +18,15 @@
 namespace CurveBall {
 	
 	using edge_vector = std::vector<edge_t>;
+	using bool_vector = std::vector<bool>;
+	using value_type = std::pair<edge_t, bool_vector>;
+	using value_type_it = std::vector<value_type>::iterator;
 
 	class AutocorrelationAnalysis {
 	protected:
 		const NetworKit::count _max_sample_size;
 		NetworKit::count _curr_sample_size;
-		stx::btree_map< edge_t, std::vector<bool> > edge_existence;
+		stx::btree_map<edge_t, bool_vector> edge_existence;
 
 	public:
 		AutocorrelationAnalysis(const NetworKit::count max_sample_size);
@@ -31,9 +34,11 @@ namespace CurveBall {
 		void addSample(const NetworKit::Graph& G);
 
 		void addSample(const edge_vector& edges);
+/*
+		value_type_it begin();
 
-		void dump(std::string fileName);
-	};
+		value_type_it end();
+*/	};
 }
 
 #endif
