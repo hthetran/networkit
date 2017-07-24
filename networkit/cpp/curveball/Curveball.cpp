@@ -21,6 +21,7 @@ namespace CurveBall {
 	using trade_vector = std::vector<TradeDescriptor>;
 	using neighbour_vector = std::vector<node_t>;
         using node_vector = std::vector<node_t>;
+	using edge_vector = std::vector<edge_t>;
 
 	Curveball::Curveball(const NetworKit::Graph& G)
 		: _G(G)
@@ -66,8 +67,7 @@ namespace CurveBall {
 
 	void Curveball::restructure_graph(const trade_vector& trades, const bool verbose) {
 	
-		std::vector<edge_t> edges;
-		_adj_list.getEdges(edges);
+		std::vector<edge_t> edges =_adj_list.getEdges();
 
 		_adj_list.restructure();
 		_trade_list.initialize(trades);
@@ -207,5 +207,9 @@ namespace CurveBall {
 	NetworKit::Graph Curveball::getGraph(bool verbose) const {
 		const NetworKit::IMAdjacencyListMaterialization gb;
 		return gb.materialize(_adj_list);
+	}
+
+	edge_vector Curveball::getEdges() const {
+		return _adj_list.getEdges();
 	}
 }

@@ -19,6 +19,8 @@ namespace CurveBall {
 
     using trade_vector = std::vector<TradeDescriptor>;
 
+	using edge_vector = std::vector<edge_t>;
+
     class Curveball : public NetworKit::Algorithm {
 
     protected:
@@ -77,6 +79,8 @@ namespace CurveBall {
         }
 
         NetworKit::Graph getGraph(const bool verbose = false) const;
+    
+	edge_vector getEdges() const;
     };
 }
 
