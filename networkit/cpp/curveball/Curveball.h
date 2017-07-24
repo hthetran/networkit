@@ -77,8 +77,6 @@ namespace CurveBall {
         }
 
         NetworKit::Graph getGraph(const bool verbose = false) const;
-
-	//NetworKit::Graph getMaterializedGraph(const bool verbose = false);
     };
 }
 
