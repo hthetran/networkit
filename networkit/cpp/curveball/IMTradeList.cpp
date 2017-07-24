@@ -7,7 +7,7 @@
 
 #include "IMTradeList.h"
 #include "Trade.h"
-#include <iostream>
+#include <numeric>
 
 namespace CurveBall {
 
