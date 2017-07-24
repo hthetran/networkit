@@ -41,11 +41,6 @@ cd build
 cmake -DBUILD_SHARED_LIBS=ON ..
 make -j
 
-#cd $INST_DIR
-#cd curveball-im/stx-btree
-#./configure
-#make
-
 cd $INST_DIR
 echo -e "\e[31mBuild python3 dependencies \e[39m"
 $PYTHON -m venv $INST_DIR/python-env
@@ -59,7 +54,7 @@ cd $INST_DIR/curveball-im
 perl -pi -e 's/\{\}/{0}/' SConstruct
 cp build.conf.example build.conf
 perl -pi -e 's/^cpp\s*=.*$/cpp = $ENV{CXX}/' build.conf
-#perl -pi -e 's/^std\s*=.*$/std = stx-btree\/include\//' build.conf
+perl -pi -e 's/^std\s*=.*$/std = stx-btree\/include\//' build.conf
 perl -pi -e 's/scons_available = True/scons_available = False/' setup.py
 sed -i '7s/.*/gtest = googletest\/googletest\/include\//' build.conf
 sed -i '10s/.*/gtest = googletest\/googletest\/build\//' build.conf
