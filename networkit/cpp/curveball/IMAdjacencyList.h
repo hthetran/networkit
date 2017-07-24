@@ -53,7 +53,7 @@ public:
 	
 	cneighbour_it cend(const node_t node_id) const;
 
-	void getEdges(edge_vector& edges);
+	edge_vector getEdges() const;
 	
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
 		const auto pos = begin(node_id) + _offsets[node_id];
