@@ -2509,7 +2509,9 @@ cdef class AutocorrelationAnalysis:
 			self._this.addSample(<vector[pair[node, node]]?>G)
 	
 	def getEdgeExistences(self):
-		return self._this.getEdgeExistences()
+		edgeExistences = self._this.getEdgeExistences()
+		result = [(a, pandas.np.array(b, dtype=pandas.np.bool)) for a, b in edgeExistences]
+		return result #self._this.getEdgeExistences()
 
 	"""
 	TODO document
