@@ -2482,6 +2482,50 @@ cdef class EdgeSwitchingMarkovChainRandomization(Algorithm):
 	def getGraph(self):
 		return Graph().setThis((<_EdgeSwitchingMarkovChainRandomization*>self._this).getGraph())
 
+cdef extern from "cpp/curveball/AutocorrelationAnalysis.h":
+	cdef cppclass _AutocorrelationAnalysis "CurveBall::AutocorrelationAnalysis":
+		_AutocorrelationAnalysis(count maxSampleSize) except +
+		void addSample(_Graph G) nogil except +
+		void addSample(vector[pair[node, node]] edges) nogil except +
+		vector[pair[pair[node, node], vector[bool]]] getEdgeExistences() nogil except +
+
+
+cdef class AutocorrelationAnalysis:
+	"""
+	TODO document
+	"""
+	cdef _AutocorrelationAnalysis *_this
+
+	def __cinit__(self, count maxSampleSize):
+		self._this = new _AutocorrelationAnalysis(maxSampleSize)
+
+	def __dealloc__(self):
+		del self._this
+
+	def addSample(self, G):
+		if isinstance(G, Graph):
+			self._this.addSample((<Graph>G)._this)
+		else:
+			self._this.addSample(<vector[pair[node, node]]?>G)
+	
+	def getEdgeExistences(self):
+		return self._this.getEdgeExistences()
+
+	"""
+	TODO document
+	
+	cdef _GlobalTradeGenerator *_this
+
+	def __cinit__(self, count runLength, count numNodes):
+		self._this = new _GlobalTradeGenerator(runLength, numNodes)
+
+	def __dealloc__(self):
+		del self._this
+
+	def generate(self):
+		return self._this.generate()
+	"""
+
 cdef extern from "cpp/generators/PowerlawDegreeSequence.h":
 	cdef cppclass _PowerlawDegreeSequence "NetworKit::PowerlawDegreeSequence":
 		_PowerlawDegreeSequence(count minDeg, count maxDeg, double gamma) except +
