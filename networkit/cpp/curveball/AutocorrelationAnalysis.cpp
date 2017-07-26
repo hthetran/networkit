@@ -9,9 +9,9 @@
 
 namespace CurveBall {
 	
-	using edge_vector = std::vector<edge_t>;
+	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 	using bool_vector = std::vector<bool>;
-	using value_type = std::pair<edge_t, bool_vector>;
+	using value_type = std::pair< std::pair<node_t, node_t>, bool_vector>;
 	using value_type_it = std::vector<value_type>::iterator;
 	using value_type_cit = std::vector<value_type>::const_iterator;
 	using value_type_vector = std::vector<value_type>;
@@ -37,10 +37,12 @@ namespace CurveBall {
 		return;
 	}
 
-	void AutocorrelationAnalysis::addSample(const edge_vector& edges) {
+	void AutocorrelationAnalysis::addSample(const nodepair_vector& edges) {
 		for (const auto edge : edges) {
 			edge_t _edge = edge;
-			_edge.normalize();
+			if (_edge.first > _edge.second)
+				std::swap(_edge.first, _edge.second);
+			assert(_edge.first <= _edge.second);
 			auto edge_pos = edge_existence.insert(std::make_pair(_edge, std::vector<bool>(_max_sample_size, false)));
 			((*(edge_pos.first)).second)[_curr_sample_size] = true;
 		}

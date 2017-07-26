@@ -17,13 +17,14 @@
 
 namespace CurveBall {
 	
-	using edge_vector = std::vector<edge_t>;
+	//TODO: Change back to edge_t
+	using nodepair_vector = std::vector<std::pair<node_t, node_t> >;
 	using bool_vector = std::vector<bool>;
-	using value_type = std::pair<edge_t, bool_vector>;
+	using value_type = std::pair< std::pair<node_t, node_t>, bool_vector>;
 	using value_type_vector = std::vector<value_type>;
 	using value_type_it = std::vector<value_type>::iterator;
 	// using tree_type = stx::btree_map<edge_t, bool_vector>;
-	using tree_type = std::map<edge_t, bool_vector>;
+	using tree_type = std::map< std::pair<node_t, node_t>, bool_vector>;
 
 	class AutocorrelationAnalysis {
 	protected:
@@ -36,7 +37,7 @@ namespace CurveBall {
 
 		void addSample(const NetworKit::Graph& G);
 
-		void addSample(const edge_vector& edges);
+		void addSample(const nodepair_vector& edges);
 
 		value_type_vector getEdgeExistences() const;
 	};
