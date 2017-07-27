@@ -54,7 +54,7 @@ cd $INST_DIR/curveball-im
 perl -pi -e 's/\{\}/{0}/' SConstruct
 cp build.conf.example build.conf
 perl -pi -e 's/^cpp\s*=.*$/cpp = $ENV{CXX}/' build.conf
-perl -pi -e 's/^std\s*=.*$/std = stx-btree\/include\//' build.conf
+#perl -pi -e 's/^std\s*=.*$/std = stx-btree\/include\//' build.conf
 perl -pi -e 's/scons_available = True/scons_available = False/' setup.py
 sed -i '7s/.*/gtest = googletest\/googletest\/include\//' build.conf
 sed -i '10s/.*/gtest = googletest\/googletest\/build\//' build.conf
@@ -63,6 +63,7 @@ python3 setup.py build_ext --inplace --optimize=Opt -j20
 pip install -e ./
 pip install -r requirements.txt
 python3 setup.py clean --optimize=Opt
+pip3 install jupyter
 
 MPL_RC=$(python3 -c 'import matplotlib as mpl; print(mpl.matplotlib_fname())')
 perl -pi -e 's/backend\s*:\s*TkAgg/backend: pdf/' $MPL_RC
