@@ -63,6 +63,7 @@ python3 setup.py build_ext --inplace --optimize=Opt -j20
 pip install -e ./
 pip install -r requirements.txt
 python3 setup.py clean --optimize=Opt
+pip3 install jupyter
 
 MPL_RC=$(python3 -c 'import matplotlib as mpl; print(mpl.matplotlib_fname())')
 perl -pi -e 's/backend\s*:\s*TkAgg/backend: pdf/' $MPL_RC
