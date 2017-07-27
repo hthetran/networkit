@@ -44,10 +44,19 @@ namespace CurveBall {
 				// careful, since swapEdge swaps in a particular way
 				_edges[swap.first] = swapped_a;
 				_edges[swap.second] = swapped_b;
-				if (!dir)
+				if (!dir) {
 					_G.swapEdge(edge_a.first, edge_a.second, edge_b.first, edge_b.second);
-				else
+					assert(_G.hasEdge(swapped_a.first, swapped_a.second));
+					assert(_G.hasEdge(swapped_b.first, swapped_b.second));
+					assert(!_G.hasEdge(edge_a.first, edge_a.second));
+					assert(!_G.hasEdge(edge_b.first, edge_b.second));
+				} else {
 					_G.swapEdge(edge_a.second, edge_a.first, edge_b.first, edge_b.second);
+					assert(_G.hasEdge(swapped_a.first, swapped_a.second));
+					assert(_G.hasEdge(swapped_b.first, swapped_b.second));
+					assert(!_G.hasEdge(edge_a.first, edge_a.second));
+					assert(!_G.hasEdge(edge_b.first, edge_b.second));
+				}
 			}
 		}
 	}
