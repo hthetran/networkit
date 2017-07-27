@@ -6,8 +6,11 @@
  */
 
 #include "EdgeSwitchingMarkovChainRandomizationGTest.h"
+#include "../../Globals.h"
 #include "../../graph/Graph.h"
 #include "../EdgeSwitchingMarkovChainRandomization.h"
+#include "../../generators/ErdosRenyiGenerator.h"
+#include "../UniformTradeGenerator.h"
 
 namespace CurveBall {
 
@@ -30,7 +33,21 @@ TEST_F(EdgeSwitchingMarkovChainRandomizationGTest, testRunSingleTrade) {
 	else {
 		ASSERT_TRUE(Gout.hasEdge(0, 3));
 		ASSERT_TRUE(Gout.hasEdge(1, 2));
+		ASSERT_TRUE(Gout.hasEdge(3, 0));
+		ASSERT_TRUE(Gout.hasEdge(2, 1));
 	}
+}
+
+TEST_F(EdgeSwitchingMarkovChainRandomizationGTest, testRunMultipleTrades) {
+	const NetworKit::count n = 10000;
+	double p = 0.5;
+	NetworKit::ErdosRenyiGenerator gen(n, p);
+	NetworKit::Graph G = gen.generate();
+
+	EdgeSwitchingMarkovChainRandomization algo(G);
+	UniformTradeGenerator tradegen(G.numberOfEdges(), G.numberOfEdges());
+
+	algo.run(tradegen.generate());
 }
 
 }
