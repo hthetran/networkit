@@ -28,12 +28,12 @@ namespace CurveBall {
 			const edge_t edge_b = _edges[swap.second];
 			
 			// swapped edges
-			const bool dir = (bool) Aux::Random::integer(1);
+			const bool dir = Aux::Random::integer(1);
 			const edge_t swapped_a = (dir ? edge_t{edge_a.first, edge_b.first} : edge_t{edge_a.first, edge_b.second}); 
 			const edge_t swapped_b = (dir ? edge_t{edge_a.second, edge_b.second} : edge_t{edge_a.second, edge_b.first});
 
 			// check for self-loops
-			if (swapped_a.is_invalid() || swapped_b.is_invalid())
+			if ((swapped_a.first == swapped_a.second) || (swapped_b.first == swapped_b.second))
 				continue;
 			
 			// check for edge existence
