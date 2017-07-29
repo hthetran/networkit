@@ -25,12 +25,14 @@ namespace CurveBall {
 	using value_type_it = std::vector<value_type>::iterator;
 	// using tree_type = stx::btree_map<edge_t, bool_vector>;
 	using tree_type = std::map< std::pair<node_t, node_t>, bool_vector>;
+	using tree_type_it = tree_type::const_iterator;
 
 	class AutocorrelationAnalysis {
 	protected:
 		const NetworKit::count _max_sample_size;
 		NetworKit::count _curr_sample_size;
 		tree_type edge_existence;
+		tree_type_it pos;
 
 	public:
 		AutocorrelationAnalysis(const NetworKit::count max_sample_size);
@@ -39,7 +41,18 @@ namespace CurveBall {
 
 		void addSample(const nodepair_vector& edges);
 
+		/* Deprecated do not call this.
+		 * Potentially uses up too much RAM.
+		 */
 		value_type_vector getEdgeExistences() const;
+
+		void init();
+
+		bool_vector get() const;
+
+		void next();
+
+		bool end() const;
 	};
 }
 
