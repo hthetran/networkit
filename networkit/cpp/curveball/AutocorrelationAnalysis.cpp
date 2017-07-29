@@ -15,6 +15,8 @@ namespace CurveBall {
 	using value_type_it = std::vector<value_type>::iterator;
 	using value_type_cit = std::vector<value_type>::const_iterator;
 	using value_type_vector = std::vector<value_type>;
+	using tree_type = std::map<std::pair<node_t, node_t>, std::vector<bool> >;
+	using tree_type_cit = tree_type::const_iterator;
 
 	AutocorrelationAnalysis::AutocorrelationAnalysis(const NetworKit::count max_sample_size) 
 		: _max_sample_size(max_sample_size)
@@ -61,5 +63,22 @@ namespace CurveBall {
 		}
 
 		return result;
+	}
+
+	void AutocorrelationAnalysis::init() {
+		pos = edge_existence.cbegin();
+		return;
+	}
+
+	bool_vector AutocorrelationAnalysis::get() const {
+		return (*pos).second;
+	}
+
+	void AutocorrelationAnalysis::next() {
+		pos++;
+	}
+
+	bool AutocorrelationAnalysis::end() const {
+		return pos == edge_existence.cend();
 	}
 }
