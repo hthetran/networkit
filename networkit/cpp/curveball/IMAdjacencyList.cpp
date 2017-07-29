@@ -15,7 +15,7 @@ using degree_it = std::vector<degree_t>::const_iterator;
 using pos_vector = std::vector<edgeid_t>;
 using neighbour_it = neighbour_vector::iterator;
 using cneighbour_it = neighbour_vector::const_iterator;
-using edge_vector = std::vector<edge_t>;
+using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
 // public static constexpr degree_t LISTROW_END = std::numeric_limits<degree_t>::max();
 /**
@@ -106,12 +106,12 @@ cneighbour_it IMAdjacencyList::cend(const node_t node_id) const {
 	return _neighbours.cbegin() + _begin[node_id] + _offsets[node_id];
 }
 
-edge_vector IMAdjacencyList::getEdges() const {
-	edge_vector edges;
+nodepair_vector IMAdjacencyList::getEdges() const {
+	nodepair_vector edges;
 	edges.reserve(_degree_count);
 	for (node_t nodeid = 0; nodeid < static_cast<node_t>(_offsets.size()); nodeid++) {
 		for (auto it = cbegin(nodeid); it != cend(nodeid); it++) {
-			edges.push_back(edge_t{nodeid, *it});
+			edges.push_back(std::make_pair(nodeid, *it));
 		}
 	}
 	

@@ -21,7 +21,7 @@ namespace CurveBall {
 	using trade_vector = std::vector<TradeDescriptor>;
 	using neighbour_vector = std::vector<node_t>;
         using node_vector = std::vector<node_t>;
-	using edge_vector = std::vector<edge_t>;
+	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
 	Curveball::Curveball(const NetworKit::Graph& G)
 		: _G(G)
@@ -34,10 +34,7 @@ namespace CurveBall {
 		assert(_num_nodes > 0);
 	}
 
-	void Curveball::load_from_graph(const trade_vector& trades, const bool verbose) {
-		if (verbose)
-			std::cout << "Load from graph:" << std::endl;
-
+	void Curveball::load_from_graph(const trade_vector& trades) {
 		// Compute degree sequence
 		degree_vector degrees;
 	   	degrees.reserve(_num_nodes);
@@ -49,15 +46,9 @@ namespace CurveBall {
 
 		_max_degree = *(std::max_element(degrees.cbegin(), degrees.cend()));
 
-		if (verbose)
-			std::cout << "Computed degree sequence..." << std::endl;
-
 		_adj_list.initialize(degrees, degree_sum);
 		_trade_list.initialize(trades);
 
-		if (verbose)
-			std::cout << "Direct edges:" << std::endl;
-		
                 // Insert to adjacency list, directed according trades
 		_G.forEdges([&](node_t u, node_t v) {
 			update(u, v);
@@ -65,9 +56,8 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::restructure_graph(const trade_vector& trades, const bool verbose) {
-	
-		std::vector<edge_t> edges =_adj_list.getEdges();
+	void Curveball::restructure_graph(const trade_vector& trades) {
+		nodepair_vector edges =_adj_list.getEdges();
 
 		_adj_list.restructure();
 		_trade_list.initialize(trades);
@@ -204,12 +194,12 @@ namespace CurveBall {
 		return;
 	}
 
-	NetworKit::Graph Curveball::getGraph(bool verbose) const {
+	NetworKit::Graph Curveball::getGraph() const {
 		const NetworKit::IMAdjacencyListMaterialization gb;
 		return gb.materialize(_adj_list);
 	}
 
-	edge_vector Curveball::getEdges() const {
+	nodepair_vector Curveball::getEdges() const {
 		return _adj_list.getEdges();
 	}
 }
