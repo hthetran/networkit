@@ -29,6 +29,6 @@ aa = curveball.AutocorrelationAnalysis(1000)
 with Walltime("Power", f):
 	for i in range(1000):#range(30000*gPower.numberOfEdges()):
 		esmc.run(swapGen.generate())
-		aa.addSample(esmc.getGraph())
+		aa.addSample(esmc.getEdges())
 
 f.close()
