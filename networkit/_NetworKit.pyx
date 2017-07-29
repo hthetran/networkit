@@ -2518,7 +2518,7 @@ cdef class AutocorrelationAnalysis:
 	
 	def getEdgeExistences(self):
 		edgeExistences = self._this.getEdgeExistences()
-		result = [(a, pandas.np.array(b, dtype=pandas.np.bool)) for a, b in edgeExistences]
+		result = pandas.np.matrix([b for a, b in edgeExistences], dtype=pandas.np.bool)
 		return result #self._this.getEdgeExistences()
 
 	"""
