@@ -12,7 +12,8 @@
 namespace CurveBall {
 
 	using edgeswap_vector = std::vector< std::pair<edgeid_t, edgeid_t> >;
-	
+	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
+
 	EdgeSwitchingMarkovChainRandomization::EdgeSwitchingMarkovChainRandomization(const NetworKit::Graph& G) 
 		: _G(G)
 	{ 
@@ -63,5 +64,10 @@ namespace CurveBall {
 
 	NetworKit::Graph EdgeSwitchingMarkovChainRandomization::getGraph() const {
 		return _G;
+	}
+
+	nodepair_vector EdgeSwitchingMarkovChainRandomization::getEdges() const {
+		nodepair_vector result(_edges.begin(), _edges.end());
+		return result;
 	}
 }
