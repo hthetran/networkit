@@ -19,7 +19,7 @@ namespace CurveBall {
 
     using trade_vector = std::vector<TradeDescriptor>;
 
-	using edge_vector = std::vector<edge_t>;
+	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
     class Curveball : public NetworKit::Algorithm {
 
@@ -30,35 +30,24 @@ namespace CurveBall {
 	IMTradeList _trade_list;
 		degree_t _max_degree;
 
-        void load_from_graph(const trade_vector& trades, bool verbose = false);
+        void load_from_graph(const trade_vector& trades);
 
-        void restructure_graph(const trade_vector& trades, bool verbose = false);
+        void restructure_graph(const trade_vector& trades);
 
-		inline void update(const node_t a, const node_t b, bool verbose = false) {
+		inline void update(const node_t a, const node_t b) {
 			const tradeid_t ta = *(_trade_list.get_trades(a));
 			const tradeid_t tb = *(_trade_list.get_trades(b));
 			if (ta < tb) {
-				if (verbose)
-					std::cout << "node a: " << a << " [" << ta << "] before " << "node b: " << b << " [" << tb << "]" << std::endl;
 				_adj_list.insert_neighbour(a, b);
-
 				return;
 			}
 
 			if (ta > tb) {
-				if (verbose)
-					std::cout << "node a: " << a << " [" << ta << "] after " << "node b: " << b << " [" << tb << "]" << std::endl;
-
 				_adj_list.insert_neighbour(b, a);
-
 				return;
 			}
-
 			// ta == tb
 			{
-				if (verbose)
-					std::cout << "node a: " << a << " [" << ta << "] again with " << "node b: " << b << " [" << tb << "]" << std::endl;
-
 				_adj_list.insert_neighbour(a, b);
 			}
 		}
@@ -78,9 +67,9 @@ namespace CurveBall {
 		return false;
         }
 
-        NetworKit::Graph getGraph(const bool verbose = false) const;
+        NetworKit::Graph getGraph() const;
     
-	edge_vector getEdges() const;
+	nodepair_vector getEdges() const;
     };
 }
 

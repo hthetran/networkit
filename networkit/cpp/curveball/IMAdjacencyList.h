@@ -22,7 +22,7 @@ public:
 	using pos_it = pos_vector::iterator;
 	using neighbour_it = neighbour_vector::iterator;
 	using cneighbour_it = neighbour_vector::const_iterator;
-	using edge_vector = std::vector<edge_t>;
+	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
 protected:
 
@@ -53,7 +53,7 @@ public:
 	
 	cneighbour_it cend(const node_t node_id) const;
 
-	edge_vector getEdges() const;
+	nodepair_vector getEdges() const;
 	
 	void insert_neighbour(const node_t node_id, const node_t neighbour) {
 		const auto pos = begin(node_id) + _offsets[node_id];
