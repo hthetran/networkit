@@ -68,31 +68,30 @@ with open(log_file, 'w') as logf:
         for rand in args.rand:
             label = "{}n{}mu{}g{}mindeg{}maxdeg{}runl{}thin{}run{}".format(rand, n, mu, gamma, mindeg, maxdeg, args.runlength, thinning, run)
             print(label)
+            # initialization depending on randomizer
             if rand == 'EMES':
-                for run in range(args.runs):
-                    esmc = curveball.EdgeSwitchingMarkovChainRandomization(copy.deepcopy(G))
-                    swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfEdges())
-                    aa = curveball.AutocorrelationAnalysis(args.runlength)
-                    aa.addSample(G.edges())
-                    for chainrun in range(args.runlength - 1):
-                        print(chainrun)
-                        esmc.run(swaps.generate())
-                        aa.addSample(esmc.getEdges()) 
-            if rand == 'CB_UNIFORM':
-                for run in range(args.runs):
-                    cbu = curveball.Curveball(copy.deepcopy(G))
-                    swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfNodes())
-                    aa = curveball.AutocorrelationAnalysis(args.runlength)
-                    aa.addSample(G.edges())
-                    for chainrun in range(args.runlength - 1):
-                        print(chainrun)
-                        cbu.run(swaps.generate())
-                        aa.addSample(esmc.getEdges())
-            if rand == 'CB_GLOBAL':
-                pass
+                randomizer = curveball.EdgeSwitchingMarkovChainRandomization(copy.deepcopy(G))
+                swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfEdges())
+            elif rand == 'CB_UNIFORM':
+                Gcopy = copy.deepcopy(G)
+                randomizer = curveball.Curveball(Gcopy)
+                swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfNodes())
+            elif rand == 'CB_GLOBAL':
+                #TODO
+                continue
+            
+            for run in range(args.runs):
+                aa = curveball.AutocorrelationAnalysis(args.runlength)
+                aa.addSample(G.edges())
+                for chainrun in range(args.runlength - 1):
+                    print(chainrun)
+                    randomizer.run(swaps.generate())
+                    aa.addSample(randomizer.getEdges()) 
             
             #TODO: Analyze binary time-series here
             aa.init()
-            vec = aa.getTimeSeries()
-            print(vec)
-            del(aa)
+            while True:
+                end, vec = aa.getTimeSeries()
+                if end:
+                    break
+                print(vec)
