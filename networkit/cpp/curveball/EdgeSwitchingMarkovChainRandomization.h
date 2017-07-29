@@ -18,6 +18,7 @@ namespace CurveBall {
 using edgeswap_vector = std::vector< std::pair<edgeid_t, edgeid_t> >;
 using edge_vector = std::vector<edge_t>;
 using degree_vector = std::vector<degree_t>;
+using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
 class EdgeSwitchingMarkovChainRandomization : public NetworKit::Algorithm {
 
@@ -35,8 +36,9 @@ public:
 
 	void run(const edgeswap_vector& swaps);
 
-	// TODO: EdgeVectorMaterialization
 	NetworKit::Graph getGraph() const;
+
+	nodepair_vector getEdges() const;
 };
 
 }
