@@ -2516,7 +2516,8 @@ cdef class AutocorrelationAnalysis:
 
 	def addSample(self, G):
 		if isinstance(G, Graph):
-			self._this.addSample((<Graph>G)._this)
+			with nogil:
+				self._this.addSample((<Graph>G)._this)
 		else:
 			self._this.addSample(<vector[pair[node, node]]?>G)
 	
@@ -2529,7 +2530,7 @@ cdef class AutocorrelationAnalysis:
 		else:
 			result = self._this.get()
 			self._this.next()
-			return (False, result)
+			return (False, pandas.np.array(result, dtype=pandas.np.bool))
 
 #	def getEdgeExistences(self):
 #		edgeExistences = self._this.getEdgeExistences()
