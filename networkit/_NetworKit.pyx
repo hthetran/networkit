@@ -2442,6 +2442,7 @@ cdef extern from "cpp/curveball/Curveball.h":
 		_Curveball(_Graph) except +
 		void run(vector[pair[node, node]] trades) nogil except +
 		_Graph getGraph() except +
+		vector[pair[node, node]] getEdges() except + 
 
 cdef class Curveball(Algorithm):
 	"""
@@ -2460,11 +2461,15 @@ cdef class Curveball(Algorithm):
 	def getGraph(self):
 		return Graph().setThis((<_Curveball*>self._this).getGraph())
 
+	def getEdges(self):
+		return (<_Curveball*>(self._this)).getEdges()
+
 cdef extern from "cpp/curveball/EdgeSwitchingMarkovChainRandomization.h":
 	cdef cppclass _EdgeSwitchingMarkovChainRandomization "CurveBall::EdgeSwitchingMarkovChainRandomization"(_Algorithm):
 		_EdgeSwitchingMarkovChainRandomization(_Graph) except +
 		void run(vector[pair[node, node]] swaps) nogil except + # node type = edgeid type
 		_Graph getGraph() except +
+		vector[pair[node, node]] getEdges() except +
 
 cdef class EdgeSwitchingMarkovChainRandomization(Algorithm):
 	"""
@@ -2481,6 +2486,9 @@ cdef class EdgeSwitchingMarkovChainRandomization(Algorithm):
 
 	def getGraph(self):
 		return Graph().setThis((<_EdgeSwitchingMarkovChainRandomization*>self._this).getGraph())
+
+	def getEdges(self):
+		return (<_EdgeSwitchingMarkovChainRandomization*>(self._this)).getEdges()
 
 cdef extern from "cpp/curveball/AutocorrelationAnalysis.h":
 	cdef cppclass _AutocorrelationAnalysis "CurveBall::AutocorrelationAnalysis":
