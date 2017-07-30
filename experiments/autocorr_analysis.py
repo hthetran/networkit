@@ -12,6 +12,7 @@ import argparse
 import os
 import itertools
 import math
+import numpy as np
 
 path = os.path.dirname(os.path.realpath(__file__))
 out_path = "{}/output".format(path)
@@ -29,6 +30,10 @@ class Logger:
 
     def __exit__(self, a, b, c):
         f.write("%s: Runtime %f s" % (self.label, timeit.default_timer() - self.start_time))
+
+def get_transitions(series, t_matrix):
+    flat_coords = np.ravel_multi_index((series[:-1], series[1:]), t_matrix.shape)
+    t_matrix.flat = np.bincount(flat_coords, minlength=t_matrix.size)
 
 # Arguments
 # --nodes       Number of nodes
@@ -81,17 +86,41 @@ with open(log_file, 'w') as logf:
                 continue
             
             for run in range(args.runs):
-                aa = curveball.AutocorrelationAnalysis(args.runlength)
+                aa = curveball.AutocorrelationAnalysis(args.runlength + 1)
                 aa.addSample(G.edges())
-                for chainrun in range(args.runlength - 1):
-                    print(chainrun)
+                for chainrun in range(args.runlength):
+                    #print(chainrun)
                     randomizer.run(swaps.generate())
                     aa.addSample(randomizer.getEdges()) 
             
+            # get joint degree distribution
+            outG = randomizer.getGraph()
+            f_maxdeg = max([outG.degree(u) for u in range(n)])
+            jdd = np.zeros((f_maxdeg, f_maxdeg))
+            edges = outG.edges()
+            for u, v in edges:
+                jdd[(outG.degree(u)-1, outG.degree(v)-1)] += 1
+                jdd[(outG.degree(v)-1, outG.degree(u)-1)] += 1
+            print(jdd)
+
             #TODO: Analyze binary time-series here
             aa.init()
             while True:
                 end, vec = aa.getTimeSeries()
                 if end:
                     break
-                print(vec)
+                t_matrix = np.zeros((2,2))
+                get_transitions(vec, t_matrix)
+                t_matrix = np.divide(t_matrix, args.runlength)
+                #print(vec)
+                #print(t_matrix)
+
+# get joint degree distribution
+f_maxdeg = max([G.degree(u) for u in range(n)])
+jdd = np.zeros((f_maxdeg, f_maxdeg))
+edges = G.edges()
+for u, v in edges:
+    jdd[(G.degree(u)-1, G.degree(v)-1)] += 1
+    jdd[(G.degree(v)-1, G.degree(u)-1)] += 1
+np.set_printoptions(threshold=np.nan)
+print(jdd)
