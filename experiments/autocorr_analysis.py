@@ -35,6 +35,15 @@ def get_transitions(series, t_matrix):
     flat_coords = np.ravel_multi_index((series[:-1], series[1:]), t_matrix.shape)
     t_matrix.flat = np.bincount(flat_coords, minlength=t_matrix.size)
 
+def get_jdd(G):
+    f_maxdeg = max([G.degree(u) for u in range(n)])
+    jdd = np.zeros((f_maxdeg, f_maxdeg))
+    edges = G.edges()
+    for u, v in edges:
+        jdd[(G.degree(u)-1, G.degree(v)-1)] += 1
+        jdd[(G.degree(v)-1, G.degree(u)-1)] += 1
+    return jdd
+
 # Arguments
 # --nodes       Number of nodes
 # --mus         Scaling factor
@@ -59,9 +68,13 @@ parser.add_argument('--runs', type=int, default=1)
 parser.add_argument('-e', dest='rand', action='append_const', const='EMES')
 parser.add_argument('-cu', dest='rand', action='append_const', const='CB_UNIFORM')
 parser.add_argument('-cg', dest='rand', action='append_const', const='CB_GLOBAL')
+parser.add_argument('--help', default=False, action='store_true')
 
 args = parser.parse_args()
 print("Running configuration:")
+if args.help:
+    # TODO
+    raise SystemExit(0)
 print(args)
 
 with open(log_file, 'w') as logf:
@@ -70,8 +83,12 @@ with open(log_file, 'w') as logf:
         plds.run()
         hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(math.ceil(mu*n)))
         G = hh.generate()
+        # print graph specs
+        # TODO: use logfile
+        print(G)
         for rand in args.rand:
             label = "{}n{}mu{}g{}mindeg{}maxdeg{}runl{}thin{}run{}".format(rand, n, mu, gamma, mindeg, maxdeg, args.runlength, thinning, run)
+            # TODO: use logfile
             print(label)
             # initialization depending on randomizer
             if rand == 'EMES':
@@ -89,22 +106,12 @@ with open(log_file, 'w') as logf:
                 aa = curveball.AutocorrelationAnalysis(args.runlength + 1)
                 aa.addSample(G.edges())
                 for chainrun in range(args.runlength):
-                    #print(chainrun)
+                    print(chainrun)
                     randomizer.run(swaps.generate())
                     aa.addSample(randomizer.getEdges()) 
             
-            # get joint degree distribution
-            outG = randomizer.getGraph()
-            f_maxdeg = max([outG.degree(u) for u in range(n)])
-            jdd = np.zeros((f_maxdeg, f_maxdeg))
-            edges = outG.edges()
-            for u, v in edges:
-                jdd[(outG.degree(u)-1, outG.degree(v)-1)] += 1
-                jdd[(outG.degree(v)-1, outG.degree(u)-1)] += 1
-            print(jdd)
-
-            #TODO: Analyze binary time-series here
             aa.init()
+            # Foreach time-series t_matrix
             while True:
                 end, vec = aa.getTimeSeries()
                 if end:
@@ -112,15 +119,4 @@ with open(log_file, 'w') as logf:
                 t_matrix = np.zeros((2,2))
                 get_transitions(vec, t_matrix)
                 t_matrix = np.divide(t_matrix, args.runlength)
-                #print(vec)
-                #print(t_matrix)
-
-# get joint degree distribution
-f_maxdeg = max([G.degree(u) for u in range(n)])
-jdd = np.zeros((f_maxdeg, f_maxdeg))
-edges = G.edges()
-for u, v in edges:
-    jdd[(G.degree(u)-1, G.degree(v)-1)] += 1
-    jdd[(G.degree(v)-1, G.degree(u)-1)] += 1
-np.set_printoptions(threshold=np.nan)
-print(jdd)
+                #TODO do something with transition matrix
