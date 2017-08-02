@@ -53,6 +53,8 @@ namespace CurveBall {
 		void next();
 
 		bool end() const;
+
+		edgeid_t numberOfEdges() const;
 	};
 }
 

@@ -2500,7 +2500,7 @@ cdef extern from "cpp/curveball/AutocorrelationAnalysis.h":
 		vector[bool] get() except +
 		void next() nogil except +
 		bool end() except +
-
+		count numberOfEdges() except +
 
 cdef class AutocorrelationAnalysis:
 	"""
@@ -2531,6 +2531,9 @@ cdef class AutocorrelationAnalysis:
 			result = self._this.get()
 			self._this.next()
 			return (False, pandas.np.array(result, dtype=pandas.np.bool))
+
+	def numberOfEdges(self):
+		return self._this.numberOfEdges()
 
 #	def getEdgeExistences(self):
 #		edgeExistences = self._this.getEdgeExistences()
