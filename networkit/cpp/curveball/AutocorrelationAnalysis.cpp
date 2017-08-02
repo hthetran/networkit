@@ -81,4 +81,8 @@ namespace CurveBall {
 	bool AutocorrelationAnalysis::end() const {
 		return pos == edge_existence.cend();
 	}
+
+	edgeid_t AutocorrelationAnalysis::numberOfEdges() const {
+		return edge_existence.size();
+	}
 }
