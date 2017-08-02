@@ -31,9 +31,9 @@ class Logger:
     def __exit__(self, a, b, c):
         f.write("%s: Runtime %f s" % (self.label, timeit.default_timer() - self.start_time))
 
-def get_transitions(series, t_matrix):
-    flat_coords = np.ravel_multi_index((series[:-1], series[1:]), t_matrix.shape)
-    t_matrix.flat = np.bincount(flat_coords, minlength=t_matrix.size)
+def get_transitions(series, x):
+    flat_coords = np.ravel_multi_index((series[:-1], series[1:]), x.shape)
+    x.flat = np.bincount(flat_coords, minlength=x.size)
 
 def get_jdd(G):
     f_maxdeg = max([G.degree(u) for u in range(n)])
@@ -68,7 +68,7 @@ parser.add_argument('--runs', type=int, default=1)
 parser.add_argument('-e', dest='rand', action='append_const', const='EMES')
 parser.add_argument('-cu', dest='rand', action='append_const', const='CB_UNIFORM')
 parser.add_argument('-cg', dest='rand', action='append_const', const='CB_GLOBAL')
-parser.add_argument('--help', default=False, action='store_true')
+parser.add_argument('-help', default=False, action='store_true')
 
 args = parser.parse_args()
 print("Running configuration:")
@@ -111,12 +111,30 @@ with open(log_file, 'w') as logf:
                     aa.addSample(randomizer.getEdges()) 
             
             aa.init()
-            # Foreach time-series t_matrix
+            # Foreach time-series x
+            count = 0
             while True:
                 end, vec = aa.getTimeSeries()
                 if end:
                     break
-                t_matrix = np.zeros((2,2))
-                get_transitions(vec, t_matrix)
-                t_matrix = np.divide(t_matrix, args.runlength)
-                #TODO do something with transition matrix
+                x = np.zeros((2,2))
+                get_transitions(vec, x)
+                #x = np.divide(x, args.runlength)
+                
+                # calculate goodness
+                # G^2 = -2*sum(i,j)x_ij*log(hat(x_ij)/x_ij)
+                # BIC = G^2 + q*log(K/k - 1) (Here K/k)
+                # dBIC = BIC^(I) - BIC^(M)
+                #      = -2*sum(i,j)x_ij*log(hat(x_ij^(I))/x_ij) - log(K/k - 1) (Here K/k)
+                # where hat(x_ij^(I)) = (x_i+)(x_+j)/(x_++)
+                hat_x = np.zeros((2,2))
+                hat_x[(0,0)] = (x[(0,0)] + x[(0, 1)])*(x[(0,0)] + x[(1, 0)])/x.sum()
+                hat_x[(0,1)] = (x[(0,0)] + x[(0, 1)])*(x[(0,1)] + x[(1, 1)])/x.sum()
+                hat_x[(1,0)] = (x[(1,0)] + x[(0, 1)])*(x[(1,0)] + x[(1, 0)])/x.sum()
+                hat_x[(1,1)] = (x[(1,0)] + x[(1, 1)])*(x[(0,1)] + x[(1, 1)])/x.sum()
+                log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
+                delta_BIC = (-2)*log_sum - math.log(args.runlength)
+                if (delta_BIC < 0):
+                    count += 1
+                #print(delta_BIC)
+            print(count/G.numberOfEdges())
