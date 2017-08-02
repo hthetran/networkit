@@ -6,8 +6,6 @@
 #   Powerlaw Degree Sequences materialized with Havel-Hakimi
 #   Erdos-Renyi
 #   Hyperbolic
-#   Hyperbolic with high degrees
-#   Hyperbolic with high temperature
 
 from networkit import *
 import copy
@@ -65,9 +63,9 @@ parser.add_argument('--runs', type=int, default=1, help="Number of randomization
 parser.add_argument('-pldhh', dest='gens', action='append_const', const='PLDHH', help="Generate graphs with Havel-Hakimi from powerlaw degree sequence")
 parser.add_argument('-er', dest='gens', action='append_const', const='ERDOSRENYI', help="Generate graphs with Erdos-Renyi")
 parser.add_argument('--p', type=float, default=[0.5], nargs="+", help="Probabilities for an edge-existence in Erdos-Renyi")
-parser.add_argument('-hyper', dest='gens', action='append_const', const='HYPER_STD', help="Generate graphs with standard Hyperbolic") #TODO find params
-parser.add_argument('-hyperhd', dest='gens', action='append_const', const='HYPER_HIGHDEG', help="Generate graphs with high degree Hyperbolic (resembles Exp)") #TODO find params
-parser.add_argument('-hyperht', dest='gens', action='append_const', const='HYPER_HIGHTEMP', help="Generate graphs with high temperature Hyperbolic") #TODO find params
+parser.add_argument('-hyper', dest='gens', action='append_const', const='HYPER', help="Generate graphs with Hyperbolic")
+parser.add_argument('--avgdegs', type=float, default=[6.], nargs="+", help="Avg degrees")
+parser.add_argument('--temps', type=float, default=[0.], nargs="+", help="Temperatures")
 parser.add_argument('-e', dest='rand', action='append_const', const='NETWORKIT_ES', help="Randomize with NetworKit-ES")
 parser.add_argument('-cu', dest='rand', action='append_const', const='CB_UNIFORM', help="Randomize with Curveball-IM with uniform trades")
 parser.add_argument('-cg', dest='rand', action='append_const', const='CB_GLOBAL', help="Randomize with Curveball-IM with global trades") #TODO: not yet implemented
@@ -104,52 +102,62 @@ dat_fn = "{}/{}.dat".format(out_path, args.label)
 data_line = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t" #TODO length may change
 
 with open(log_fn, 'w') as logf, open(dat_fn, 'w') as outf:
-    # TODO differentiate between generators better would be on a higher level
-    if 'PLDHH' in args.gens:
-        for mu, n, gamma, mindeg, maxdeg, run in itertools.product(args.mus, args.nodes, args.gammas, args.mindegs, args.maxdegs, range(args.runs)):
-            plds = generators.PowerlawDegreeSequence(math.ceil(mu*mindeg), math.ceil(mu*maxdeg), gamma)
-            plds.run()
-            hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(math.ceil(mu*n)))
-            G = hh.generate()
-            logf.write(str(G) + '\n')
-            for rand in args.rand:
-                # TODO: change randomization scheme
-                for thinning in args.thinnings:
-
-                    # initialization depending on randomizer
-                    if rand == 'NETWORKIT_ES':
-                        randomizer = curveball.EdgeSwitchingMarkovChainRandomization(copy.deepcopy(G))
-                        swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfEdges())
-                    elif rand == 'CB_UNIFORM':
-                        randomizer = curveball.Curveball(G)
-                        swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfNodes())
-                    elif rand == 'CB_GLOBAL':
-                        #TODO
-                        continue
-                    
-                    for run in range(args.runs):
-                        label = "{}n{}mu{}g{}mindeg{}maxdeg{}runl{}thin{}run{}".format(rand, n, mu, gamma, mindeg, maxdeg, args.runlength, thinning, run)
-                        with Logger(label, logf):
-                            aa = curveball.AutocorrelationAnalysis(args.runlength + 1)
-                            aa.addSample(G.edges())
-                            for chainrun in range(args.runlength):
-                                randomizer.run(swaps.generate())
-                                aa.addSample(randomizer.getEdges()) 
-                       
-                            aa.init()
-                            ind_count = 0
-                            # Foreach time-series x
-                            while True:
-                                end, vec = aa.getTimeSeries()
-                                if end:
-                                    break
-                                x = np.zeros((2,2))
-                                get_transitions(vec, x)
-                                hat_x = np.zeros((2,2))
-                                get_loglinear_estimate(x, hat_x)
-                                log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
-                                delta_BIC = (-2)*log_sum - math.log(args.runlength)
-                                if (delta_BIC < 0):
-                                    ind_count += 1
-                            # TODO: output into output file
-                            print(ind_count/aa.numberOfEdges())
+    for mu, n, gamma, mindeg, maxdeg, run in itertools.product(args.mus, args.nodes, args.gammas, args.mindegs, args.maxdegs, range(args.runs)):
+        for gen in args.gens:
+            if gen == 'PLDHH':
+                plds = generators.PowerlawDegreeSequence(math.ceil(mu*mindeg), math.ceil(mu*maxdeg), gamma)
+                plds.run()
+                hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(math.ceil(mu*n)))
+                graphs = [hh.generate()]
+            elif gen == 'ERDOSRENYI':
+                graphs = [generators.ErdosRenyiGenerator(math.ceil(mu*n), p).generate() for p in args.p]
+            elif gen == 'HYPER':
+                if abs(gamma) > 2: 
+                    graphs = [generators.HyperbolicGenerator(math.ceil(mu*n), math.ceil(mu*avgdeg), abs(gamma), temp).generate() for avgdeg in args.avgdegs for temp in args.temps]
+                else:
+                    graphs = []
+                    break
+            
+            # forall graphs generated above
+            for G in graphs:
+                logf.write(gen + str(G) + '\n')
+                for rand in args.rand:
+                    # TODO: change randomization scheme
+                    for thinning in args.thinnings:
+                        # initialization depending on randomizer
+                        if rand == 'NETWORKIT_ES':
+                            randomizer = curveball.EdgeSwitchingMarkovChainRandomization(copy.deepcopy(G))
+                            swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfEdges())
+                        elif rand == 'CB_UNIFORM':
+                            randomizer = curveball.Curveball(G)
+                            swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfNodes())
+                        elif rand == 'CB_GLOBAL':
+                            #TODO
+                            continue
+                        
+                        for run in range(args.runs):
+                            label = "{}rand{}n{}mu{}g{}mindeg{}maxdeg{}runl{}thin{}run{}".format(gen, rand, n, mu, gamma, mindeg, maxdeg, args.runlength, thinning, run)
+                            with Logger(label, logf):
+                                aa = curveball.AutocorrelationAnalysis(args.runlength + 1)
+                                aa.addSample(G.edges())
+                                for chainrun in range(args.runlength):
+                                    randomizer.run(swaps.generate())
+                                    aa.addSample(randomizer.getEdges()) 
+                           
+                                aa.init()
+                                ind_count = 0
+                                # Foreach time-series x
+                                while True:
+                                    end, vec = aa.getTimeSeries()
+                                    if end:
+                                        break
+                                    x = np.zeros((2,2))
+                                    get_transitions(vec, x)
+                                    hat_x = np.zeros((2,2))
+                                    get_loglinear_estimate(x, hat_x)
+                                    log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
+                                    delta_BIC = (-2)*log_sum - math.log(args.runlength)
+                                    if (delta_BIC < 0):
+                                        ind_count += 1
+                                # TODO: output into output file
+                                print(ind_count/aa.numberOfEdges())
