@@ -26,10 +26,12 @@ class Logger:
 
     def __enter__(self):
         self.start_time = timeit.default_timer()
+        self.f.write("# {}\n".format(self.label))
+        print("{}".format(self.label))
 
     def __exit__(self, a, b, c):
-        self.f.write("# %s: Runtime %f s\n" % (self.label, timeit.default_timer() - self.start_time))
-        print("%s: Runtime %f s" % (self.label, timeit.default_timer() - self.start_time))
+        self.f.write("# Runtime %f s\n" % (timeit.default_timer() - self.start_time))
+        print("Runtime %f s" % (timeit.default_timer() - self.start_time))
 
 def chunkify(seq, num):
     avg = len(seq) / float(num)
@@ -72,7 +74,8 @@ parser.add_argument('--gammas', type=float, default=[-2.0], nargs="+", help="Deg
 parser.add_argument('--mindegs', type=int, default=[50], nargs="+", help="Min degrees")
 parser.add_argument('--maxdegs', type=int, default=[10000], nargs="+", help="Max degrees")
 parser.add_argument('--runlength', type=int, default=1000, help="Length of time-series")
-parser.add_argument('--thinnings', type=int, default=[1, 5, 10, 15, 30], nargs="+", help="Thinning factor for the long chain") #TODO: change to tenths
+parser.add_argument('--thinnings', type=int, default=[10, 50, 100, 150, 300], nargs="+", help="Thinning factor for the long chain")
+parser.add_argument('--thinsplit', type=int, default=100, help="Thinning values smaller/equal than and values greater processed in bulk")
 parser.add_argument('--runs', type=int, default=1, help="Number of randomization per graph")
 parser.add_argument('-pldhh', dest='gens', action='append_const', const='PLDHH', help="Generate graphs with Havel-Hakimi from powerlaw degree sequence")
 parser.add_argument('-er', dest='gens', action='append_const', const='ERDOSRENYI', help="Generate graphs with Erdos-Renyi")
@@ -114,13 +117,12 @@ pre_fn = "{}/{}".format(out_path, args.label)
 # RUNLENGTH
 # GEN
 # ... additional parameters for the generators
-# INDRATE
+# INDEPENDENCERATE
 data_line = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t" #TODO length may change
 
 params = list(itertools.product(args.mus, args.nodes, args.gammas, args.mindegs, args.maxdegs, range(args.runs)))
 random.shuffle(params)
-#chunk_size = max([math.floor(len(params)/args.pus), 1])
-params_chunks = chunkify(params, args.pus) #[params[i:i+chunk_size] for i in range(0, len(params), chunk_size)]
+params_chunks = chunkify(params, args.pus)
 
 def run(params, pre_fn, args, pid):
     print("{} processes tuple(s) {}.".format(multiprocessing.current_process(), params))
@@ -149,15 +151,120 @@ def run(params, pre_fn, args, pid):
                 for G in graphs:
                     logf.write("# {}{}\n".format(gen, str(G)))
                     for rand in args.rand:
-                        # TODO: change randomization scheme
-                        for thinning in args.thinnings:
-                            # initialization depending on randomizer
+                        # TODO: cut hard-coding style by using a list like this [small_thinnings, big_thinnings]
+                        small_thinnings = [thinning for thinning in args.thinnings if thinning <= args.thinsplit]
+                        
+                        if len(small_thinnings) > 0:
+                            s_max = max(small_thinnings)
+                            s_gcd = np.ufunc.reduce(gcd, small_thinnings)
+                            s_chainlength = int(s_max * args.runlength / s_gcd)
+
                             if rand == 'NETWORKIT_ES':
-                                randomizer = curveball.EdgeSwitchingMarkovChainRandomization(copy.deepcopy(G))
-                                swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfEdges())
+                                randomizer = curveball.EdgeSwitchingMarkovChainRandomization(G)
+                                swaps = curveball.UniformTradeGenerator(math.ceil(s_gcd*G.numberOfEdges()/10), G.numberOfEdges())
                             elif rand == 'CB_UNIFORM':
                                 randomizer = curveball.Curveball(G)
-                                swaps = curveball.UniformTradeGenerator(thinning*G.numberOfEdges(), G.numberOfNodes())
+                                swaps = curveball.UniformTradeGenerator(math.ceil(s_gcd*G.numberOfEdges()/10), G.numberOfNodes())
+                            elif rand == 'CB_GLOBAL':
+                                #TODO
+                                continue
+                                
+                            for run in range(args.runs):
+                                label = "{}rand{}n{}mu{}g{}mindeg{}maxdeg{}runl{}run{}".format(gen, rand, n, mu, gamma, mindeg, maxdeg, args.runlength, run)
+                                with Logger(label, logf):
+                                    aa = curveball.AutocorrelationAnalysis(s_chainlength + 1)
+                                    aa.addSample(G.edges())
+                                    for chainrun in range(s_chainlength):
+                                        randomizer.run(swaps.generate())
+                                        aa.addSample(randomizer.getEdges()) 
+                               
+                                    # analyze time-series for each small thinning value
+                                    for thinning in small_thinnings:
+                                        logf.write("      {} Thinning: {}\n".format(pid, thinning))
+                                        last = int(thinning * args.runlength / s_gcd)
+                                        aa.init()
+                                        ind_count = 0
+                                        # Foreach time-series x
+                                        while True:
+                                            end, vec = aa.getTimeSeries()
+                                            if end:
+                                                break
+                                            x = np.zeros((2,2))
+                                            get_transitions(vec[0:last:int(thinning/s_gcd)], x)
+                                            hat_x = np.zeros((2,2))
+                                            get_loglinear_estimate(x, hat_x)
+                                            log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
+                                            delta_BIC = (-2)*log_sum - math.log(args.runlength)
+                                            if (delta_BIC < 0):
+                                                ind_count += 1
+                                        # TODO: output into output file
+                                        print("{} Ind. rate: {}".format(pid, ind_count/aa.numberOfEdges()))
+
+
+                        # big thinning values
+                        big_thinnings = [thinning for thinning in args.thinnings if thinning > args.thinsplit]
+                        if len(big_thinnings) > 0:
+                            b_max = max(big_thinnings)
+                            b_gcd = np.ufunc.reduce(gcd, big_thinnings)
+                            b_chainlength = int(b_max * args.runlength / b_gcd)
+ 
+                            if rand == 'NETWORKIT_ES':
+                                randomizer = curveball.EdgeSwitchingMarkovChainRandomization(G)
+                                swaps = curveball.UniformTradeGenerator(math.ceil(b_gcd*G.numberOfEdges()/10), G.numberOfEdges())
+                            elif rand == 'CB_UNIFORM':
+                                randomizer = curveball.Curveball(G)
+                                swaps = curveball.UniformTradeGenerator(math.ceil(b_gcd*G.numberOfEdges()/10), G.numberOfNodes())
+                            elif rand == 'CB_GLOBAL':
+                                #TODO
+                                continue
+                                
+                            for run in range(args.runs):
+                                label = "{}rand{}n{}mu{}g{}mindeg{}maxdeg{}runl{}run{}".format(gen, rand, n, mu, gamma, mindeg, maxdeg, args.runlength, run)
+                                with Logger(label, logf):
+                                    aa = curveball.AutocorrelationAnalysis(b_chainlength + 1)
+                                    aa.addSample(G.edges())
+                                    for chainrun in range(s_chainlength):
+                                        randomizer.run(swaps.generate())
+                                        aa.addSample(randomizer.getEdges()) 
+                               
+                                    # analyze time-series for each small thinning value
+                                    for thinning in big_thinnings:
+                                        logf.write("      {} Thinning: {}\n".format(pid, thinning))
+                                        last = int(thinning * args.runlength / b_gcd)
+                                        aa.init()
+                                        ind_count = 0
+                                        # Foreach time-series x
+                                        while True:
+                                            end, vec = aa.getTimeSeries()
+                                            if end:
+                                                break
+                                            x = np.zeros((2,2))
+                                            get_transitions(vec[0:last:int(thinning/b_gcd)], x)
+                                            hat_x = np.zeros((2,2))
+                                            get_loglinear_estimate(x, hat_x)
+                                            log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
+                                            delta_BIC = (-2)*log_sum - math.log(args.runlength)
+                                            if (delta_BIC < 0):
+                                                ind_count += 1
+                                        # TODO: output into output file
+                                        print("{} Ind. rate: {}".format(pid, ind_count/aa.numberOfEdges()))
+
+                       
+"""
+                        for thinning in args.thinnings:
+                            #if thinning in small_thinnings:
+                            #    step = s_gcd
+                            #else:
+                            #    step = b_gcd
+                            #chain_length = 
+
+                            # initialization depending on randomizer
+                            if rand == 'NETWORKIT_ES':
+                                randomizer = curveball.EdgeSwitchingMarkovChainRandomization(G)
+                                swaps = curveball.UniformTradeGenerator(math.ceil(thinning*G.numberOfEdges()/10), G.numberOfEdges())
+                            elif rand == 'CB_UNIFORM':
+                                randomizer = curveball.Curveball(G)
+                                swaps = curveball.UniformTradeGenerator(math.ceil(thinning*G.numberOfEdges()/10), G.numberOfNodes())
                             elif rand == 'CB_GLOBAL':
                                 #TODO
                                 continue
@@ -188,6 +295,7 @@ def run(params, pre_fn, args, pid):
                                             ind_count += 1
                                     # TODO: output into output file
                                     print(ind_count/aa.numberOfEdges())
+"""
 
 if __name__ == '__main__':
     processes = [multiprocessing.Process(target=run, args=(chunk, pre_fn, args, pid)) for chunk, pid in zip(params_chunks, range(len(params_chunks)))]
