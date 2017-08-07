@@ -59,7 +59,7 @@ perl -pi -e 's/scons_available = True/scons_available = False/' setup.py
 sed -i '7s/.*/gtest = googletest\/googletest\/include\//' build.conf
 sed -i '10s/.*/gtest = googletest\/googletest\/build\//' build.conf
 
-python3 setup.py build_ext --inplace --optimize=Opt -j20
+python3 setup.py build_ext --inplace --optimize=Opt --jobs 20
 pip install -e ./
 pip install -r requirements.txt
 python3 setup.py clean --optimize=Opt
