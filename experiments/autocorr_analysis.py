@@ -162,7 +162,7 @@ def run(params, pre_fn, args, pid):
                 avgdeg = param[4] 
                 temp = param[5]
                 run = param[6]
-                G = generators.HyperbolicGenerator(math.ceil(mu*n), math.ceil(mu*avgdeg), temp)
+                G = generators.HyperbolicGenerator(math.ceil(mu*n), math.ceil(mu*avgdeg), gamma, temp).generate()
                 label = "{}rand{}mu{}n{}g{}avgdeg{}temp{}runl{}run{}".format(gen, "{}", mu, n, gamma, avgdeg, temp, args.runlength, run)
             
             # process the graph
