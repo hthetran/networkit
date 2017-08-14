@@ -12,7 +12,7 @@
 #include "../base/Algorithm.h"
 #include "../graph/Graph.h"
 #include "defs.h"
-#include <unordered_map>
+#include <unordered_set>
 
 namespace CurveBall {
 
@@ -21,7 +21,8 @@ using edge_vector = std::vector<edge_t>;
 using degree_vector = std::vector<degree_t>;
 using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
-struct edge_hash {
+template <size_t max>
+class edge_hash {
 	std::size_t operator () (const edge_t &e) const {
 		std::hash<node_t> node_hash;
 		auto h1 = node_hash(e.first);
@@ -34,15 +35,14 @@ struct edge_hash {
 	}
 };
 
-using hashmap = std::unordered_map<edge_t, edgeid_t, edge_hash>;
+using hashmap_vector = std::vector<std::unordered_set<node_t>>;
 
 class EdgeSwitchingMarkovChainRandomization : public NetworKit::Algorithm {
 
 protected:
 	edge_vector _edges;
-	// maybe reference? change given graph, or new one
 	NetworKit::Graph _G;
-	hashmap edgeidmap;
+	hashmap_vector neighbors;
 
 public:
 	EdgeSwitchingMarkovChainRandomization(const NetworKit::Graph& G);
