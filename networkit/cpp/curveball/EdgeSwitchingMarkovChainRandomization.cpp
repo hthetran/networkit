@@ -28,10 +28,8 @@ namespace CurveBall {
 			if (edge.first < edge.second) {
 				_edges.push_back(static_cast<edge_t>(edge));
                                 neighbors[edge.first].insert(edge.second);
-				//edgeidmap.insert(static_cast<edge_t>(edge));
 			} else {
 				_edges.push_back({edge.second, edge.first});
-				//edgeidmap.insert(edge_t(edge.second, edge.first));
                                 neighbors[edge.second].insert(edge.first);
 			}	
 		}
@@ -60,9 +58,6 @@ namespace CurveBall {
 			// check for edge existence
 			assert(_G.hasEdge(swapped_a.first, swapped_a.second) == (neighbors[swapped_a.first].find(swapped_a.second) != neighbors[swapped_a.first].end()));
 			assert(_G.hasEdge(swapped_b.first, swapped_b.second) == (neighbors[swapped_b.first].find(swapped_b.second) != neighbors[swapped_b.first].end()));
-                        // assert(_G.hasEdge(swapped_a.first, swapped_a.second) == (edgeidmap.find(swapped_a) != edgeidmap.end()));
-			// assert(_G.hasEdge(swapped_b.first, swapped_b.second) == (edgeidmap.find(swapped_b) != edgeidmap.end()));
-			//if ((edgeidmap.find(swapped_a) != edgeidmap.end()) || (edgeidmap.find(swapped_b) != edgeidmap.end()))
                         //if (_G.hasEdge(swapped_a.first, swapped_a.second) || _G.hasEdge(swapped_b.first, swapped_b.second))
 			if (neighbors[swapped_a.first].find(swapped_a.second) != neighbors[swapped_a.first].end()
                                         || neighbors[swapped_b.first].find(swapped_b.second) != neighbors[swapped_b.first].end())
@@ -73,20 +68,14 @@ namespace CurveBall {
 				_edges[swap.first] = swapped_a;
 				_edges[swap.second] = swapped_b;
 				
-				//edgeidmap.erase(edge_a);
-				//edgeidmap.erase(edge_b);
 				neighbors[edge_a.first].erase(edge_a.second);
 				neighbors[edge_b.first].erase(edge_b.second);
                                 
-                                //auto p1 = edgeidmap.insert(swapped_a);
-				//auto p2 = edgeidmap.insert(swapped_b);
 	                        auto p1 = neighbors[swapped_a.first].insert(swapped_a.second);
 	                        auto p2 = neighbors[swapped_b.first].insert(swapped_b.second);
 
 				assert(p1.second);
 				assert(p2.second);
-				//assert(edgeidmap.find(swapped_a) != edgeidmap.end());
-				//assert(edgeidmap.find(swapped_b) != edgeidmap.end());
 
 				// case distinction necessary for the swap method of networkit	
 				if (!dir) {
