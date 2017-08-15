@@ -18,21 +18,21 @@ namespace CurveBall {
 		: _G(G)
 	{ 
 		_edges.reserve(G.numberOfEdges());
-		// neighbors.reserve(G.numberOfNodes());
-                /*G.forNodes([&](node_t v) {
+		 neighbors.reserve(G.numberOfNodes());
+                G.forNodes([&](node_t v) {
                         std::unordered_set<node_t> set;
                         set.reserve(G.numberOfNodes());
                         neighbors.push_back(set);               
-                });*/
+                });
 		for (const auto edge : G.edges()){
 			if (edge.first < edge.second) {
 				_edges.push_back(static_cast<edge_t>(edge));
-                                //neighbors[edge.first].insert(edge.second);
+                                neighbors[edge.first].insert(edge.second);
 				//edgeidmap.insert(static_cast<edge_t>(edge));
 			} else {
 				_edges.push_back({edge.second, edge.first});
 				//edgeidmap.insert(edge_t(edge.second, edge.first));
-                                //neighbors[edge.second].insert(edge.first);
+                                neighbors[edge.second].insert(edge.first);
 			}	
 		}
 	}
