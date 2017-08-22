@@ -188,8 +188,8 @@ def run(params, pre_fn, args, pid):
                             randomizer = curveball.Curveball(G)
                             swaps = curveball.UniformTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/10), G.numberOfNodes())
                         elif rand == 'CB_GLOBAL':
-                            #TODO
-                            continue
+                            randomizer = curveball.Curveball(G)
+                            swaps = curveball.GlobalTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/10), G.numberOfEdges())
                             
                         with Logger(label, logf):
                             aa = curveball.AutocorrelationAnalysis(part_chainlength + 1)
