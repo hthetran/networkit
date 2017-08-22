@@ -19,11 +19,21 @@ namespace CurveBall {
 	{ 
 		_edges.reserve(G.numberOfEdges());
 		 neighbors.reserve(G.numberOfNodes());
-                G.forNodes([&](node_t v) {
+               
+	        // compute max degree
+		//degree_t maxdeg = 0;
+		//G.forNodes([&](node_t v){
+		//	maxdeg = std::max(maxdeg, G.degree(v));	
+		//});
+
+		// reserve space
+		G.forNodes([&](node_t v) {
                         std::unordered_set<node_t> set;
-                        set.reserve(G.numberOfNodes());
+                        set.reserve(G.degree(v));
                         neighbors.push_back(set);               
                 });
+
+		// add edges to map
 		for (const auto edge : G.edges()){
 			if (edge.first < edge.second) {
 				_edges.push_back(static_cast<edge_t>(edge));
