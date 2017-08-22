@@ -27,6 +27,7 @@ namespace CurveBall {
 		: _G(G)
 		, _num_nodes(G.numberOfNodes())
 		, _trade_list(G.numberOfNodes())
+		, _aff_edges(0)
 	{
 		hasRun = false;
                 assert(G.checkConsistency());
@@ -76,15 +77,18 @@ namespace CurveBall {
 			restructure_graph(trades);
 
 		NetworKit::count trade_count = 0;
-        neighbour_vector common_neighbours;
-        neighbour_vector disjoint_neighbours;
+		neighbour_vector common_neighbours;
+		neighbour_vector disjoint_neighbours;
 
-        common_neighbours.reserve(_max_degree);
-        disjoint_neighbours.reserve(_max_degree);
+		common_neighbours.reserve(_max_degree);
+		disjoint_neighbours.reserve(_max_degree);
 		for (const auto& trade : trades) {
 			// Trade partners u and v
 			const node_t u = trade.first;
 			const node_t v = trade.second;
+
+			_aff_edges += _adj_list.degreeAt(u);
+			_aff_edges += _adj_list.degreeAt(v);
 
 			// Shift the _trade_list offset for these two, currently was set to trade_count
 			_trade_list.inc_offset(u);
@@ -192,6 +196,10 @@ namespace CurveBall {
 		hasRun = true;
 
 		return;
+	}
+
+	edgeid_t Curveball::getNumberOfAffectedEdges() const {
+		return _aff_edges;
 	}
 
 	NetworKit::Graph Curveball::getGraph() const {
