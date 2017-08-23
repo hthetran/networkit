@@ -255,8 +255,10 @@ def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_
                     p = param_dict["p"]
                     outf.write(data_line.format(args.label, args.runlength, gen, rand, run, thinning, mu, n, p, "-", "-", indrate))
                 elif param_dict["gen"] == 'HYPER':
-                    pass
-                    # TODO merge 
+                    gamma = param_dict["gamma"]
+                    avgdeg = param_dict["avgdeg"]
+                    temp = param_dict["temp"]
+                    outf.write(data_line.format(args.label, args.runlength, gen, rand, run, thinning, mu, n, gamma, avgdeg, temp, indrate))
 
 
 if __name__ == '__main__':
