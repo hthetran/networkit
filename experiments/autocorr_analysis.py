@@ -86,6 +86,8 @@ parser.add_argument('--avgdegs', type=float, default=[6.], nargs="+", help="Avg 
 parser.add_argument('--temps', type=float, default=[0.], nargs="+", help="Temperatures")
 parser.add_argument('-e', dest='rand', action='append_const', const='NETWORKIT_ES', help="Randomize with NetworKit-ES")
 parser.add_argument('-cu', dest='rand', action='append_const', const='CB_UNIFORM', help="Randomize with Curveball-IM with uniform trades")
+parser.add_argument('--repeats', type=int, default=1, help="Number of repeats for a graph")
+parser.add_argument('--repeatpus', type=int, default=1, help="Number of PUs for repeat runs")
 parser.add_argument('-cg', dest='rand', action='append_const', const='CB_GLOBAL', help="Randomize with Curveball-IM with global trades") #TODO: not yet implemented
 
 args = parser.parse_args()
@@ -137,7 +139,7 @@ params_chunks = chunkify(params, args.pus)
 
 def run(params, pre_fn, args, pid):
     print("{} processes tuple(s) {}.".format(multiprocessing.current_process(), params))
-    with open("{}_{}.log".format(pre_fn, pid), 'w') as logf, open("{}_{}.dat".format(pre_fn, pid), 'w') as outf:
+    with open("{}_{}.log".format(pre_fn, pid), 'w') as logf:
         for param in params:
             gen = param[0]
             mu = param[1]
@@ -147,6 +149,7 @@ def run(params, pre_fn, args, pid):
                 mindeg = param[4]
                 maxdeg = param[5]
                 run = param[6]
+                param_dict = {"gamma" : gamma, "mindeg" : mindeg, "maxdeg" : maxdeg, "run" : run, "gen" : gen, "mu" : mu, "n" : n}
                 plds = generators.PowerlawDegreeSequence(math.ceil(mu*mindeg), math.ceil(mu*maxdeg), gamma)
                 plds.run()
                 hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(math.ceil(mu*n)))
@@ -155,6 +158,7 @@ def run(params, pre_fn, args, pid):
             elif gen == 'ERDOSRENYI':
                 p = param[3]
                 run = param[4]
+                param_dict = {"p" : p, "run" : run, "gen" : gen, "mu" : mu, "n" : n}
                 G = generators.ErdosRenyiGenerator(math.ceil(mu*n), p).generate()
                 label = "{}rand{}mu{}n{}p{}runl{}run{}".format(gen, "{}", mu, n, p, args.runlength, run)
             elif gen == 'HYPER':
@@ -162,6 +166,7 @@ def run(params, pre_fn, args, pid):
                 avgdeg = param[4] 
                 temp = param[5]
                 run = param[6]
+                param_dict = {"gamma" : gamma, "avgdeg" : avgdeg, "temp" : temp, "run" : run, "gen" : gen, "mu" : mu, "n" : n}
                 G = generators.HyperbolicGenerator(math.ceil(mu*n), math.ceil(mu*avgdeg), gamma, temp).generate()
                 label = "{}rand{}mu{}n{}g{}avgdeg{}temp{}runl{}run{}".format(gen, "{}", mu, n, gamma, avgdeg, temp, args.runlength, run)
             
@@ -192,43 +197,67 @@ def run(params, pre_fn, args, pid):
                             continue
                             
                         with Logger(label, logf):
-                            aa = curveball.AutocorrelationAnalysis(part_chainlength + 1)
-                            aa.addSample(G.edges())
+                            repeat_processes = [multiprocessing.Process(target=chainrun, args=(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_chainlength, logf, pre_fn, pid, rpids)) for rpids in chunkify(range(args.repeats), args.repeatpus)]
                             
-                            # run long chain
-                            for chainrun in range(part_chainlength):
-                                randomizer.run(swaps.generate())
-                                aa.addSample(randomizer.getEdges()) 
-                       
-                            # analyze time-series for each small thinning value
-                            for thinning in part:
-                                logf.write("      {} Thinning: {}\n".format(pid, thinning))
-                                last = int(thinning * args.runlength / part_gcd)
-                                aa.init()
-                                ind_count = 0
-                                # Foreach time-series x
-                                while True:
-                                    end, vec = aa.getTimeSeries()
-                                    if end:
-                                        break
-                                    x = np.zeros((2,2))
-                                    get_transitions(vec[0:last:int(thinning/part_gcd)], x)
-                                    hat_x = np.zeros((2,2))
-                                    get_loglinear_estimate(x, hat_x)
-                                    log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
-                                    delta_BIC = (-2)*log_sum - math.log(args.runlength)
-                                    if (delta_BIC < 0):
-                                        ind_count += 1
-                                indrate = ind_count/aa.numberOfEdges()
-
-                                # write out to file
-                                if gen == 'PLDHH':
-                                    outf.write(data_line.format(args.label, args.runlength, gen, rand, run, thinning, mu, n, gamma, mindeg, maxdeg, indrate))
-                                elif gen == 'ERDOSRENYI':
-                                    outf.write(data_line.format(args.label, args.runlength, gen, rand, run, thinning, mu, n, p, "-", "-", indrate))
-                                elif gen == 'HYPER':
-                                    outf.write(data_line.format(args.label, args.runlength, gen, rand, run, thinning, mu, n, gamma, avgdeg, temp, indrate))
+                            for process in repeat_processes:
+                                process.start()
+                            for process in repeat_processes:
+                                process.join()
+								 
     print("PU {} finished.".format(pid))
+
+
+def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_chainlength, logf, prefn, pid, rpids):
+    print("{} subprocess.".format(multiprocessing.current_process()))
+    for rpid in rpids:
+        with open("{}_{}_{}.dat".format(pre_fn, pid, rpid), 'w') as outf:
+            aa = curveball.AutocorrelationAnalysis(part_chainlength + 1)
+            aa.addSample(G.edges())
+
+            # run long chain
+            for chainrun in range(part_chainlength):
+                randomizer.run(swaps.generate())
+                aa.addSample(randomizer.getEdges()) 
+
+            # analyze time-series for each small thinning value
+            for thinning in part:
+                logf.write("      {} Thinning: {}\n".format(pid, thinning))
+                last = int(thinning * args.runlength / part_gcd)
+                aa.init()
+                ind_count = 0
+                
+                # Foreach time-series x
+                while True:
+                    end, vec = aa.getTimeSeries()
+                    if end:
+                        break
+                    x = np.zeros((2,2))
+                    get_transitions(vec[0:last:int(thinning/part_gcd)], x)
+                    hat_x = np.zeros((2,2))
+                    get_loglinear_estimate(x, hat_x)
+                    log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
+                    delta_BIC = (-2)*log_sum - math.log(args.runlength)
+                    if (delta_BIC < 0):
+                        ind_count += 1
+                indrate = ind_count/aa.numberOfEdges()
+
+                # write out to file
+                mu = param_dict["mu"]
+                n = param_dict["n"]
+                gen = param_dict["gen"]
+                run = param_dict["run"]
+                if param_dict["gen"] == 'PLDHH':
+                    gamma = param_dict["gamma"]
+                    mindeg = param_dict["mindeg"]
+                    maxdeg = param_dict["maxdeg"]
+                    outf.write(data_line.format(args.label, args.runlength, gen, rand, run, thinning, mu, n, gamma, mindeg, maxdeg, indrate))
+                elif param_dict["gen"] == 'ERDOSRENYI':
+                    p = param_dict["p"]
+                    outf.write(data_line.format(args.label, args.runlength, gen, rand, run, thinning, mu, n, p, "-", "-", indrate))
+                elif param_dict["gen"] == 'HYPER':
+                    pass
+                    # TODO merge 
+
 
 if __name__ == '__main__':
     processes = [multiprocessing.Process(target=run, args=(chunk, pre_fn, args, pid)) for chunk, pid in zip(params_chunks, range(len(params_chunks)))]
