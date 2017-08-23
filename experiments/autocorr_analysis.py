@@ -193,8 +193,8 @@ def run(params, pre_fn, args, pid):
                             randomizer = curveball.Curveball(G)
                             swaps = curveball.UniformTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/10), G.numberOfNodes())
                         elif rand == 'CB_GLOBAL':
-                            #TODO
-                            continue
+                            randomizer = curveball.Curveball(G)
+                            swaps = curveball.GlobalTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/10), G.numberOfEdges())
                             
                         with Logger(label, logf):
                             repeat_processes = [multiprocessing.Process(target=chainrun, args=(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_chainlength, logf, pre_fn, pid, rpids)) for rpids in chunkify(range(args.repeats), args.repeatpus)]

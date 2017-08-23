@@ -28,7 +28,8 @@ namespace CurveBall {
         const node_t _num_nodes;
 	IMAdjacencyList _adj_list;
 	IMTradeList _trade_list;
-		degree_t _max_degree;
+	degree_t _max_degree;
+	edgeid_t _aff_edges; // affected half-edges
 
         void load_from_graph(const trade_vector& trades);
 
@@ -66,6 +67,8 @@ namespace CurveBall {
         bool isParallel() const override {
 		return false;
         }
+
+	edgeid_t getNumberOfAffectedEdges() const;
 
         NetworKit::Graph getGraph() const;
     
