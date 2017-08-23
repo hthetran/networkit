@@ -2442,7 +2442,8 @@ cdef extern from "cpp/curveball/Curveball.h":
 		_Curveball(_Graph) except +
 		void run(vector[pair[node, node]] trades) nogil except +
 		_Graph getGraph() except +
-		vector[pair[node, node]] getEdges() except + 
+		vector[pair[node, node]] getEdges() except +
+		count getNumberOfAffectedEdges() except +
 
 cdef class Curveball(Algorithm):
 	"""
@@ -2463,6 +2464,9 @@ cdef class Curveball(Algorithm):
 
 	def getEdges(self):
 		return (<_Curveball*>(self._this)).getEdges()
+	
+	def getNumberOfAffectedEdges(self):
+		return (<_Curveball*>(self._this)).getNumberOfAffectedEdges()
 
 cdef extern from "cpp/curveball/EdgeSwitchingMarkovChainRandomization.h":
 	cdef cppclass _EdgeSwitchingMarkovChainRandomization "CurveBall::EdgeSwitchingMarkovChainRandomization"(_Algorithm):
