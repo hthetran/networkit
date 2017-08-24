@@ -259,8 +259,7 @@ def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_
     for rpid in rpids:
         with open("{}_{}_{}.dat".format(pre_fn, pid, rpid), 'a') as outf:
             if "IND" in args.metrics:
-                aa = curveball.AutocorrelationAnalysis(part_chainlength + 1)
-                aa.addSample(G.edges())
+                aa = curveball.AutocorrelationAnalysis(part_chainlength)
 
             # run long chain
             randsteps = 0
@@ -306,7 +305,7 @@ def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_
                         hat_x = np.zeros((2,2))
                         get_loglinear_estimate(x, hat_x)
                         log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
-                        delta_BIC = (-2)*log_sum - math.log(args.runlength)
+                        delta_BIC = (-2)*log_sum - math.log(args.runlength - 1)
                         if (delta_BIC < 0):
                             ind_count += 1
                     indrate = ind_count/aa.numberOfEdges()
