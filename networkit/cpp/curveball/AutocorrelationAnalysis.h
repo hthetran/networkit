@@ -16,7 +16,7 @@
 #include <string>
 
 namespace CurveBall {
-	
+
 	//TODO: Change back to edge_t
 	using nodepair_vector = std::vector<std::pair<node_t, node_t> >;
 	using bool_vector = std::vector<bool>;
@@ -26,6 +26,7 @@ namespace CurveBall {
 	// using tree_type = stx::btree_map<edge_t, bool_vector>;
 	using tree_type = std::map< std::pair<node_t, node_t>, bool_vector>;
 	using tree_type_it = tree_type::const_iterator;
+	using indrate_vector = std::vector<double>;
 
 	class AutocorrelationAnalysis {
 	protected:
@@ -55,6 +56,8 @@ namespace CurveBall {
 		bool end() const;
 
 		edgeid_t numberOfEdges() const;
+
+		indrate_vector getIndependenceRate(std::vector<NetworKit::count>& thinnings, NetworKit::count runLength) const;
 	};
 }
 

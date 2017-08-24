@@ -8,7 +8,7 @@
 #include "AutocorrelationAnalysis.h"
 
 namespace CurveBall {
-	
+
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 	using bool_vector = std::vector<bool>;
 	using value_type = std::pair< std::pair<node_t, node_t>, bool_vector>;
@@ -17,8 +17,9 @@ namespace CurveBall {
 	using value_type_vector = std::vector<value_type>;
 	using tree_type = std::map<std::pair<node_t, node_t>, std::vector<bool> >;
 	using tree_type_cit = tree_type::const_iterator;
+	using indrate_vector = std::vector<double>;
 
-	AutocorrelationAnalysis::AutocorrelationAnalysis(const NetworKit::count max_sample_size) 
+	AutocorrelationAnalysis::AutocorrelationAnalysis(const NetworKit::count max_sample_size)
 		: _max_sample_size(max_sample_size)
 		, _curr_sample_size(0)
 	{
@@ -84,5 +85,38 @@ namespace CurveBall {
 
 	edgeid_t AutocorrelationAnalysis::numberOfEdges() const {
 		return edge_existence.size();
+	}
+
+	indrate_vector AutocorrelationAnalysis::getIndependenceRate(std::vector<NetworKit::count>& thinnings, NetworKit::count runLength) const {
+		// iterate over thinning values
+		for (const auto thinning : thinnings) {
+			// iterate over time series'
+			// NetworKit::count run = 0;
+			// NetworKit::count x[2][2] = { {0, 0}, {0, 0} };
+			// for each edge
+			for (const auto edgets_it = edge_existence.cbegin(); edgets_it != edge_existence.cend(); std::next(edgets_it)) {
+				const auto ts = (*edgets_it).second;
+				/*
+				// transition from 1 to 1
+				if (prev && *ts_it).second)
+					++x[1][1];
+				// transition from 0 to 1
+				else if (!prev && *ts_it)
+					++x[0][1];
+				// transition from 0 to 1
+				else if (prev && *ts_it)
+					++x[1][0];
+				else
+				// transition from 0 to 0
+					++x[0][0];
+
+				++run;
+				if (run == runLength)
+					break;*/
+
+				// calculate independence rate
+			}
+
+		}
 	}
 }
