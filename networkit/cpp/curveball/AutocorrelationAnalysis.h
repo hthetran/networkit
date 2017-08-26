@@ -57,7 +57,7 @@ namespace CurveBall {
 
 		edgeid_t numberOfEdges() const;
 
-		indrate_vector getIndependenceRate(std::vector<NetworKit::count>& thinnings, NetworKit::count runLength) const;
+		indrate_vector getIndependenceRate(const std::vector<NetworKit::count>& thinnings, const NetworKit::count run_length) const;
 	};
 }
 
