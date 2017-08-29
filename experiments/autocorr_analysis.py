@@ -129,7 +129,9 @@ if not os.path.exists(out_path):
     os.makedirs(out_path)
 pre_fn = "{}/{}".format(out_path, args.label)
 if len(glob.glob("{}_*".format(pre_fn))) > 0:
-    raise RuntimeError("Label already used.")
+    print("Label already used.")
+    now = datetime.datetime.now()
+    args.label = str(now).replace(' ', '_')
 
 # Table entries:
 # LABEL
@@ -288,7 +290,7 @@ def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_
                     aa.addSample(randomizer.getEdges())
 
             if "IND" in args.metrics:
-                indrates = aa.getIndependenceRate(part)
+                indrates = aa.getIndependenceRate(part, args.runlength)
                 for thinning, indrate in zip(part, indrates):
                     print(indrate)
                     outf.write(out_line.format(thinning, "IND", indrate))
