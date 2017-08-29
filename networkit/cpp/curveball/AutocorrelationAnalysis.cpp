@@ -91,8 +91,23 @@ namespace CurveBall {
 		indrate_vector indrates;
 		indrates.reserve(thinnings.size());
 
+                auto compute_gcd = [&](NetworKit::count a, NetworKit::count b) {
+                        NetworKit::count tmp;
+                        while (b > 0) {
+                                tmp = b;
+                                b = a % b;
+                                a = tmp;
+                        }
+                        return a;
+                };
+
+                // reduce in C++11 style
+                const NetworKit::count gcd = std::accumulate(thinnings.cbegin(), thinnings.cend(), thinnings[0], compute_gcd);
+                
 		// iterate over thinning values
 		for (const auto thinning : thinnings) {
+                        const NetworKit::count step = thinning / gcd;
+
 			// for each edge
 			NetworKit::count independent_edges = 0;
 			NetworKit::count none_edges = 0; // edges that have never appeared in the thinned time-series
@@ -105,12 +120,12 @@ namespace CurveBall {
 				const bool_vector ts = (*edgets_it).second;
 				auto ts_it = ts.begin();
 
-				bool prev = ts[thinning];
+				bool prev = ts[step - 1];
 
-				std::advance(ts_it, 2*thinning);
+				std::advance(ts_it, 2*step);
 
 				// iterate over time-series in thinning steps
-				for ( ; ts_it != ts.end(); std::advance(ts_it, thinning)) {
+				for ( ; ts_it != ts.end(); std::advance(ts_it, step)) {
 					// transition from 1 to 1
 					if (prev && *ts_it)
 						++x[1][1];
