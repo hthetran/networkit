@@ -2499,12 +2499,8 @@ cdef extern from "cpp/curveball/AutocorrelationAnalysis.h":
 		_AutocorrelationAnalysis(count maxSampleSize) except +
 		void addSample(_Graph G) nogil except +
 		void addSample(vector[pair[node, node]] edges) nogil except +
-		#vector[pair[pair[node, node], vector[bool]]] getEdgeExistences() nogil except +
-		void init() nogil except +
-		vector[bool] get() except +
-		void next() nogil except +
-		bool end() except +
 		count numberOfEdges() except +
+		vector[double] getIndependenceRate(vector[count], count) except +
 
 cdef class AutocorrelationAnalysis:
 	"""
@@ -2525,24 +2521,11 @@ cdef class AutocorrelationAnalysis:
 		else:
 			self._this.addSample(<vector[pair[node, node]]?>G)
 	
-	def init(self):
-		self._this.init()
-
-	def getTimeSeries(self):
-		if self._this.end():
-			return (True, None)
-		else:
-			result = self._this.get()
-			self._this.next()
-			return (False, pandas.np.array(result, dtype=pandas.np.bool))
-
 	def numberOfEdges(self):
 		return self._this.numberOfEdges()
 
-#	def getEdgeExistences(self):
-#		edgeExistences = self._this.getEdgeExistences()
-#		result = pandas.np.matrix([b for a, b in edgeExistences], dtype=pandas.np.bool)
-#		return result #self._this.getEdgeExistences()
+	def getIndependenceRate(self, vector[count] thinnings, count runLength):
+		return self._this.getIndependenceRate(thinnings, runLength)
 
 	"""
 	TODO document

@@ -288,29 +288,10 @@ def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_
                     aa.addSample(randomizer.getEdges())
 
             if "IND" in args.metrics:
-                # analyze time-series for the group of thinning values
-                for thinning in part:
-                    logf.write("      {} Thinning: {}\n".format(pid, thinning))
-                    last = int(thinning * args.runlength / part_gcd)
-                    aa.init()
-                    ind_count = 0
-
-                    # Foreach time-series x
-                    while True:
-                        end, vec = aa.getTimeSeries()
-                        if end:
-                            break
-                        x = np.zeros((2,2))
-                        get_transitions(vec[0:last:int(thinning/part_gcd)], x)
-                        hat_x = np.zeros((2,2))
-                        get_loglinear_estimate(x, hat_x)
-                        log_sum = sum([x[(i,j)]*math.log(hat_x[(i,j)]/x[(i,j)]) if x[(i,j)] != 0 else 0 for i in range(2) for j in range(2)])
-                        delta_BIC = (-2)*log_sum - math.log(args.runlength - 1)
-                        if (delta_BIC < 0):
-                            ind_count += 1
-                    indrate = ind_count/aa.numberOfEdges()
+                indrates = aa.getIndependenceRate(part)
+                for thinning, indrate in zip(part, indrates):
+                    print(indrate)
                     outf.write(out_line.format(thinning, "IND", indrate))
-
 
 if __name__ == '__main__':
     processes = [multiprocessing.Process(target=run, args=(chunk, pre_fn, args, pid)) for chunk, pid in zip(params_chunks, range(len(params_chunks)))]
