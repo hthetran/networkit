@@ -24,6 +24,7 @@ import fractions
 import random
 import glob
 import shutil
+import datetime
 import numpy as np
 
 random.seed()
@@ -129,9 +130,9 @@ if not os.path.exists(out_path):
     os.makedirs(out_path)
 pre_fn = "{}/{}".format(out_path, args.label)
 if len(glob.glob("{}_*".format(pre_fn))) > 0:
-    print("Label already used.")
     now = datetime.datetime.now()
     args.label = str(now).replace(' ', '_')
+    print("Label already used, instead using {}.".format(args.label))
 
 # Table entries:
 # LABEL
@@ -218,10 +219,12 @@ def run(params, pre_fn, args, pid):
                             swaps = curveball.UniformTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/10), G.numberOfEdges())
                         elif rand == 'CB_UNIFORM':
                             randomizer = curveball.Curveball(G)
-                            swaps = curveball.UniformTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/10), G.numberOfNodes())
+                            degrees = centrality.DegreeCentrality(G).run().scores()
+                            avg_deg = sum(degrees)/len(degrees)
+                            swaps = curveball.UniformTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/(10*avg_deg)), G.numberOfNodes())
                         elif rand == 'CB_GLOBAL':
                             randomizer = curveball.Curveball(G)
-                            swaps = curveball.GlobalTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/10), G.numberOfEdges())
+                            swaps = curveball.GlobalTradeGenerator(math.ceil(part_gcd/10), G.numberOfNodes())
 
                         with Logger(label, logf):
                             repeat_processes = [multiprocessing.Process(target=chainrun, args=(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_chainlength, logf, pre_fn, pid, rpids)) for rpids in chunkify(range(args.repeats), args.repeatpus)]
@@ -235,6 +238,7 @@ def run(params, pre_fn, args, pid):
 
 
 def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_chainlength, logf, prefn, pid, rpids):
+    print(G)
     setSeed(random.getrandbits(64), True)
 
     print("{} subprocess.".format(multiprocessing.current_process()))
