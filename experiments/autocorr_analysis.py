@@ -126,13 +126,18 @@ else:
 
 path = os.path.dirname(os.path.realpath(__file__))
 out_path = "{}/output".format(path)
-if not os.path.exists(out_path):
-    os.makedirs(out_path)
 pre_fn = "{}/{}".format(out_path, args.label)
+
 if len(glob.glob("{}_*".format(pre_fn))) > 0:
     now = datetime.datetime.now()
     args.label = str(now).replace(' ', '_')
+    path = os.path.dirname(os.path.realpath(__file__))
+    out_path = "{}/output".format(path)
+    pre_fn = "{}/{}".format(out_path, args.label)
     print("Label already used, instead using {}.".format(args.label))
+
+if not os.path.exists(out_path):
+    os.makedirs(out_path)
 
 # Table entries:
 # LABEL
@@ -220,7 +225,12 @@ def run(params, pre_fn, args, pid):
                         elif rand == 'CB_UNIFORM':
                             randomizer = curveball.Curveball(G)
                             degrees = centrality.DegreeCentrality(G).run().scores()
-                            avg_deg = sum(degrees)/len(degrees)
+                            print("a")
+                            print(degrees)
+                            print("b")
+                            avg_deg = sum(degrees)/float(len(degrees))
+                            print(avg_deg)
+                            print(math.ceil(part_gcd*G.numberOfEdges()/(10*avg_deg)))
                             swaps = curveball.UniformTradeGenerator(math.ceil(part_gcd*G.numberOfEdges()/(10*avg_deg)), G.numberOfNodes())
                         elif rand == 'CB_GLOBAL':
                             randomizer = curveball.Curveball(G)
@@ -240,6 +250,8 @@ def run(params, pre_fn, args, pid):
 def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_chainlength, logf, prefn, pid, rpids):
     print(G)
     setSeed(random.getrandbits(64), True)
+
+    print(swaps.generate())
 
     print("{} subprocess.".format(multiprocessing.current_process()))
 
@@ -271,27 +283,45 @@ def chainrun(G, swaps, randomizer, rand, args, param_dict, part, part_gcd, part_
             randsteps = 0
             parttmp = copy.deepcopy(part)
             for chainrun in range(part_chainlength):
+                print("CB_U pls")
                 randomizer.run(swaps.generate())
+                print("CB_U pls pls00")
                 randsteps += part_gcd
                 if graphNeeded:
+                    print("getgraph:wq")
                     G = randomizer.getGraph()
+                    print(G.edges())
+                    degrees2 = centrality.DegreeCentrality(G).run().scores()
+                    print(degrees2)
+                    print(G)
                     for thinning in parttmp:
+                        print(randsteps)
+                        print(thinning)
                         if randsteps % thinning == 0:
                             if "TRI" in args.metrics:
                                 G.indexEdges()
+                                print("tri")
                                 outf.write(out_line.format(thinning, "TRI", sum(sparsification.TriangleEdgeScore(G).run().scores()) // 3))
                             if "DIAM" in args.metrics:
+                                print("diam")
                                 outf.write(out_line.format(thinning, "DIAM", distance.Diameter(G, distance.DiameterAlgo.Exact).run().getDiameter()[0]))
                             if "LCC" in args.metrics:
+                                print("xxslcc")
                                 outf.write(out_line.format(thinning, "LCC", (lambda lccs : sum(lccs)/float(len(lccs)))(centrality.LocalClusteringCoefficient(G, True).run().scores())))
                             if "DA" in args.metrics:
-                                outf.write(out_line.format(thinning, "DA", (lambda degrees : correlation.Assortativity(G, degrees).run().getCoefficient())(centrality.DegreeCentrality(G).run().scores())))
+                                print("da")
+                                print(G)
+                                degrees = centrality.DegreeCentrality(copy.deepcopy(G)).run().scores()
+                                print(degrees)
+                                outf.write(out_line.format(thinning, "DA", correlation.Assortativity(G, degrees).run().getCoefficient()))
 
                         if randsteps/thinning > args.runlength:
                             parttmp.remove(thinning)
 
                 if "IND" in args.metrics:
                     aa.addSample(randomizer.getEdges())
+
+            print("CBU ??")
 
             if "IND" in args.metrics:
                 indrates = aa.getIndependenceRate(part, args.runlength)
