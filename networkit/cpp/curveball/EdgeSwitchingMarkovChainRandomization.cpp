@@ -20,12 +20,6 @@ namespace CurveBall {
 		_edges.reserve(G.numberOfEdges());
 		 neighbors.reserve(G.numberOfNodes());
 
-	        // compute max degree
-		//degree_t maxdeg = 0;
-		//G.forNodes([&](node_t v){
-		//	maxdeg = std::max(maxdeg, G.degree(v));
-		//});
-
 		// reserve space
 		G.forNodes([&](node_t v) {
                         std::unordered_set<node_t> set;
