@@ -18,23 +18,23 @@ namespace CurveBall {
 		: _G(G)
 	{
 		_edges.reserve(G.numberOfEdges());
-		 neighbors.reserve(G.numberOfNodes());
+		neighbors.reserve(G.numberOfNodes());
 
 		// reserve space
 		G.forNodes([&](node_t v) {
-                        std::unordered_set<node_t> set;
-                        set.reserve(G.degree(v));
-                        neighbors.push_back(set);
-                });
+				std::unordered_set<node_t> set;
+				set.reserve(G.degree(v));
+				neighbors.push_back(set);
+				});
 
 		// add edges to map
 		for (const auto edge : G.edges()){
 			if (edge.first < edge.second) {
 				_edges.push_back(static_cast<edge_t>(edge));
-                                neighbors[edge.first].insert(edge.second);
+				neighbors[edge.first].insert(edge.second);
 			} else {
 				_edges.push_back({edge.second, edge.first});
-                                neighbors[edge.second].insert(edge.first);
+				neighbors[edge.second].insert(edge.first);
 			}
 		}
 	}
@@ -62,10 +62,10 @@ namespace CurveBall {
 			// check for edge existence
 			assert(_G.hasEdge(swapped_a.first, swapped_a.second) == (neighbors[swapped_a.first].find(swapped_a.second) != neighbors[swapped_a.first].end()));
 			assert(_G.hasEdge(swapped_b.first, swapped_b.second) == (neighbors[swapped_b.first].find(swapped_b.second) != neighbors[swapped_b.first].end()));
-                        //if (_G.hasEdge(swapped_a.first, swapped_a.second) || _G.hasEdge(swapped_b.first, swapped_b.second))
+			//if (_G.hasEdge(swapped_a.first, swapped_a.second) || _G.hasEdge(swapped_b.first, swapped_b.second))
 			if (neighbors[swapped_a.first].find(swapped_a.second) != neighbors[swapped_a.first].end()
-                                        || neighbors[swapped_b.first].find(swapped_b.second) != neighbors[swapped_b.first].end())
-                                continue;
+					|| neighbors[swapped_b.first].find(swapped_b.second) != neighbors[swapped_b.first].end())
+				continue;
 			else {
 				// update now old edges with swapped ones
 				// careful, since swapEdge swaps in a particular way
@@ -75,8 +75,8 @@ namespace CurveBall {
 				neighbors[edge_a.first].erase(edge_a.second);
 				neighbors[edge_b.first].erase(edge_b.second);
 
-	                        auto p1 = neighbors[swapped_a.first].insert(swapped_a.second);
-	                        auto p2 = neighbors[swapped_b.first].insert(swapped_b.second);
+				auto p1 = neighbors[swapped_a.first].insert(swapped_a.second);
+				auto p2 = neighbors[swapped_b.first].insert(swapped_b.second);
 
 				assert(p1.second);
 				assert(p2.second);

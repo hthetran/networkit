@@ -14,7 +14,7 @@ namespace CurveBall {
 
 	UniformTradeGenerator::UniformTradeGenerator(const tradeid_t trade_num, const node_t num_nodes)
 		: _num_nodes(num_nodes)
-		, _trade_num(trade_num)
+		  , _trade_num(trade_num)
 	{ }
 
 	const value_type UniformTradeGenerator::generate() {

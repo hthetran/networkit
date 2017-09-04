@@ -28,35 +28,35 @@ namespace CurveBall {
 	using indrate_vector = std::vector<double>;
 
 	class AutocorrelationAnalysis {
-	protected:
-		const NetworKit::count _max_sample_size;
-		NetworKit::count _curr_sample_size;
-		tree_type edge_existence;
-		tree_type_it pos;
+		protected:
+			const NetworKit::count _max_sample_size;
+			NetworKit::count _curr_sample_size;
+			tree_type edge_existence;
+			tree_type_it pos;
 
-	public:
-		AutocorrelationAnalysis(const NetworKit::count max_sample_size);
+		public:
+			AutocorrelationAnalysis(const NetworKit::count max_sample_size);
 
-		void addSample(const NetworKit::Graph& G);
+			void addSample(const NetworKit::Graph& G);
 
-		void addSample(const nodepair_vector& edges);
+			void addSample(const nodepair_vector& edges);
 
-		/* Deprecated do not call this.
-		 * Potentially uses up too much RAM.
-		 */
-		value_type_vector getEdgeExistences() const;
+			/* Deprecated do not call this.
+			 * Potentially uses up too much RAM.
+			 */
+			value_type_vector getEdgeExistences() const;
 
-		void init();
+			void init();
 
-		bool_vector get() const;
+			bool_vector get() const;
 
-		void next();
+			void next();
 
-		bool end() const;
+			bool end() const;
 
-		edgeid_t numberOfEdges() const;
+			edgeid_t numberOfEdges() const;
 
-		indrate_vector getIndependenceRate(const std::vector<NetworKit::count>& thinnings, const NetworKit::count run_length) const;
+			indrate_vector getIndependenceRate(const std::vector<NetworKit::count>& thinnings, const NetworKit::count run_length) const;
 	};
 }
 
