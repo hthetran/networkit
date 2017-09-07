@@ -21,7 +21,7 @@ namespace CurveBall {
 
 	AutocorrelationAnalysis::AutocorrelationAnalysis(const NetworKit::count max_sample_size)
 		: _max_sample_size(max_sample_size)
-		, _curr_sample_size(0)
+		  , _curr_sample_size(0)
 	{
 
 	}
@@ -29,11 +29,11 @@ namespace CurveBall {
 	//TODO: make readable
 	void AutocorrelationAnalysis::addSample(const NetworKit::Graph& G) {
 		G.forEdges([&](node_t u, node_t v) {
-			const node_t _u = std::min(u, v);
-			const node_t _v = std::max(u, v);
-			auto edge_pos = edge_existence.insert(std::make_pair(edge_t{_u, _v}, std::vector<bool>(_max_sample_size, false)));
-			((*(edge_pos.first)).second)[_curr_sample_size] = true;
-		});
+				const node_t _u = std::min(u, v);
+				const node_t _v = std::max(u, v);
+				auto edge_pos = edge_existence.insert(std::make_pair(edge_t{_u, _v}, std::vector<bool>(_max_sample_size, false)));
+				((*(edge_pos.first)).second)[_curr_sample_size] = true;
+				});
 
 		_curr_sample_size++;
 
@@ -91,22 +91,22 @@ namespace CurveBall {
 		indrate_vector indrates;
 		indrates.reserve(thinnings.size());
 
-                auto compute_gcd = [&](NetworKit::count a, NetworKit::count b) {
-                        NetworKit::count tmp;
-                        while (b > 0) {
-                                tmp = b;
-                                b = a % b;
-                                a = tmp;
-                        }
-                        return a;
-                };
+		auto compute_gcd = [&](NetworKit::count a, NetworKit::count b) {
+			NetworKit::count tmp;
+			while (b > 0) {
+				tmp = b;
+				b = a % b;
+				a = tmp;
+			}
+			return a;
+		};
 
-                // reduce in C++11 style
-                const NetworKit::count gcd = std::accumulate(thinnings.cbegin(), thinnings.cend(), thinnings[0], compute_gcd);
-                
+		// reduce in C++11 style
+		const NetworKit::count gcd = std::accumulate(thinnings.cbegin(), thinnings.cend(), thinnings[0], compute_gcd);
+
 		// iterate over thinning values
 		for (const auto thinning : thinnings) {
-                        const NetworKit::count step = thinning / gcd;
+			const NetworKit::count step = thinning / gcd;
 
 			// for each edge
 			NetworKit::count independent_edges = 0;
@@ -136,7 +136,7 @@ namespace CurveBall {
 					else if (prev && !(*ts_it))
 						++x[1][0];
 					else
-					// transition from 0 to 0
+						// transition from 0 to 0
 						++x[0][0];
 
 					prev = *ts_it;
@@ -156,20 +156,20 @@ namespace CurveBall {
 				const NetworKit::count x_sum = x[0][0] + x[0][1] + x[1][0] + x[1][1];
 				const double hat_x[2][2] = {
 					{(x[0][0] + x[0][1])*(x[0][0] + x[1][0])/static_cast<double>(x_sum),
-					 (x[0][0] + x[0][1])*(x[0][1] + x[1][1])/static_cast<double>(x_sum)
+						(x[0][0] + x[0][1])*(x[0][1] + x[1][1])/static_cast<double>(x_sum)
 					},
 					{(x[1][0] + x[1][1])*(x[0][0] + x[1][0])/static_cast<double>(x_sum),
-					 (x[1][0] + x[1][1])*(x[0][1] + x[1][1])/static_cast<double>(x_sum)
+						(x[1][0] + x[1][1])*(x[0][1] + x[1][1])/static_cast<double>(x_sum)
 					}
 				};
 
 				// calculate independence rate
 				const double log_summand[2][2] = {
 					{x[0][0] == 0 ? 0. : x[0][0]*log(hat_x[0][0]/x[0][0]),
-					 x[0][1] == 0 ? 0. : x[0][1]*log(hat_x[0][1]/x[0][1])
+						x[0][1] == 0 ? 0. : x[0][1]*log(hat_x[0][1]/x[0][1])
 					},
 					{x[1][0] == 0 ? 0. : x[1][0]*log(hat_x[1][0]/x[1][0]),
-					 x[1][1] == 0 ? 0. : x[1][1]*log(hat_x[1][1]/x[1][1])
+						x[1][1] == 0 ? 0. : x[1][1]*log(hat_x[1][1]/x[1][1])
 					}
 				};
 

@@ -16,15 +16,15 @@
 
 namespace NetworKit {
 
-    class IMAdjacencyListMaterialization {
+	class IMAdjacencyListMaterialization {
 
-    protected:
+		protected:
 
-    public:
-        IMAdjacencyListMaterialization() = default;
+		public:
+			IMAdjacencyListMaterialization() = default;
 
-	NetworKit::Graph materialize(const CurveBall::IMAdjacencyList& adj_list) const;
-    };
+			NetworKit::Graph materialize(const CurveBall::IMAdjacencyList& adj_list) const;
+	};
 }
 
 #endif //CB_IMADJACENCYLISTMATERIALIZATION_H

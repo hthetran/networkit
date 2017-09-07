@@ -39,7 +39,7 @@ TEST_F(EdgeSwitchingMarkovChainRandomizationGTest, testRunSingleTrade) {
 }
 
 TEST_F(EdgeSwitchingMarkovChainRandomizationGTest, testRunMultipleTrades) {
-	const NetworKit::count n = 500;
+	const NetworKit::count n = 300;
 	double p = 0.5;
 	NetworKit::ErdosRenyiGenerator gen(n, p);
 	NetworKit::Graph G = gen.generate();
