@@ -14,87 +14,87 @@
 
 namespace CurveBall {
 
-class IMAdjacencyList {
-public:
-	using degree_vector = std::vector<degree_t>;
-	using neighbour_vector = std::vector<node_t>;
-	using pos_vector = std::vector<edgeid_t>;
-	using pos_it = pos_vector::iterator;
-	using neighbour_it = neighbour_vector::iterator;
-	using cneighbour_it = neighbour_vector::const_iterator;
-	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
+	class IMAdjacencyList {
+		public:
+			using degree_vector = std::vector<degree_t>;
+			using neighbour_vector = std::vector<node_t>;
+			using pos_vector = std::vector<edgeid_t>;
+			using pos_it = pos_vector::iterator;
+			using neighbour_it = neighbour_vector::iterator;
+			using cneighbour_it = neighbour_vector::const_iterator;
+			using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
-protected:
+		protected:
 
-    	neighbour_vector _neighbours;
-    	degree_vector _offsets;
-	pos_vector _begin;
-	edgeid_t _degree_count;	
+			neighbour_vector _neighbours;
+			degree_vector _offsets;
+			pos_vector _begin;
+			edgeid_t _degree_count;
 
-public:
-	IMAdjacencyList() = default;
-	
-	// Receives the degree_vector to initialize
-	// As trades permute neighbours the degrees don't change
-	IMAdjacencyList(const degree_vector& degrees, const edgeid_t degree_count);
+		public:
+			IMAdjacencyList() = default;
 
-	void initialize(const degree_vector& degrees, const edgeid_t degree_count);
+			// Receives the degree_vector to initialize
+			// As trades permute neighbours the degrees don't change
+			IMAdjacencyList(const degree_vector& degrees, const edgeid_t degree_count);
 
-	void restructure();
+			void initialize(const degree_vector& degrees, const edgeid_t degree_count);
 
-	// No Copy Constructor
-	IMAdjacencyList(const IMAdjacencyList &) = delete;
+			void restructure();
 
-	neighbour_it begin(const node_t node_id);
+			// No Copy Constructor
+			IMAdjacencyList(const IMAdjacencyList &) = delete;
 
-	neighbour_it end(const node_t node_id);
+			neighbour_it begin(const node_t node_id);
 
-	cneighbour_it cbegin(const node_t node_id) const;
-	
-	cneighbour_it cend(const node_t node_id) const;
+			neighbour_it end(const node_t node_id);
 
-	nodepair_vector getEdges() const;
-	
-	void insert_neighbour(const node_t node_id, const node_t neighbour) {
-		const auto pos = begin(node_id) + _offsets[node_id];
+			cneighbour_it cbegin(const node_t node_id) const;
 
-		assert(*pos != LISTROW_END);
+			cneighbour_it cend(const node_t node_id) const;
 
-		*pos = neighbour;
+			nodepair_vector getEdges() const;
 
-		_offsets[node_id]++;
-	}
+			void insert_neighbour(const node_t node_id, const node_t neighbour) {
+				const auto pos = begin(node_id) + _offsets[node_id];
 
-        node_t numberOfNodes() const {
-            return static_cast<node_t>(_offsets.size());
-        }
+				assert(*pos != LISTROW_END);
 
-	node_t numberOfEdges() const {
-		return static_cast<edgeid_t>(_degree_count);
-	}
+				*pos = neighbour;
 
-	void sortRow(const node_t node_id) {
-		std::sort(begin(node_id), end(node_id));
+				_offsets[node_id]++;
+			}
 
-		return;
-	}
+			node_t numberOfNodes() const {
+				return static_cast<node_t>(_offsets.size());
+			}
 
-	void reset_row(const node_t node_id) {
-		assert(node_id >= 0);
-		assert(node_id < static_cast<node_t>(_offsets.size()));
+			node_t numberOfEdges() const {
+				return static_cast<edgeid_t>(_degree_count);
+			}
 
-		_offsets[node_id] = 0;
+			void sortRow(const node_t node_id) {
+				std::sort(begin(node_id), end(node_id));
 
-		return;
-	}
+				return;
+			}
 
-	degree_t degreeAt(node_t node_id) const {
-		assert(node_id < static_cast<node_t>(_offsets.size()));
-		assert(node_id >= 0);
+			void reset_row(const node_t node_id) {
+				assert(node_id >= 0);
+				assert(node_id < static_cast<node_t>(_offsets.size()));
 
-		return _begin[node_id + 1] - _begin[node_id] - 1;
-	}
-};
+				_offsets[node_id] = 0;
+
+				return;
+			}
+
+			degree_t degreeAt(node_t node_id) const {
+				assert(node_id < static_cast<node_t>(_offsets.size()));
+				assert(node_id >= 0);
+
+				return _begin[node_id + 1] - _begin[node_id] - 1;
+			}
+	};
 
 }
 
