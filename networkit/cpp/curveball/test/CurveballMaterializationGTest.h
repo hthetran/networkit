@@ -12,10 +12,10 @@
 
 namespace CurveBall {
 
-	class IMAdjacencyListMaterializationGTest : public testing::Test {
+	class CurveballMaterializationGTest : public testing::Test {
 	public:
-		IMAdjacencyListMaterializationGTest() = default;
-		virtual ~IMAdjacencyListMaterializationGTest() = default;
+		CurveballMaterializationGTest() = default;
+		virtual ~CurveballMaterializationGTest() = default;
 	};
 }
 

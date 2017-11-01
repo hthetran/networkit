@@ -20,9 +20,11 @@ namespace CurveBall {
         : _num_nodes(num_nodes)
         , _run_length(run_length)
         , _trades_per_run(static_cast<tradeid_t>(num_nodes / 2))
-    { }
+    {
+	    assert(_num_nodes > 1);
+    }
 
-    const value_type GlobalTradeGenerator::generate() {
+	value_type GlobalTradeGenerator::generate() const {
         value_type _trades_out;
         _trades_out.reserve(_run_length * _trades_per_run);
 
@@ -32,16 +34,17 @@ namespace CurveBall {
 				node_permutation.push_back(node_id);
 			}
 
-            std::shuffle(node_permutation.begin(), node_permutation.end(), Aux::Random::getURNG());
+            std::shuffle(node_permutation.begin(), node_permutation.end(),
+                         Aux::Random::getURNG());
 
-            auto rand_node_it = node_permutation.cbegin();
+            auto rand_node_iter = node_permutation.cbegin();
             for (tradeid_t t_id = 0; t_id < _trades_per_run; t_id++) {
-                assert(rand_node_it != node_permutation.cend());
+                assert(rand_node_iter != node_permutation.cend());
 
-                const node_t fst = *rand_node_it;
-				rand_node_it++;
-                const node_t snd = *rand_node_it;
-                rand_node_it++;
+                const node_t fst = *rand_node_iter;
+				rand_node_iter++;
+                const node_t snd = *rand_node_iter;
+                rand_node_iter++;
 
                 _trades_out.push_back(TradeDescriptor{fst, snd});
             }

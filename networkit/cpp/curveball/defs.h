@@ -25,6 +25,10 @@
 using node_t = NetworKit::node;
 constexpr node_t INVALID_NODE = std::numeric_limits<node_t>::max();
 
+/**
+ * @typedef TradeDescripter
+ * @brief	Type for trades of two nodes
+ */
 using TradeDescriptor = std::pair<node_t, node_t>;
 
 /**

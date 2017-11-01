@@ -11,11 +11,10 @@
 #define CB_IMTRADELIST_H_
 
 #include "defs.h"
-#include "Trade.h"
 
 namespace CurveBall {
 
-class IMTradeList {
+class TradeList {
 public:
 	using edge_vector = std::vector<edge_t>;
 	using offset_vector = std::vector<tradeid_t>;
@@ -30,24 +29,25 @@ protected:
 	const node_t _num_nodes;
 
 public:
-	IMTradeList(const node_t num_nodes);
+	TradeList(const node_t num_nodes);
 
 	// Receives the edge_vector to initialize 
-	IMTradeList(const trade_vector& trades, const node_t num_nodes);
+	TradeList(const trade_vector& trades, const node_t num_nodes);
 
 	// Initialize method
 	void initialize(const trade_vector& trades);
 
 	// No Copy Constructor
-	IMTradeList(const IMTradeList&) = delete;
+	TradeList(const TradeList&) = delete;
 
-	tradeid_it get_trades(const node_t nodeid) const {
+	tradeid_it getTrades(const node_t nodeid) const {
 		assert(nodeid >= 0);
 		assert(nodeid < _num_nodes);
+
 		return _trade_list.begin() + _offsets[nodeid];
 	}
 
-	void inc_offset(const node_t nodeid) {
+	void incrementOffset(const node_t nodeid) {
 		assert(nodeid >= 0);
 		assert(nodeid < _num_nodes);
 		assert(1 <= _offsets[nodeid + 1] - _offsets[nodeid]);

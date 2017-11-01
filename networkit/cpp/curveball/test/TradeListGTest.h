@@ -12,10 +12,10 @@
 
 namespace CurveBall {
 
-    class IMTradeListGTest : public testing::Test {
+    class TradeListGTest : public testing::Test {
     public:
-        IMTradeListGTest() = default;
-        virtual ~IMTradeListGTest() = default;
+        TradeListGTest() = default;
+        virtual ~TradeListGTest() = default;
     };
 }
 

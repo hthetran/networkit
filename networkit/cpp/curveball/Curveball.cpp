@@ -7,30 +7,25 @@
 
 #include <iostream>
 #include "Curveball.h"
-#include "IMAdjacencyList.h"
-#include "Trade.h"
-#include "../auxiliary/Random.h"
-#include "../graph/Graph.h"
 #include "../graph/GraphBuilder.h"
-#include "../Globals.h"
-#include "IMAdjacencyListMaterialization.h"
+#include "CurveballMaterialization.h"
 
 namespace CurveBall {
 
 	using degree_vector = std::vector<degree_t>;
 	using trade_vector = std::vector<TradeDescriptor>;
 	using neighbour_vector = std::vector<node_t>;
-        using node_vector = std::vector<node_t>;
+	using node_vector = std::vector<node_t>;
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
 	Curveball::Curveball(const NetworKit::Graph& G)
-		: _G(G)
-		, _num_nodes(G.numberOfNodes())
-		, _trade_list(G.numberOfNodes())
-		, _aff_edges(0)
+			: _G(G)
+			, _num_nodes(G.numberOfNodes())
+			, _trade_list(G.numberOfNodes())
+			, _aff_edges(0)
 	{
 		hasRun = false;
-                assert(G.checkConsistency());
+		assert(G.checkConsistency());
 		assert(G.numberOfSelfLoops() == 0);
 		assert(_num_nodes > 0);
 	}
@@ -38,7 +33,7 @@ namespace CurveBall {
 	void Curveball::load_from_graph(const trade_vector& trades) {
 		// Compute degree sequence
 		degree_vector degrees;
-	   	degrees.reserve(_num_nodes);
+		degrees.reserve(_num_nodes);
 		edgeid_t degree_sum = 0;
 		_G.forNodes([&](node_t v) {
 			degrees.push_back(_G.degree(v));
@@ -50,7 +45,7 @@ namespace CurveBall {
 		_adj_list.initialize(degrees, degree_sum);
 		_trade_list.initialize(trades);
 
-                // Insert to adjacency list, directed according trades
+		// Insert to adjacency list, directed according trades
 		_G.forEdges([&](node_t u, node_t v) {
 			update(u, v);
 		});
@@ -91,32 +86,31 @@ namespace CurveBall {
 			_aff_edges += _adj_list.degreeAt(v);
 
 			// Shift the _trade_list offset for these two, currently was set to trade_count
-			_trade_list.inc_offset(u);
-			_trade_list.inc_offset(v);
-			
-			// Retrieve respective neighbours
-		    // we return whether u has v in his neighbors or vice-versa
-		    auto organize_neighbors = [&](node_t u, node_t v) {
-			auto pos = std::find(_adj_list.begin(u), _adj_list.end(u), v);
-			if (pos == _adj_list.cend(u)) {
-				// not found but still sort...
-				std::sort(_adj_list.begin(u), _adj_list.end(u));
-				return false;
-			} else {
-				(*_adj_list.end(u)) = v;
-				*pos = LISTROW_END;
-				std::sort(_adj_list.begin(u), _adj_list.end(u));
-				*(_adj_list.end(u) - 1) = *_adj_list.end(u);
-				// this datastructure doesn't want LISTROW_ENDs not in the end,
-				// therefore write 0 if not the case, because there is an assertion in IMAdjacencyList
-				if (_adj_list.end(u) + 1 == _adj_list.begin(u + 1))
-					*_adj_list.end(u) = LISTROW_END;
-				else
-					*_adj_list.end(u) = 0;
+			_trade_list.incrementOffset(u);
+			_trade_list.incrementOffset(v);
 
-				return true;
-			}
-		    };
+			// Retrieve respective neighbours
+			// we return whether u has v in his neighbors or vice-versa
+			auto organize_neighbors = [&](node_t node_x, node_t node_y) {
+				auto pos = std::find(_adj_list.begin(node_x), _adj_list.end(node_x), node_y);
+				if (pos == _adj_list.cend(node_x)) {
+					// element not found, sort anyway
+					std::sort(_adj_list.begin(node_x), _adj_list.end(node_x));
+
+					return false;
+				} else {
+					// overwrite node_y's position with END
+					*pos = LISTROW_END;
+
+					// sort, such that node_y's position is at end - 1
+					std::sort(_adj_list.begin(node_x), _adj_list.end(node_x));
+
+					// overwrite with node_y again
+					*(_adj_list.end(node_x) - 1) = node_y;
+
+					return true;
+				}
+			};
 
 			const bool u_share = organize_neighbors(u, v);
 			const bool v_share = organize_neighbors(v, u);
@@ -124,6 +118,7 @@ namespace CurveBall {
 			auto v_end = (v_share ? _adj_list.cend(v) - 1 : _adj_list.cend(v));
 
 			const bool shared = u_share || v_share;
+
 			// both can't have each other, only inserted in one
 			assert((!u_share && !v_share) || (u_share != v_share));
 
@@ -164,12 +159,12 @@ namespace CurveBall {
 			// v_setsize not necessarily needed
 
 			// Reset fst/snd row
-			_adj_list.reset_row(u);
-			_adj_list.reset_row(v);
+			_adj_list.resetRow(u);
+			_adj_list.resetRow(v);
 
 			std::shuffle(disjoint_neighbours.begin(), disjoint_neighbours.end(), Aux::Random::getURNG());
-			
-			// Assign first u_setsize to fst and last v_setsize to snd
+
+			// Assign first u_setsize to u and last v_setsize to v
 			// if not existent then max value, and below compare goes in favor of partner, if partner
 			// has no more neighbours as well then their values are equal (max and equal)
 			// and tiebreaking is applied
@@ -203,8 +198,9 @@ namespace CurveBall {
 	}
 
 	NetworKit::Graph Curveball::getGraph() const {
-		const NetworKit::IMAdjacencyListMaterialization gb;
-		return gb.materialize(_adj_list);
+		NetworKit::CurveballMaterialization gb(_adj_list);
+
+		return gb.toGraph(true, false);
 	}
 
 	nodepair_vector Curveball::getEdges() const {
