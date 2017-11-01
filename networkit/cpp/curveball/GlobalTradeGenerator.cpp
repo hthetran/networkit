@@ -9,7 +9,7 @@
 #include "../auxiliary/Random.h"
 
 namespace CurveBall {
-    using value_type = std::vector<TradeDescriptor>;
+	using value_type = std::vector<TradeDescriptor>;
 	using node_vector = std::vector<node_t>;
 
     // Behaviour we have here:
@@ -46,10 +46,10 @@ namespace CurveBall {
                 const node_t snd = *rand_node_iter;
                 rand_node_iter++;
 
-                _trades_out.push_back(TradeDescriptor{fst, snd});
-            }
-        }
+				_trades_out.push_back(TradeDescriptor{fst, snd});
+			}
+		}
 
-        return _trades_out;
-    }
+		return _trades_out;
+	}
 }

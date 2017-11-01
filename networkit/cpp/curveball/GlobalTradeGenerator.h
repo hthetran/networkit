@@ -13,19 +13,19 @@
 #include "defs.h"
 
 namespace CurveBall {
-    class GlobalTradeGenerator {
-    public:
-        using value_type = std::vector<TradeDescriptor>;
+	class GlobalTradeGenerator {
+		public:
+			using value_type = std::vector<TradeDescriptor>;
 
-    protected:
-        const node_t _num_nodes;
-        const tradeid_t _run_length;
-        const tradeid_t _trades_per_run;
+		protected:
+			const node_t _num_nodes;
+			const tradeid_t _run_length;
+			const tradeid_t _trades_per_run;
 
-    public:
-        GlobalTradeGenerator(const tradeid_t run_length, const node_t num_nodes);
+		public:
+			GlobalTradeGenerator(const tradeid_t run_length, const node_t num_nodes);
 
-        value_type generate() const;
+			value_type generate() const;
     };
 }
 

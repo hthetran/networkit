@@ -12,18 +12,18 @@
 #include "defs.h"
 
 namespace CurveBall {
-    class UniformTradeGenerator {
-    public:
-        using value_type = std::vector<TradeDescriptor>;
+	class UniformTradeGenerator {
+		public:
+			using value_type = std::vector<TradeDescriptor>;
 
-	protected:
-		const node_t _num_nodes;
-		const tradeid_t _trade_num;
+		protected:
+			const node_t _num_nodes;
+			const tradeid_t _trade_num;
 
-    public:
-        UniformTradeGenerator(const tradeid_t trade_num, const node_t num_nodes);
+		public:
+			UniformTradeGenerator(const tradeid_t trade_num, const node_t num_nodes);
 
-	    value_type generate() const;
+			value_type generate() const;
     };
 }
 

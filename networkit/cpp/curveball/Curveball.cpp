@@ -19,10 +19,10 @@ namespace CurveBall {
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
 	Curveball::Curveball(const NetworKit::Graph& G)
-			: _G(G)
-			, _num_nodes(G.numberOfNodes())
-			, _trade_list(G.numberOfNodes())
-			, _aff_edges(0)
+		: _G(G)
+		  , _num_nodes(G.numberOfNodes())
+		  , _trade_list(G.numberOfNodes())
+		  , _aff_edges(0)
 	{
 		hasRun = false;
 		assert(G.checkConsistency());
@@ -36,9 +36,9 @@ namespace CurveBall {
 		degrees.reserve(_num_nodes);
 		edgeid_t degree_sum = 0;
 		_G.forNodes([&](node_t v) {
-			degrees.push_back(_G.degree(v));
-			degree_sum += _G.degree(v);
-		});
+				degrees.push_back(_G.degree(v));
+				degree_sum += _G.degree(v);
+				});
 
 		_max_degree = *(std::max_element(degrees.cbegin(), degrees.cend()));
 
@@ -47,8 +47,8 @@ namespace CurveBall {
 
 		// Insert to adjacency list, directed according trades
 		_G.forEdges([&](node_t u, node_t v) {
-			update(u, v);
-		});
+				update(u, v);
+				});
 		return;
 	}
 
