@@ -12,10 +12,10 @@
 
 namespace CurveBall {
 
-    class IMAdjacencyListGTest : public testing::Test {
+    class CurveballAdjacencyListGTest : public testing::Test {
     public:
-        IMAdjacencyListGTest() = default;
-        virtual ~IMAdjacencyListGTest() = default;
+        CurveballAdjacencyListGTest() = default;
+        virtual ~CurveballAdjacencyListGTest() = default;
     };
 }
 

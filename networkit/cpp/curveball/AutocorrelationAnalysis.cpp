@@ -8,7 +8,7 @@
 #include "AutocorrelationAnalysis.h"
 
 namespace CurveBall {
-	
+
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 	using bool_vector = std::vector<bool>;
 	using value_type = std::pair< std::pair<node_t, node_t>, bool_vector>;
@@ -18,7 +18,7 @@ namespace CurveBall {
 	using tree_type = std::map<std::pair<node_t, node_t>, std::vector<bool> >;
 	using tree_type_cit = tree_type::const_iterator;
 
-	AutocorrelationAnalysis::AutocorrelationAnalysis(const NetworKit::count max_sample_size) 
+	AutocorrelationAnalysis::AutocorrelationAnalysis(const NetworKit::count max_sample_size)
 		: _max_sample_size(max_sample_size)
 		, _curr_sample_size(0)
 	{

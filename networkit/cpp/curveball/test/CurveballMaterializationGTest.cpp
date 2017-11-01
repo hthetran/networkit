@@ -5,14 +5,14 @@
  *	Author: Hung Tran
  */
 
-#include "IMAdjacencyListMaterializationGTest.h"
-#include "../IMAdjacencyListMaterialization.h"
+#include "CurveballMaterializationGTest.h"
+#include "../CurveballMaterialization.h"
 #include "../../graph/GraphBuilder.h"
 #include "../../graph/Graph.h"
 
 namespace CurveBall {
 
-TEST_F(IMAdjacencyListMaterializationGTest, testNewBuilder) {
+TEST_F(CurveballMaterializationGTest, testNewBuilder) {
 	
 }
 
