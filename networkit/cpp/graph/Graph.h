@@ -80,7 +80,7 @@ class Graph final {
 
 	friend class ParallelPartitionCoarsening;
 	friend class GraphBuilder;
-	friend class IMAdjacencyListMaterialization;
+	friend class CurveballMaterialization;
 
 private:
 	// graph attributes
