@@ -5,8 +5,7 @@
  *      Author: Hung Tran
  */
 
-#include "IMTradeList.h"
-#include "Trade.h"
+#include "TradeList.h"
 #include <numeric>
 
 namespace CurveBall {
@@ -15,11 +14,11 @@ namespace CurveBall {
 	using trade_t = TradeDescriptor;
 	using trade_vector = std::vector<trade_t>;
 
-	IMTradeList::IMTradeList(const node_t num_nodes)
-		: _num_nodes(num_nodes)
+	TradeList::TradeList(const node_t num_nodes)
+			: _num_nodes(num_nodes)
 	{ }
 
-	void IMTradeList::initialize(const trade_vector& trades) {
+	void TradeList::initialize(const trade_vector& trades) {
 		_trade_list.clear();
 		_trade_list.resize(2 * trades.size() + _num_nodes);
 		_offsets.clear();
@@ -44,8 +43,8 @@ namespace CurveBall {
 		// add missing +1 for sentinel
 		trade_count[0]++;
 		std::partial_sum(trade_count.cbegin(), trade_count.cend(), _offsets.begin() + 1, [&](const tradeid_t a, const tradeid_t b){
-				return a + b + 1;
-				});
+			return a + b + 1;
+		});
 		// add dummy
 		_offsets[_num_nodes] = 2 * trades.size() + _num_nodes - 1;
 
@@ -73,10 +72,10 @@ namespace CurveBall {
 		}
 	}
 
-	IMTradeList::IMTradeList(const trade_vector& trades, const node_t num_nodes)
-		: _trade_list(2 * trades.size() + num_nodes)
-		  , _offsets(num_nodes + 1)
-		  , _num_nodes(num_nodes)
+	TradeList::TradeList(const trade_vector& trades, const node_t num_nodes)
+			: _trade_list(2 * trades.size() + num_nodes)
+			, _offsets(num_nodes + 1)
+			, _num_nodes(num_nodes)
 	{
 		// Manuel: see above
 
@@ -99,8 +98,8 @@ namespace CurveBall {
 		// add missing +1 for sentinel
 		trade_count[0]++;
 		std::partial_sum(trade_count.cbegin(), trade_count.cend(), _offsets.begin() + 1, [&](const tradeid_t a, const tradeid_t b){
-				return a + b + 1;
-				});
+			return a + b + 1;
+		});
 		// add dummy
 		_offsets[num_nodes] = 2 * trades.size() + num_nodes - 1;
 

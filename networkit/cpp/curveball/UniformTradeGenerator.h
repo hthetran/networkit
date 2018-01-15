@@ -9,7 +9,7 @@
 #ifndef CB_UNIFORMTRADEGENERATOR_H
 #define CB_UNIFORMTRADEGENERATOR_H
 
-#include "Trade.h"
+#include "defs.h"
 
 namespace CurveBall {
 	class UniformTradeGenerator {
@@ -23,8 +23,8 @@ namespace CurveBall {
 		public:
 			UniformTradeGenerator(const tradeid_t trade_num, const node_t num_nodes);
 
-			const value_type generate();
-	};
+			value_type generate() const;
+    };
 }
 
 #endif //CB_UNIFORMTRADEGENERATOR_H

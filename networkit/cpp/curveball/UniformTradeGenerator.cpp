@@ -12,12 +12,15 @@ namespace CurveBall {
 	using value_type = std::vector<TradeDescriptor>;
 	using node_vector = std::vector<node_t>;
 
-	UniformTradeGenerator::UniformTradeGenerator(const tradeid_t trade_num, const node_t num_nodes)
+	UniformTradeGenerator::UniformTradeGenerator(const tradeid_t trade_num,
+	                                             const node_t num_nodes)
 		: _num_nodes(num_nodes)
-		  , _trade_num(trade_num)
-	{ }
+		, _trade_num(trade_num)
+	{
+		assert(_num_nodes > 1);
+	}
 
-	const value_type UniformTradeGenerator::generate() {
+	value_type UniformTradeGenerator::generate() const {
 		value_type _trades_out;
 		_trades_out.clear();
 		_trades_out.reserve(_trade_num);
