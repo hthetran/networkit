@@ -2501,6 +2501,10 @@ cdef extern from "cpp/curveball/AutocorrelationAnalysis.h":
 		void addSample(vector[pair[node, node]] edges) nogil except +
 		count numberOfEdges() except +
 		vector[double] getIndependenceRate(vector[count], count) except +
+		void init() nogil except +
+		vector[bool] get() except +
+		void next() nogil except +
+		bool end() except +
 
 cdef class AutocorrelationAnalysis:
 	"""
@@ -2526,6 +2530,22 @@ cdef class AutocorrelationAnalysis:
 
 	def getIndependenceRate(self, vector[count] thinnings, count runLength):
 		return self._this.getIndependenceRate(thinnings, runLength)
+
+	def init(self):
+		with nogil:
+			(<_AutocorrelationAnalysis*>(self._this)).init()
+
+	def get(self):
+		return self._this.get()
+
+	def next(self):
+		with nogil:
+			(<_AutocorrelationAnalysis*>(self._this)).next()
+
+	def end(self):
+		return self._this.end()
+
+
 
 	"""
 	TODO document
