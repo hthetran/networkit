@@ -55,8 +55,14 @@ graph_params = [(args.a, args.b, nodes) for nodes in args.nodes]
 
 def get_transitions(series, x):
     for i in range(len(series)-1):
-        if series[i+1]
-    #TODO
+        if series[i+1] and series[i]:
+            x[(1,1)] += 1
+        elif series[i+1] and not series[i]:
+            x[(0,1)] += 1
+        elif not series[i+1] and series[i]:
+            x[(1,0)] += 1
+        else:
+            x[(0,0)] += 1
 
 def get_loglinear_estimate(x, hat_x):
     xsum = x[(0,0)] + x[(0,1)] + x[(1,0)] + x[(1,1)]
@@ -64,6 +70,17 @@ def get_loglinear_estimate(x, hat_x):
     hat_x[(0,1)] = (x[(0,0)] + x[(0, 1)])*(x[(0,1)] + x[(1, 1)])/xsum
     hat_x[(1,0)] = (x[(1,0)] + x[(1, 1)])*(x[(0,0)] + x[(1, 0)])/xsum
     hat_x[(1,1)] = (x[(1,0)] + x[(1, 1)])*(x[(0,1)] + x[(1, 1)])/xsum
+
+def compute_deltaBIC(x, hat_x):
+    xsum = x[(0,0)] + x[(0,1)] + x[(1,0)] + x[(1,1)]
+    log_vals = np.zeros((2,2))
+    for i, j in itertools.product(range(2), range(2)):
+        if x[(i,j)] != 0:
+            log_vals[(i,j)] = x[(i,j)]*math.log(hat_x[(i,j)] / x[(i,j)])
+
+    log_sum = log_vals[(0,0)] + log_vals[(0,1)] + log_vals[(1,0)] + log_vals[(1,1)]
+    log_term = (-2.0)*log_sum
+    return log_term - math.log(xsum)
 
 def run_config(G, pid, rands, rand_steps, rand_method):
     setSeed(random.getrandbits(64), True)
@@ -92,6 +109,12 @@ def run_config(G, pid, rands, rand_steps, rand_method):
         enum_sample = enum[0:m_sample]
         enum_sample.sort()
         enum_steps = [enum_sample[0]]
+        independent_count = dict()
+        for thin in args.thins:
+            independent_count[thin] = 0
+        chain_length = dict()
+        for thin in args.thins:
+            chain_length[thin] = 0
         for i in range(1, len(enum_sample) - 1):
             enum_steps.append(enum_sample[i+1] - enum_sample[i])
         aa.init()
@@ -100,12 +123,23 @@ def run_config(G, pid, rands, rand_steps, rand_method):
                 aa.next()
             z = aa.get()
             for thin in args.thins:
-                zthin = [z[k-1] for k in range(1,len(rands)) if rands[k-1] % thin == 0]
+                zthin = []
+                f_rands = [(ix, k) for ix, k in zip(range(len(rands)),rands) if k % thin == 0]
+                for k in range(1, len(f_rands)):
+                    if f_rands[k][1] - f_rands[k-1][1] == thin:
+                        zthin.append(z[f_rands[k-1][0]])
+                    else:
+                        break
+                chain_length[thin] = len(zthin) - 1
                 x = np.zeros((2,2))
                 get_transitions(zthin, x)
                 hat_x = np.zeros((2,2))
                 get_loglinear_estimate(x, hat_x)
-                print(thin, hat_x)
+                deltaBIC = compute_deltaBIC(x, hat_x)
+                if deltaBIC < 0:
+                    independent_count[thin] += 1
+        for thin in args.thins:
+            print("Ind. %", independent_count[thin]/m_sample)
 
 if __name__ == "__main__":
     # generate graphs, since it only makes sense using the same starting graph
