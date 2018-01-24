@@ -12,7 +12,9 @@ import fractions
 import random
 import glob
 import shutil
+import csv
 import datetime
+import tempfile
 import numpy as np
 
 random.seed()
@@ -31,11 +33,12 @@ class Logger:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--label', type=str, default="tmp")
+parser.add_argument('--samples', type=int, default=10)
 parser.add_argument('--pus', type=int, default=4)
 parser.add_argument('--nodes', type=int, default=[1000], nargs="+")
 parser.add_argument('--a', type=int, default=2)
 parser.add_argument('--b', type=int, default=100)
-parser.add_argument('--thins', type=int, default=[2, 4, 8, 16, 32], nargs="+")
+parser.add_argument('--thins', type=int, default=[8, 16, 32], nargs="+")
 parser.add_argument('--runs', type=int, default=20)
 parser.add_argument('--runlength', type=int, default=500)
 parser.add_argument('-e', dest='rand', action='append_const', const='ES', help="Randomize with NetworKit-ES")
@@ -44,7 +47,20 @@ parser.add_argument('-cg', dest='rand', action='append_const', const='CBG', help
 args = parser.parse_args()
 print("Running configuration", args)
 
-path = os.path.dirname(os.path.realpath(__file__))
+sysTempDir = tempfile.gettempdir()
+if ('SLURM_JOB_ID' in os.environ):
+    # presumably we're rnuning on LOEWE CSC
+    if not 'NOT_SLURM' in os.environ:
+        sysTempDir = '/local/' + str(int(os.environ['SLURM_JOB_ID'])) + '/'
+    print("Using SLURM-aware temp. directory: " + sysTempDir)
+    path = "/scratch/memhierarchy/%s/independenc_%d/proc%d/" % (getpass.getuser(), int(os.environ['SLURM_JOB_ID']), int(os.environ['SLURM_PROCID']))
+    if not os.path.exists(logdir):
+          os.mkdir(logdir)
+else:
+    path = os.path.dirname(os.path.realpath(__file__))
+current_directory = os.path.dirname(os.path.abspath(__file__))
+print("current_directory" + current_directory)
+
 out_path = "{}/output".format(path)
 pre_fn = "{}/{}".format(out_path, args.label)
 
@@ -82,16 +98,17 @@ def compute_deltaBIC(x, hat_x):
     log_term = (-2.0)*log_sum
     return log_term - math.log(xsum)
 
-def run_config(G, pid, rands, rand_steps, rand_method):
+def run_config(G, sid, pid, rands, rand_steps, rand_method):
     setSeed(random.getrandbits(64), True)
-    print("{} subprocess, pid: {}, rand_method: {}".format(multiprocessing.current_process(), pid, rand_method))
+    print("{} subprocess, sid: {}, pid: {}, rand_method: {}".format(multiprocessing.current_process(), sid, pid, rand_method))
     m = G.numberOfEdges()
     n = G.numberOfNodes()
     if rand_method == "ES":
         rand = curveball.EdgeSwitchingMarkovChainRandomization(G)
     elif rand_method == "CBG":
         rand = curveball.Curveball(G)
-    with open("{}_{}.dat".format(pre_fn,  pid), 'w') as outf:
+    with open("{}_{}_{}.dat".format(pre_fn, sid, pid), 'a') as outf:
+        writer = csv.writer(outf, delimiter='\t')
         aa = curveball.AutocorrelationAnalysis(len(rand_steps))
         # run long chain
         for step in rand_steps:
@@ -102,26 +119,31 @@ def run_config(G, pid, rands, rand_steps, rand_method):
             rand.run(swap.generate())
             aa.addSample(rand.getEdges())
         m_existed = aa.numberOfEdges()
-        print("Percentage of existed edges:", m_existed / (n*(n - 1)/2.0))
         enum = [i for i in range(m_existed)]
         random.shuffle(enum)
         m_sample = math.ceil(m_existed/10)
         enum_sample = enum[0:m_sample]
         enum_sample.sort()
         enum_steps = [enum_sample[0]]
+
         independent_count = dict()
+        first_independent = dict()
+        chain_length = dict()
+        nonexist_thin = dict()
         for thin in args.thins:
             independent_count[thin] = 0
-        chain_length = dict()
-        for thin in args.thins:
+            first_independent[thin] = 0
             chain_length[thin] = 0
+            nonexist_thin[thin] = 0
         for i in range(1, len(enum_sample) - 1):
             enum_steps.append(enum_sample[i+1] - enum_sample[i])
         aa.init()
+        nonedge_count = 0
         for aa_step in enum_steps:
             for k in range(aa_step):
                 aa.next()
             z = aa.get()
+            deemed_independent = False
             for thin in args.thins:
                 zthin = []
                 f_rands = [(ix, k) for ix, k in zip(range(len(rands)),rands) if k % thin == 0]
@@ -133,24 +155,34 @@ def run_config(G, pid, rands, rand_steps, rand_method):
                 chain_length[thin] = len(zthin) - 1
                 x = np.zeros((2,2))
                 get_transitions(zthin, x)
+                if x[(0,0)] == len(zthin)-1:
+                    nonexist_thin[thin] += 1
+                    nonedge_count += 1
+                    continue
                 hat_x = np.zeros((2,2))
                 get_loglinear_estimate(x, hat_x)
                 deltaBIC = compute_deltaBIC(x, hat_x)
                 if deltaBIC < 0:
+                    if not deemed_independent:
+                        first_independent[thin] += 1
+                        deemed_independent = True
                     independent_count[thin] += 1
         for thin in args.thins:
-            print("Ind. %", independent_count[thin]/m_sample)
+            writer.writerow(["IndRate", args.runlength, n, args.a, args.b, m, sid, pid, thin, independent_count[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
+            writer.writerow(["FstHit", args.runlength, n, args.a, args.b, m, sid, pid, thin, first_independent[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
+        print(nonedge_count)
 
 if __name__ == "__main__":
     # generate graphs, since it only makes sense using the same starting graph
     graph_instances = []
     for (a, b, n) in graph_params:
         plds = generators.PowerlawDegreeSequence(a, b, -2)
-        plds.run()
-        hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(n))
-        G = hh.generate()
-        graph_instances.append(G)
-        graphio.writeGraph(G, "{}/a{}_b{}_n{}.metis".format(out_path, a, b, n), graphio.Format.METIS)
+        for sample_id in range(args.samples):
+            plds.run()
+            hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(n))
+            G = hh.generate()
+            graph_instances.append((G, sample_id))
+            graphio.writeGraph(G, "{}/a{}_b{}_n{}_{}.metis".format(out_path, a, b, n, sample_id), graphio.Format.METIS)
     process_params = list(itertools.product(graph_instances, range(args.runs), args.rand))
     print(process_params)
 
@@ -165,7 +197,7 @@ if __name__ == "__main__":
     rand_steps = []
     for j in range(len(rands)-1):
         rand_steps.append(rands[j+1]-rands[j])
-    processes = [multiprocessing.Process(target=run_config, args=(G, run_id, rands, rand_steps, rand_method)) for G, run_id, rand_method in process_params]
+    processes = [multiprocessing.Process(target=run_config, args=(G, s_id, run_id, rands, rand_steps, rand_method)) for (G, s_id), run_id, rand_method in process_params]
     for process in processes:
         process.start()
     for process in processes:
