@@ -171,6 +171,7 @@ def run_config(G, sid, pid, rands, rand_steps, rand_method):
             writer.writerow(["IndRate", args.runlength, n, args.a, args.b, m, sid, pid, thin, independent_count[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
             writer.writerow(["FstHit", args.runlength, n, args.a, args.b, m, sid, pid, thin, first_independent[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
         print(nonedge_count)
+        return 0
 
 if __name__ == "__main__":
     # generate graphs, since it only makes sense using the same starting graph
@@ -197,8 +198,11 @@ if __name__ == "__main__":
     rand_steps = []
     for j in range(len(rands)-1):
         rand_steps.append(rands[j+1]-rands[j])
-    processes = [multiprocessing.Process(target=run_config, args=(G, s_id, run_id, rands, rand_steps, rand_method)) for (G, s_id), run_id, rand_method in process_params]
-    for process in processes:
-        process.start()
-    for process in processes:
-        process.join()
+    pargs = [(G, s_id, run_id, rands, rand_steps, rand_method) for (G, s_id), run_id, rand_method in process_params]
+    cpu_count = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=cpu_count)
+    pool.map(run_config, pargs)
+    #for parg in pargs:
+    #    pool.apply(run_config, parg)
+    pool.close()
+    pool.join()
