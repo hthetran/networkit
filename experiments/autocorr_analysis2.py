@@ -5,6 +5,7 @@ import multiprocessing
 import copy
 import timeit
 import argparse
+import getpass
 import os
 import itertools
 import math
@@ -53,9 +54,9 @@ if ('SLURM_JOB_ID' in os.environ):
     if not 'NOT_SLURM' in os.environ:
         sysTempDir = '/local/' + str(int(os.environ['SLURM_JOB_ID'])) + '/'
     print("Using SLURM-aware temp. directory: " + sysTempDir)
-    path = "/scratch/memhierarchy/%s/independenc_%d/proc%d/" % (getpass.getuser(), int(os.environ['SLURM_JOB_ID']), int(os.environ['SLURM_PROCID']))
-    if not os.path.exists(logdir):
-          os.mkdir(logdir)
+    path = "/scratch/memhierarchy/%s/independence_%d/proc%d/" % (getpass.getuser(), int(os.environ['SLURM_JOB_ID']), int(os.environ['SLURM_PROCID']))
+    if not os.path.exists(path):
+          os.mkdir(path)
 else:
     path = os.path.dirname(os.path.realpath(__file__))
 current_directory = os.path.dirname(os.path.abspath(__file__))
