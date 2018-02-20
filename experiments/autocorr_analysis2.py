@@ -174,19 +174,7 @@ def run_config(G, sid, pid, rands, rand_steps, rand_method):
         print(nonedge_count)
 
 if __name__ == "__main__":
-    # generate graphs, since it only makes sense using the same starting graph
-    graph_instances = []
-    for (a, b, n) in graph_params:
-        plds = generators.PowerlawDegreeSequence(a, b, -2)
-        for sample_id in range(args.samples):
-            plds.run()
-            hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(n))
-            G = hh.generate()
-            graph_instances.append((G, sample_id))
-            graphio.writeGraph(G, "{}/a{}_b{}_n{}_{}.metis".format(out_path, a, b, n, sample_id), graphio.Format.METIS)
-    process_params = list(itertools.product(graph_instances, range(args.runs), args.rand))
-    print(process_params)
-
+ 
     # calculate randomization steps
     rands = [0]
     for thin in args.thins:
@@ -197,9 +185,26 @@ if __name__ == "__main__":
     rands.sort()
     rand_steps = []
     for j in range(len(rands)-1):
-        rand_steps.append(rands[j+1]-rands[j])
-    processes = [multiprocessing.Process(target=run_config, args=(G, s_id, run_id, rands, rand_steps, rand_method)) for (G, s_id), run_id, rand_method in process_params]
-    for process in processes:
-        process.start()
-    for process in processes:
-        process.join()
+        rand_steps.append(rands[j+1]-rands[j])   
+
+    # generate graphs, since it only makes sense using the same starting graph
+    graph_instances = []
+    for (a, b, n) in graph_params:
+        plds = generators.PowerlawDegreeSequence(a, b, -2)
+        for sample_id in range(args.samples):
+            plds.run()
+            hh = generators.HavelHakimiGenerator(plds.getDegreeSequence(n))
+            G = hh.generate()
+            graph_instances.append((G, sample_id))
+            #graphio.writeGraph(G, "{}/a{}_b{}_n{}_{}.metis".format(out_path, a, b, n, sample_id), graphio.Format.METIS)
+            for (run_id, rand_method) in itertools.product(range(args.runs), args.rand):
+                run_config(G, sample_id, run_id, rands, rand_steps, rand_method)
+    #process_params = list(itertools.product(graph_instances, range(args.runs), args.rand))
+    #print(process_params)
+
+    #processes = [multiprocessing.Process(target=run_config, args=(G, s_id, run_id, rands, rand_steps, rand_method)) for (G, s_id), run_id, rand_method in process_params]
+    #for process in processes:
+    #    process.start()
+    #for process in processes:
+    #    process.join()
+    
