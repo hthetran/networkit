@@ -172,6 +172,7 @@ def run_config(G, sid, pid, rands, rand_steps, rand_method):
             writer.writerow(["IndRate", args.runlength, n, args.a, args.b, m, sid, pid, thin, independent_count[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
             writer.writerow(["FstHit", args.runlength, n, args.a, args.b, m, sid, pid, thin, first_independent[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
         print(nonedge_count)
+        return 0
 
 if __name__ == "__main__":
  
@@ -207,4 +208,3 @@ if __name__ == "__main__":
     #    process.start()
     #for process in processes:
     #    process.join()
-    
