@@ -43,7 +43,8 @@ parser.add_argument('--thins', type=int, default=[8, 16, 32], nargs="+")
 parser.add_argument('--runs', type=int, default=20)
 parser.add_argument('--runlength', type=int, default=500)
 parser.add_argument('-e', dest='rand', action='append_const', const='ES', help="Randomize with NetworKit-ES")
-parser.add_argument('-cg', dest='rand', action='append_const', const='CBG', help="Randomize with Curveball-IM with uniform trades")
+parser.add_argument('-cg', dest='rand', action='append_const', const='CBG', help="Randomize with Curveball-IM with global trades")
+parser.add_argument('-cu', dest='rand', action='append_const', const='CBU', help="Randomize with Curveball-IM with uniform trades")
 
 args = parser.parse_args()
 print("Running configuration", args)
@@ -108,15 +109,20 @@ def run_config(G, sid, pid, rands, rand_steps, rand_method):
         rand = curveball.EdgeSwitchingMarkovChainRandomization(G)
     elif rand_method == "CBG":
         rand = curveball.Curveball(G)
-    with open("{}_{}_{}.dat".format(pre_fn, sid, pid), 'a') as outf:
+    elif rand_method == "CBU":
+        rand = curveball.Curveball(G)
+    with open("{}_{}_{}_{}.dat".format(pre_fn, rand_method, sid, pid), 'a') as outf:
         writer = csv.writer(outf, delimiter='\t')
         aa = curveball.AutocorrelationAnalysis(len(rand_steps))
         # run long chain
         for step in rand_steps:
             if rand_method == "ES":
+                # generates pairs of edge-ids, looks misleading!
                 swap = curveball.UniformTradeGenerator(step*m, m)
             elif rand_method == "CBG":
                 swap = curveball.GlobalTradeGenerator(step, n)
+            elif rand_method == "CBU":
+                swap = curveball.UniformTradeGenerator(step*n, n)
             rand.run(swap.generate())
             aa.addSample(rand.getEdges())
         m_existed = aa.numberOfEdges()
@@ -170,7 +176,7 @@ def run_config(G, sid, pid, rands, rand_steps, rand_method):
                     independent_count[thin] += 1
         for thin in args.thins:
             writer.writerow(["IndRate", args.runlength, n, args.a, args.b, m, sid, pid, thin, independent_count[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
-            writer.writerow(["FstHit", args.runlength, n, args.a, args.b, m, sid, pid, thin, first_independent[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
+#            writer.writerow(["FstHit", args.runlength, n, args.a, args.b, m, sid, pid, thin, first_independent[thin]/(m_sample-nonexist_thin[thin]), m_existed / (n*(n-1)/2.0)])
         print(nonedge_count)
         return 0
 
@@ -198,8 +204,17 @@ if __name__ == "__main__":
             G = hh.generate()
             graph_instances.append((G, sample_id))
             #graphio.writeGraph(G, "{}/a{}_b{}_n{}_{}.metis".format(out_path, a, b, n, sample_id), graphio.Format.METIS)
-            for (run_id, rand_method) in itertools.product(range(args.runs), args.rand):
-                run_config(G, sample_id, run_id, rands, rand_steps, rand_method)
+            #for (run_id, rand_method) in itertools.product(range(args.runs), args.rand):
+            #    run_config(G, sample_id, run_id, rands, rand_steps, rand_method)
+            process_params = [(G, sample_id, run_id, rands, rand_steps, rand_method) for (run_id, rand_method) in itertools.product(range(args.runs), args.rand)]
+            processes = [multiprocessing.Process(target=run_config, args=x) for x in process_params]
+            print(len(processes))
+            batches = math.ceil(len(processes)/float(args.pus))
+            for batch in range(batches):
+                for process in processes[batch*args.pus:(batch+1)*args.pus]:
+                    process.start()
+                for process in processes[batch*args.pus:(batch+1)*args.pus]:
+                    process.join()
     #process_params = list(itertools.product(graph_instances, range(args.runs), args.rand))
     #print(process_params)
 
