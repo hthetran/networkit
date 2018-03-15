@@ -56,13 +56,19 @@ with open(args.output, 'a') as out_file:
             degseq = pldgen.getDegreeSequence(num_nodes)
             hhgen = generators.HavelHakimiGenerator(degseq)
             G = hhgen.generate()
+            trades = curveball.GlobalTradeGenerator(args.runlength, num_nodes).generate()
 
             start_time = timeit.default_timer()
-
-            algo = curveball.Curveball(G)
-            algo.run(curveball.GlobalTradeGenerator(args.runlength, num_nodes).generate())
-
+            algo_def = curveball.Curveball(G)
+            algo_def.run(trades)
             end_time = timeit.default_timer()
+            print(" Finished Default in time %f" % (end_time - start_time))
 
-            print(" Finished in time %f" % (end_time - start_time))
+            start_time = timeit.default_timer()
+            algo_tfp = curveball.CurveballTFP(G)
+            algo_tfp.run(trades)
+            end_time = timeit.default_timer()
+            print(" Finished TFP in time %f" % (end_time - start_time))
+
+
             writer.writerow([num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])

@@ -2467,6 +2467,37 @@ cdef class Curveball(Algorithm):
 	
 	def getNumberOfAffectedEdges(self):
 		return (<_Curveball*>(self._this)).getNumberOfAffectedEdges()
+		
+cdef extern from "cpp/curveball/CurveballTFP.h":
+	cdef cppclass _CurveballTFP "CurveBall::CurveballTFP"(_Algorithm):
+		_CurveballTFP(_Graph) except +
+		void run(vector[pair[node, node]] trades) nogil except +
+		_Graph getGraph() except +
+		vector[pair[node, node]] getEdges() except +
+		count getNumberOfAffectedEdges() except +
+
+cdef class CurveballTFP(Algorithm):
+	"""
+	TODO document
+	TODO nogil?
+	"""
+	def __cinit__(self, G):
+		if isinstance(G, Graph):
+			self._this = new _CurveballTFP((<Graph>G)._this)
+
+	def run(self, vector[pair[node, node]] trades):
+		with nogil:
+			(<_CurveballTFP*>(self._this)).run(trades)
+		return self
+
+	def getGraph(self):
+		return Graph().setThis((<_CurveballTFP*>self._this).getGraph())
+
+	def getEdges(self):
+		return (<_CurveballTFP*>(self._this)).getEdges()
+	
+	def getNumberOfAffectedEdges(self):
+		return (<_CurveballTFP*>(self._this)).getNumberOfAffectedEdges()
 
 cdef extern from "cpp/curveball/EdgeSwitchingMarkovChainRandomization.h":
 	cdef cppclass _EdgeSwitchingMarkovChainRandomization "CurveBall::EdgeSwitchingMarkovChainRandomization"(_Algorithm):
