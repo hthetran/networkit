@@ -16,10 +16,6 @@
 
 namespace CurveBall {
 
-	using trade_vector = std::vector<TradeDescriptor>;
-
-	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
-
 	class Curveball : public NetworKit::Algorithm {
 
 	protected:
