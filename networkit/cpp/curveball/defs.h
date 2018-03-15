@@ -73,6 +73,22 @@ struct edge_t : public std::pair<node_t, node_t> {
 	}
 };
 
+struct depchain_msg {
+	node_t node;
+	tradeid_t next_trade;
+
+	depchain_msg() {}
+	depchain_msg(node_t node, tradeid_t next_trade) : node(node), next_trade(next_trade) {}
+	depchain_msg(const depchain_msg&) = default;
+
+    bool operator< (const depchain_msg& o) const {
+        return node < o.node;
+    }
+};
+
+using trade_vector = std::vector<TradeDescriptor>;
+using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
+
 namespace std {
 	template <>
 	class numeric_limits<edge_t> {
