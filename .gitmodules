@@ -7,3 +7,6 @@
 [submodule "radix-heap"]
 	path = radix-heap
 	url = git@github.com:manpen/radix-heap
+[submodule "tlx"]
+	path = tlx
+	url = git@github.com:manpen/tlx
