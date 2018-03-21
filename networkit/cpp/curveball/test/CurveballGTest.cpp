@@ -12,14 +12,17 @@
 #include "../../generators/ErdosRenyiGenerator.h"
 #include "../../generators/HyperbolicGenerator.h"
 #include "../UniformTradeGenerator.h"
+#include "../../auxiliary/Random.h"
 
 namespace CurveBall {
 
 	using trade_vector = std::vector<TradeDescriptor>;
 
 	TEST_F(CurveballGTest, testCurveballErdosRenyi) {
-		node_t numNodes = 1000;
-		const tradeid_t numTrades = 30;
+        Aux::Random::setSeed(1, false);
+
+		node_t numNodes = 20;
+		const tradeid_t numTrades = 5;
 		const NetworKit::count numTradeRuns = 5;
 
 		NetworKit::ErdosRenyiGenerator generator(numNodes, 0.3);

@@ -10,6 +10,7 @@
 #include "../graph/GraphBuilder.h"
 
 #include "../auxiliary/IntSort.h"
+#include "../auxiliary/Timer.h"
 
 namespace CurveBall {
 
@@ -201,6 +202,9 @@ namespace CurveBall {
 
 
 	void CurveballTFP::load_from_graph(const trade_vector& trades) {
+		Aux::Timer timer;
+		timer.start();
+
 		_edges.reserve(2*_G.numberOfEdges()+1);
 
         build_depchain(trades, [this] (node_t u) {
@@ -217,9 +221,15 @@ namespace CurveBall {
 
             return tmp;
 		});
+
+		timer.stop();
+        std::cout << "Loading initial graph took " << timer.elapsedMilliseconds() << " milliseconds.\n";
 	}
 
 	void CurveballTFP::restructure_graph(const trade_vector& trades) {
+		Aux::Timer timer;
+		timer.start();
+
         const auto max_nodes = _G.numberOfNodes();
 
         nodepair_vector old_edges;
@@ -250,6 +260,9 @@ namespace CurveBall {
 
         _edges.reserve(old_edges.size());
 		build_depchain(trades, get_neighbors);
+
+		timer.stop();
+        std::cout << "Restructuring took " << timer.elapsedMilliseconds() << " milliseconds.\n";
 	}
 
 	void CurveballTFP::run(const trade_vector& trades) {
@@ -257,6 +270,9 @@ namespace CurveBall {
 			load_from_graph(trades);
 		else
 			restructure_graph(trades);
+
+		Aux::Timer timer;
+		timer.start();
 
 		NetworKit::count trade_count = 0;
 
@@ -302,6 +318,8 @@ namespace CurveBall {
 				std::sort(neigh_u.begin(), neigh_u.end());
 				std::sort(neigh_v.begin(), neigh_v.end());
 			}
+
+			_aff_edges += neigh_u.size() + neigh_v.size() + edge_between_uv;
 
             /*
             auto report = [&] (tradeid_t tid, node_t u, tradeid_t next, auto neigh) {
@@ -416,11 +434,15 @@ namespace CurveBall {
 
 		hasRun = true;
 
-		return;
+		timer.stop();
+		std::cout << "Trading took " << timer.elapsedMilliseconds() << " milliseconds.\n";
 	}
 
 
 	NetworKit::Graph CurveballTFP::getGraph() const {
+		Aux::Timer timer;
+		timer.start();
+
         NetworKit::GraphBuilder builder(_G.numberOfNodes(), false, false);
 
         auto it = _edges.cbegin();
@@ -429,6 +451,9 @@ namespace CurveBall {
         for(; it != end; it++) {
             builder.addHalfEdge(it->first, it->second);
         }
+
+		timer.stop();
+        std::cout << "Graph building took " << timer.elapsedMilliseconds() << " milliseconds.\n";
 
         return builder.toGraph(false, true);
 	}
