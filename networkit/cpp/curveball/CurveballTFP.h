@@ -9,11 +9,19 @@
 #ifndef CB_CURVEBALLTFP_H
 #define CB_CURVEBALLTFP_H
 
+#define USETLX
+
+
 #include "defs.h"
 
 #include "../base/Algorithm.h"
 #include "../graph/Graph.h"
+
+#ifdef USETLX
+#include <tlx/radixheap_pair.hpp>
+#else
 #include "../../../radix-heap/radix_heap.h"
+#endif
 
 namespace CurveBall {
 
@@ -25,7 +33,14 @@ namespace CurveBall {
 
         nodepair_vector _edges;
         std::vector<tradeid_t> _trade_successor;
-        radix_heap::pair_radix_heap<tradeid_t, depchain_msg> _cbpq;
+
+        template<typename KeyT, typename DataT>
+#ifdef USETLX
+        using pq_t = tlx::radixheap_pair<KeyT, DataT>;
+#else
+        using pq_t = radix_heap::pair_radix_heap<KeyT, DataT>;
+#endif
+        pq_t<tradeid_t, depchain_msg> _cbpq;
 
         degree_t _max_degree; // only valid after load_from_graph
         edgeid_t _aff_edges; // affected half-edges
