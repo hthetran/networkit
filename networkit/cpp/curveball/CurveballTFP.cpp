@@ -67,7 +67,7 @@ namespace CurveBall {
 		const auto max_nodes = _G.numberOfNodes();
 
 		std::vector< std::pair<tradeid_t, tradeid_t> > depchain_tmp;
-		radix_heap::pair_radix_heap<node_t, depchain_msg> pq;
+		pq_t<node_t, depchain_msg> pq;
 
 		// insert bottom element into pq to avoid empty() checks
 		pq.emplace(std::numeric_limits<node_t>::max(), 0, 0);
@@ -89,15 +89,15 @@ namespace CurveBall {
 			if (it->node != u) {
 				assert(it->node > u);
                 assert(!pq.empty());
-				assert(pq.min_key() >= u);
+				assert(pq.peak_min_key() >= u);
 
-                //std::cout << "Skip u=" << u << " pq.min_key=" << pq.min_key() << " size: "  << pq.size() << "\n";
+                //std::cout << "Skip u=" << u << " pq.peak_min_key=" << pq.peak_min_key() << " size: "  << pq.size() << "\n";
 
                 handled_nodes.clear();
-				for(; pq.min_key() == u; pq.pop()) {
-                    //std::cout << " Bypass u=" << u << " to " << pq.top_value().next_trade << "\n";
-					_cbpq.emplace(pq.top_value().next_trade, u, no_more_trade);
-                    handled_nodes.emplace_back(pq.top_value().node);
+				for(; pq.peak_min_key() == u; pq.pop()) {
+                    //std::cout << " Bypass u=" << u << " to " << pq.min_value().next_trade << "\n";
+					_cbpq.emplace(pq.min_value().next_trade, u, no_more_trade);
+                    handled_nodes.emplace_back(pq.min_value().node);
 				}
 
                 std::sort(handled_nodes.begin(), handled_nodes.end());
@@ -145,14 +145,18 @@ namespace CurveBall {
 			}
 
 			// Receive TFP messages
-			std::vector<depchain_msg> messages;
-			if (pq.min_key() == u) {
-				const auto tmp = pq.extract_top_values();
+            pq_t<node_t, depchain_msg>::bucket_value_t messages;
+			if (pq.peak_min_key() == u) {
+#ifdef USETLX
+                messages = pq.extract_min_bucket().second;
+#else
+				const auto tmp = pq.extract_min_values();
 				messages.clear();
 				messages.reserve(tmp.size()+1);
 
 				for(const auto msg : tmp)
                     messages.emplace_back(msg.second);
+#endif
 
 				std::sort(messages.begin(), messages.end());
 			}
@@ -300,19 +304,19 @@ namespace CurveBall {
 			neigh_u.clear();
 			neigh_v.clear();
 			{
-				assert(_cbpq.top_key() >= tid);
-				for (; _cbpq.min_key() == tid; _cbpq.pop()) {
-					if (_cbpq.top_value().node == v) {
+				assert(_cbpq.min_key() >= tid);
+				for (; _cbpq.peak_min_key() == tid; _cbpq.pop()) {
+					if (_cbpq.min_value().node == v) {
 						edge_between_uv = true;
 						continue;
 					}
 
-					neigh_u.push_back(_cbpq.top_value());
+					neigh_u.push_back(_cbpq.min_value());
 				}
 
-				for (; _cbpq.min_key() == tid + 1; _cbpq.pop()) {
-					assert(_cbpq.top_value().node != u);
-					neigh_v.push_back(_cbpq.top_value());
+				for (; _cbpq.peak_min_key() == tid + 1; _cbpq.pop()) {
+					assert(_cbpq.min_value().node != u);
+					neigh_v.push_back(_cbpq.min_value());
 				}
 
 				std::sort(neigh_u.begin(), neigh_u.end());
