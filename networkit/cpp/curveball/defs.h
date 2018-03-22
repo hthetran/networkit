@@ -18,6 +18,8 @@
 #include <limits>
 #include <ostream>
 
+namespace CurveBall {
+
 /**
  * @typedef node_t
  * @brief	Type for every node id
@@ -55,9 +57,13 @@ using edgeid_t = NetworKit::node;
  * @brief	Type for every (un)directed edge
  */
 struct edge_t : public std::pair<node_t, node_t> {
-	edge_t() : std::pair<node_t, node_t>() { }
-	edge_t(const std::pair<node_t, node_t> & edge) : std::pair<node_t, node_t>(edge) {}
-	edge_t(const node_t & v1, const node_t & v2) : std::pair<node_t, node_t>(v1, v2) {}
+	edge_t() : std::pair<node_t, node_t>() {}
+
+	edge_t(const std::pair <node_t, node_t> &edge) : std::pair<node_t, node_t>(
+		edge) {}
+
+	edge_t(const node_t &v1, const node_t &v2) : std::pair<node_t, node_t>(v1,
+																		   v2) {}
 
 	static edge_t invalid() {
 		return edge_t(INVALID_NODE, INVALID_NODE);
@@ -78,29 +84,41 @@ struct depchain_msg {
 	tradeid_t next_trade;
 
 	depchain_msg() {}
-	depchain_msg(node_t node, tradeid_t next_trade) : node(node), next_trade(next_trade) {}
-	depchain_msg(const depchain_msg&) = default;
 
-    bool operator< (const depchain_msg& o) const {
-        return node < o.node;
-    }
+	depchain_msg(node_t node, tradeid_t next_trade) : node(node),
+													  next_trade(next_trade) {}
+
+	depchain_msg(const depchain_msg &) = default;
+
+	bool operator<(const depchain_msg &o) const {
+		return node < o.node;
+	}
 };
 
 using trade_vector = std::vector<TradeDescriptor>;
-using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
+using nodepair_vector = std::vector <std::pair<node_t, node_t>>;
+
+} // namespace CurveBall
 
 namespace std {
-	template <>
-	class numeric_limits<edge_t> {
-		public:
-			static edge_t min() { return {numeric_limits<node_t>::min(), numeric_limits<node_t>::min()}; };
-			static edge_t max() { return {numeric_limits<node_t>::max(), numeric_limits<node_t>::max()}; };
+template<>
+class numeric_limits<CurveBall::edge_t> {
+public:
+	static CurveBall::edge_t min() {
+		return {numeric_limits<CurveBall::node_t>::min(), numeric_limits<CurveBall::node_t>::min()};
 	};
+
+	static CurveBall::edge_t max() {
+		return {numeric_limits<CurveBall::node_t>::max(), numeric_limits<CurveBall::node_t>::max()};
+	};
+};
 }
 
-inline std::ostream &operator<<(std::ostream &os, const edge_t & t) {
+inline std::ostream &operator<<(std::ostream &os, const CurveBall::edge_t &t) {
 	os << "edge(" << t.first << "," << t.second << ")";
 	return os;
 }
+
+
 
 #endif /* DEFS_H_ */

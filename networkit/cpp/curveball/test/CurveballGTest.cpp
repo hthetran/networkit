@@ -18,7 +18,9 @@ namespace CurveBall {
 
 	using trade_vector = std::vector<TradeDescriptor>;
 
-	TEST_F(CurveballGTest, testCurveballErdosRenyi) {
+	TEST_P(CurveballGTest, testCurveballErdosRenyi) {
+        bool turbo = GetParam();
+
         Aux::Random::setSeed(1, false);
 
 		node_t numNodes = 20;
@@ -48,20 +50,23 @@ namespace CurveBall {
 			}
 		});
 
-		Curveball algo(G);
-		for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
-			UniformTradeGenerator gen(numTrades, numNodes);
-			algo.run(gen.generate());
-		}
 
-		// check degrees
-		NetworKit::Graph outG = algo.getGraph();
-		outG.forNodes([&](node_t u){
-			ASSERT_EQ(degrees[u], outG.degree(u));
-		});
+        NetworKit::Curveball algo(G, turbo);
+        for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
+            UniformTradeGenerator gen(numTrades, numNodes);
+            algo.run(gen.generate());
+        }
+
+        // check degrees
+        NetworKit::Graph outG = algo.getGraph();
+        outG.forNodes([&](node_t u){
+            ASSERT_EQ(degrees[u], outG.degree(u));
+        });
 	}
 
-	TEST_F(CurveballGTest, testCurveballHyperbolic) {
+	TEST_P(CurveballGTest, testCurveballHyperbolic) {
+        bool turbo = GetParam();
+
 		node_t numNodes = 5000;
 		const tradeid_t numTrades = 500;
 		const NetworKit::count numTradeRuns = 10;
@@ -89,16 +94,20 @@ namespace CurveBall {
 			}
 		});
 
-		Curveball algo(G);
-		for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
-			UniformTradeGenerator gen(numTrades, numNodes);
-			algo.run(gen.generate());
-		}
+        NetworKit::Curveball algo(G, turbo);
+        for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
+            UniformTradeGenerator gen(numTrades, numNodes);
+            algo.run(gen.generate());
+        }
 
-		// check degrees
-		NetworKit::Graph outG = algo.getGraph();
-		outG.forNodes([&](node_t u){
-			ASSERT_EQ(degrees[u], outG.degree(u));
-		});
+        // check degrees
+        NetworKit::Graph outG = algo.getGraph();
+        outG.forNodes([&](node_t u){
+            ASSERT_EQ(degrees[u], outG.degree(u));
+        });
 	}
+
+
+    INSTANTIATE_TEST_CASE_P(CurveballGTestInst, CurveballGTest,::testing::Bool());
 }
+

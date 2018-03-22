@@ -12,7 +12,7 @@
 
 namespace CurveBall {
 
-    class CurveballGTest : public testing::Test {
+    class CurveballGTest : public testing::Test, public ::testing::WithParamInterface<bool>  {
     public:
         CurveballGTest() = default;
         virtual ~CurveballGTest() = default;
