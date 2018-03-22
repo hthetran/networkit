@@ -20,8 +20,7 @@ namespace CurveBall {
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
 	CurveballTFP::CurveballTFP(const NetworKit::Graph& G)
-		: _G(G)
-		  , _num_nodes(G.numberOfNodes())
+		: CurveballBase(G)
           , _max_degree(0)
 		  , _aff_edges(0)
 	{
@@ -145,12 +144,16 @@ namespace CurveBall {
 			}
 
 			// Receive TFP messages
+#ifdef USETLX
             pq_t<node_t, depchain_msg>::bucket_value_t messages;
+#else
+            std::vector<depchain_msg> messages;
+#endif
 			if (pq.peak_min_key() == u) {
 #ifdef USETLX
                 messages = pq.extract_min_bucket().second;
 #else
-				const auto tmp = pq.extract_min_values();
+				const auto tmp = pq.extract_top_values();
 				messages.clear();
 				messages.reserve(tmp.size()+1);
 
@@ -283,12 +286,10 @@ namespace CurveBall {
 		using neighbour_vector = std::vector< depchain_msg >;
 		neighbour_vector neigh_u;
 		neighbour_vector neigh_v;
-		neighbour_vector common_neighbours;
 		neighbour_vector disjoint_neighbours;
 
 		neigh_u.reserve(_max_degree);
 		neigh_v.reserve(_max_degree);
-		common_neighbours.reserve(_max_degree);
 		disjoint_neighbours.reserve(_max_degree);
 
         tradeid_t tid = 0;
@@ -341,14 +342,30 @@ namespace CurveBall {
             assert(neigh_v.size() + edge_between_uv == _G.degree(v));
 
 
+            auto send_edge = [this] (node_t x, tradeid_t next_trade,
+                                     const depchain_msg& neigh) {
 
+                if (next_trade < neigh.next_trade) {
+                    _cbpq.emplace(next_trade, neigh);
+
+                } else if (next_trade > neigh.next_trade) {
+                    _cbpq.emplace(neigh.next_trade, x, next_trade);
+
+                } else {
+                    assert(next_trade == std::numeric_limits<tradeid_t>::max());
+                    _edges.emplace_back(x, neigh.node);
+                    _edges.emplace_back(neigh.node, x);
+
+                }
+            };
 
             // Split neighborhoods into common and disjoint neighbors
+            size_t num_common = 0;
             {
-                common_neighbours.clear();
                 disjoint_neighbours.clear();
                 auto u_nit = neigh_u.cbegin();
                 auto v_nit = neigh_v.cbegin();
+
                 while ((u_nit != neigh_u.cend()) && (v_nit != neigh_v.cend())) {
                     assert(u_nit->node != v);
                     assert(v_nit->node != u);
@@ -360,10 +377,16 @@ namespace CurveBall {
                         disjoint_neighbours.push_back(*u_nit);
                         u_nit++;
                     } else { // u_nit->node == v_nit->node
-                        common_neighbours.emplace_back(u_nit->node, std::min(
-                            u_nit->next_trade, v_nit->next_trade));
+                        // common edge -- directly forward it
+                        depchain_msg common{u_nit->node,
+                            std::min(u_nit->next_trade, v_nit->next_trade)};
+
+                        send_edge(u, next_u, common);
+                        send_edge(v, next_v, common);
+
                         u_nit++;
                         v_nit++;
+                        num_common++;
                     }
                 }
 
@@ -376,30 +399,10 @@ namespace CurveBall {
                 }
             }
 
-
-			auto send_edge = [this] (node_t x, tradeid_t next_trade,
-								 const depchain_msg& neigh) {
-
-				if (next_trade < neigh.next_trade) {
-					_cbpq.emplace(next_trade, neigh);
-
-				} else if (next_trade > neigh.next_trade) {
-					_cbpq.emplace(neigh.next_trade, x, next_trade);
-
-				} else {
-					assert(next_trade == std::numeric_limits<tradeid_t>::max());
-					_edges.emplace_back(x, neigh.node);
-                    _edges.emplace_back(neigh.node, x);
-
-				}
-			};
-
 			// Shuffle and send disjoint edges
 			{
-				const size_t u_setsize =
-					neigh_u.size() - common_neighbours.size();
-				const size_t v_setsize =
-					neigh_v.size() - common_neighbours.size();
+				const size_t u_setsize = neigh_u.size() - num_common;
+				const size_t v_setsize = neigh_v.size() - num_common;
 
                 assert(u_setsize + v_setsize == disjoint_neighbours.size());
 
@@ -414,12 +417,6 @@ namespace CurveBall {
 				for (; i < u_setsize + v_setsize; i++) {
 					send_edge(v, next_v, disjoint_neighbours[i]);
 				}
-			}
-
-			// Distribute common edges
-			for (const auto common : common_neighbours) {
-				send_edge(u, next_u, common);
-				send_edge(v, next_v, common);
 			}
 
 			// Do not forget edge between u and v

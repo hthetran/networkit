@@ -9,13 +9,15 @@
 #ifndef CB_CURVEBALLTFP_H
 #define CB_CURVEBALLTFP_H
 
-#define USETLX
+//#define USETLX
 
 
 #include "defs.h"
 
 #include "../base/Algorithm.h"
 #include "../graph/Graph.h"
+
+#include "CurveballBase.h"
 
 #ifdef USETLX
 #include <tlx/radixheap_pair.hpp>
@@ -25,12 +27,22 @@
 
 namespace CurveBall {
 
-	class CurveballTFP : public NetworKit::Algorithm {
+	class CurveballTFP : public CurveballBase {
+    public:
+		CurveballTFP(const NetworKit::Graph& G);
 
-	protected:
-		const NetworKit::Graph& _G;
-		const node_t _num_nodes;
+		void run(const trade_vector& trades);
 
+		edgeid_t getNumberOfAffectedEdges() const  override final {
+            return _aff_edges;
+        }
+
+		NetworKit::Graph getGraph() const override final;
+
+		nodepair_vector getEdges() const override final;
+
+    protected:
+        bool hasRun;
         nodepair_vector _edges;
         std::vector<tradeid_t> _trade_successor;
 
@@ -54,30 +66,7 @@ namespace CurveBall {
 
         std::vector<depchain_msg> get_tradelist(const trade_vector&) const;
 
-
-
-    public:
-		CurveballTFP(const NetworKit::Graph& G);
-
-		void run() override {
-			std::runtime_error("Invalid use of algorithm, provide trades!");
-			return;
-		};
-
-		void run(const trade_vector& trades);
-
-		bool isParallel() const override {
-			return false;
-		}
-
-		edgeid_t getNumberOfAffectedEdges() const {
-            return _aff_edges;
-        }
-
-		NetworKit::Graph getGraph() const;
-
-		nodepair_vector getEdges() const;
-	};
+};
 }
 
 #endif //CB_CURVEBALLTFP_H

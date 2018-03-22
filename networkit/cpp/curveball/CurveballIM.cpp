@@ -1,12 +1,12 @@
 /*
- * Curveball.cpp
+ * CurveballIM.cpp
  *
  *  Created on: Jul 12 2017
  *      Author: Hung Tran
  */
 
 #include <iostream>
-#include "Curveball.h"
+#include "CurveballIM.h"
 #include "../graph/GraphBuilder.h"
 #include "CurveballMaterialization.h"
 
@@ -18,11 +18,10 @@ namespace CurveBall {
 	using node_vector = std::vector<node_t>;
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 
-	Curveball::Curveball(const NetworKit::Graph& G)
-		: _G(G)
-		  , _num_nodes(G.numberOfNodes())
-		  , _trade_list(G.numberOfNodes())
-		  , _aff_edges(0)
+	CurveballIM::CurveballIM(const NetworKit::Graph& G)
+		: CurveballBase(G)
+		, _trade_list(G.numberOfNodes())
+		, _aff_edges(0)
 	{
 		hasRun = false;
 		assert(G.checkConsistency());
@@ -30,7 +29,7 @@ namespace CurveBall {
 		assert(_num_nodes > 0);
 	}
 
-	void Curveball::load_from_graph(const trade_vector& trades) {
+	void CurveballIM::load_from_graph(const trade_vector& trades) {
 		// Compute degree sequence
 		degree_vector degrees;
 		degrees.reserve(_num_nodes);
@@ -52,7 +51,7 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::restructure_graph(const trade_vector& trades) {
+	void CurveballIM::restructure_graph(const trade_vector& trades) {
 		nodepair_vector edges =_adj_list.getEdges();
 
 		_adj_list.restructure();
@@ -65,7 +64,7 @@ namespace CurveBall {
 		return;
 	}
 
-	void Curveball::run(const trade_vector& trades) {
+	void CurveballIM::run(const trade_vector& trades) {
 		if (!hasRun)
 			load_from_graph(trades);
 		else
@@ -193,17 +192,17 @@ namespace CurveBall {
 		return;
 	}
 
-	edgeid_t Curveball::getNumberOfAffectedEdges() const {
+	edgeid_t CurveballIM::getNumberOfAffectedEdges() const {
 		return _aff_edges;
 	}
 
-	NetworKit::Graph Curveball::getGraph() const {
+	NetworKit::Graph CurveballIM::getGraph() const {
 		NetworKit::CurveballMaterialization gb(_adj_list);
 
 		return gb.toGraph(true, false);
 	}
 
-	nodepair_vector Curveball::getEdges() const {
+	nodepair_vector CurveballIM::getEdges() const {
 		return _adj_list.getEdges();
 	}
 }
