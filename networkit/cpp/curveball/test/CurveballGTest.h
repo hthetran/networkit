@@ -9,13 +9,18 @@
 #define CB_CURVEBALLGTEST_H
 
 #include <gtest/gtest.h>
+#include "../../graph/Graph.h"
+#include "../defs.h"
 
 namespace CurveBall {
 
-    class CurveballGTest : public testing::Test, public ::testing::WithParamInterface<bool>  {
+class CurveballGTest : public testing::Test, public ::testing::WithParamInterface<bool>  {
     public:
         CurveballGTest() = default;
         virtual ~CurveballGTest() = default;
+
+    protected:
+        void checkWithGraph(NetworKit::Graph&, bool);
     };
 }
 
