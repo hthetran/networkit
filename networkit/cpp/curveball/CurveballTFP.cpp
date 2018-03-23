@@ -24,6 +24,10 @@ namespace CurveBall {
           , _max_degree(0)
 		  , _aff_edges(0)
 	{
+		#ifdef USETLX
+        std::cout << "USETLX:" << Radix << "\n";
+        #endif
+
 		hasRun = false;
 		assert(G.checkConsistency());
 		assert(G.numberOfSelfLoops() == 0);

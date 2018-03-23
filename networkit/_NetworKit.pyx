@@ -8579,7 +8579,7 @@ cdef class EdgeScoreNormalizer(EdgeScore):
 		except TypeError:
 			try:
 				self._inScoreCount = <vector[count]?>score
-				self._this = new _EdgeScoreNormalizer[count](G._this, self._inScoreCount, inverse, lower, upper)
+#				self._this = new _EdgeScoreNormalizer[count](G._this, self._inScoreCount, inverse, lower, upper)
 			except TypeError:
 				raise TypeError("score must be either a vector of integer or float")
 
@@ -8679,7 +8679,7 @@ cdef class EdgeScoreAsWeight:
 
 	def __dealloc__(self):
 		self._G = None
-		self._score = None
+#		self._score = None
 		del self._this
 
 	def getWeightedGraph(self):

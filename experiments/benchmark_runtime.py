@@ -58,17 +58,13 @@ with open(args.output, 'a') as out_file:
             G = hhgen.generate()
             trades = curveball.GlobalTradeGenerator(args.runlength, num_nodes).generate()
 
-            start_time = timeit.default_timer()
-            algo_def = curveball.Curveball(G)
-            algo_def.run(trades)
-            end_time = timeit.default_timer()
-            print(" Finished Default in time %f" % (end_time - start_time))
+            for turbo, name in [(False, "def"), (True, "tfp-tlx64v")]:
+                if not turbo: continue
+                start_time = timeit.default_timer()
+                algo = curveball.Curveball(G, turbo)
+                algo.run(trades)
+                end_time = timeit.default_timer()
+                print("%s,%d,%d,%f #RESULT" % (name, G.numberOfNodes(),G.numberOfEdges(),end_time - start_time))
 
-            start_time = timeit.default_timer()
-            algo_tfp = curveball.CurveballTFP(G)
-            algo_tfp.run(trades)
-            end_time = timeit.default_timer()
-            print(" Finished TFP in time %f" % (end_time - start_time))
-
-
-            writer.writerow([num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
+                writer.writerow([num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time, name])
+                out_file.flush()
