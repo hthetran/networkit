@@ -172,9 +172,9 @@ else:
 	env["CXX"] = cppComp
 
 	env.Append(CPPDEFINES=defines)
-	env.Append(CPPPATH = [stdInclude, gtestInclude, tbbInclude])
-	env.Append(LIBS = ["gtest"])
-	env.Append(LIBPATH = [gtestLib, tbbLib])
+	env.Append(CPPPATH = [stdInclude, gtestInclude, tbbInclude, "tlx"])
+	env.Append(LIBS = ["gtest", "tlx"])
+	env.Append(LIBPATH = [gtestLib, tbbLib, "tlx/build/tlx"])
 
 	with open(confPath, "w") as f:
 		conf.write(f)

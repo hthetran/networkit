@@ -9,7 +9,7 @@
 #ifndef CB_CURVEBALLTFP_H
 #define CB_CURVEBALLTFP_H
 
-//#define USETLX
+#define USETLX
 
 
 #include "defs.h"
@@ -46,9 +46,11 @@ namespace CurveBall {
         nodepair_vector _edges;
         std::vector<tradeid_t> _trade_successor;
 
+        static constexpr size_t Radix = 64;
+
         template<typename KeyT, typename DataT>
 #ifdef USETLX
-        using pq_t = tlx::radixheap_pair<KeyT, DataT>;
+        using pq_t = tlx::radixheap_pair<KeyT, DataT, Radix>;
 #else
         using pq_t = radix_heap::pair_radix_heap<KeyT, DataT>;
 #endif
