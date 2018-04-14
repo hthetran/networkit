@@ -5,6 +5,7 @@ import pprint
 import timeit
 import argparse
 import csv
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--start', type=int, default=4)
@@ -15,15 +16,27 @@ parser.add_argument('--runs', type=int, default=25)
 parser.add_argument('--maxcount', type=int, default=10**8)
 parser.add_argument('--output', type=str, default='data.csv')
 parser.add_argument('--const', action='store_true')
+parser.add_argument('--linear', action='store_true')
+
+parser.add_argument('--with_boost', action='store_true')
+parser.add_argument('--without_boost', action='store_true')
+
 args = parser.parse_args()
 
-class Walltime:
-    def __init__(self, label):
-        self.label = label
-    def __enter__(self):
-        self.start_time = timeit.default_timer()
-    def __exit__(self, a, b, c):
-        print("%s Runtime %f s" % (self.label, timeit.default_timer() - self.start_time))
+boosts = []
+if not (args.without_boost or args.with_boost):
+    print("Select at least one algorithm --with_boost / --without_boost")
+    sys.exit(-1)
+else:
+    if (args.without_boost):
+        boosts.append(False)
+    if (args.with_boost):
+        boosts.append(True)
+
+if not (args.linear or args.const):
+    print("Select at least one scaling --linear / --const")
+    sys.exit(-1)
+
 
 def exp10series(start, end, steps):
     return [int(10**(k/steps + start)) for k in range((end - start) * steps + 1)]
@@ -35,40 +48,46 @@ if args.const:
     const_max_deg = 10000
     node_series = exp10series(args.start, args.end, args.steps)
     config.extend(list(zip(node_series,
-                      [const_min_deg for _ in range(len(node_series))],
-                      [const_max_deg for _ in range(len(node_series))])))
+                      [const_min_deg] * len(node_series),
+                      [const_max_deg] * len(node_series),
+                      ["const"] * len(node_series))))
+
+if args.linear:
+    const_min_deg = 10
+    node_series = exp10series(args.start, args.end, args.steps)
+    config.extend(list(zip(node_series,
+                           [const_min_deg] * len(node_series),
+                           [x // 20 for x in node_series],
+                           ["linear"] * len(node_series))))
+
 
 print("Printing Configurations:")
 pprint.pprint(config)
 
 with open(args.output, 'a') as out_file:
     writer = csv.writer(out_file, delimiter='\t')
-    for (num_nodes, min_deg, max_deg) in config:
-        print("[====] At configuration: (%d, %d, %d)" % (num_nodes, min_deg, max_deg))
-        pldgen = generators.PowerlawDegreeSequence(min_deg, max_deg, -2)
-        pldgen.run()
-        avgdeg = pldgen.getExpectedAverageDegree()
-        # skip this setting since too much RAM will be used
-        if (num_nodes * avgdeg > args.maxcount):
-            continue
-        for run in range(args.runs):
-            print(" Run: %d" % run)
+    for run in range(args.runs):
+        for (num_nodes, min_deg, max_deg, scale) in config:
+            print("[====] At configuration: (%d, %d, %d, %s)" % (num_nodes, min_deg, max_deg, scale))
+            pldgen = generators.PowerlawDegreeSequence(min_deg, max_deg, -2)
+            pldgen.run()
+            avgdeg = pldgen.getExpectedAverageDegree()
+            # skip this setting since too much RAM will be used
+            if (num_nodes * avgdeg > args.maxcount):
+                continue
+
             degseq = pldgen.getDegreeSequence(num_nodes)
             hhgen = generators.HavelHakimiGenerator(degseq)
             G = hhgen.generate()
             trades = curveball.GlobalTradeGenerator(args.runlength, num_nodes).generate()
 
-            start_time = timeit.default_timer()
-            algo_def = curveball.Curveball(G)
-            algo_def.run(trades)
-            end_time = timeit.default_timer()
-            print(" Finished Default in time %f" % (end_time - start_time))
+            for boost in boosts:
+                print("[ ===] Boost: ", boost)
+                start_time = timeit.default_timer()
+                algo_def = curveball.Curveball(G, boost)
+                algo_def.run(trades)
+                end_time = timeit.default_timer()
+                print("[  ==] Finished in time %f" % (end_time - start_time))
 
-            start_time = timeit.default_timer()
-            algo_tfp = curveball.CurveballTFP(G)
-            algo_tfp.run(trades)
-            end_time = timeit.default_timer()
-            print(" Finished TFP in time %f" % (end_time - start_time))
-
-
-            writer.writerow([num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
+                writer.writerow([scale, boost, num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
+                out_file.flush()
