@@ -8,7 +8,7 @@
 #include "TradeList.h"
 #include <numeric>
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using tradeid_vector = std::vector<tradeid_t>;
 	using trade_t = TradeDescriptor;

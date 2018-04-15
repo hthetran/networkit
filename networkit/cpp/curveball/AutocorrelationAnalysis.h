@@ -14,7 +14,7 @@
 #include "defs.h"
 #include <string>
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	//TODO: Change back to edge_t
 	using nodepair_vector = std::vector<std::pair<node_t, node_t> >;

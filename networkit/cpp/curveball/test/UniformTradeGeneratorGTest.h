@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-namespace CurveBall {
+namespace CurveballImpl {
 
     class UniformTradeGeneratorGTest : public testing::Test {
     public:

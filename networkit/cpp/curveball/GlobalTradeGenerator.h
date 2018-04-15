@@ -12,7 +12,7 @@
 #include "../Globals.h"
 #include "defs.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 	class GlobalTradeGenerator {
 		public:
 			using value_type = std::vector<TradeDescriptor>;

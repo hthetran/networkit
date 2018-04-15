@@ -19,10 +19,10 @@ namespace NetworKit {
 	class CurveballMaterialization {
 
 	protected:
-		const CurveBall::CurveballAdjacencyList& _adj_list;
+		const CurveballImpl::CurveballAdjacencyList& _adj_list;
 
 	public:
-		CurveballMaterialization(const CurveBall::CurveballAdjacencyList& adj_list);
+		CurveballMaterialization(const CurveballImpl::CurveballAdjacencyList& adj_list);
 
 		NetworKit::Graph toGraph(bool autoCompleteEdges, bool parallel);
 

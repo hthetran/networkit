@@ -12,7 +12,7 @@
 
 #include "defs.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	class TradeList {
 	public:

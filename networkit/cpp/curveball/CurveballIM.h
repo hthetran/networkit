@@ -16,11 +16,12 @@
 #include "CurveballAdjacencyList.h"
 #include "TradeList.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	class CurveballIM : public CurveballBase {
 	public:
 		CurveballIM(const NetworKit::Graph& G);
+        virtual ~CurveballIM() override final = default;
 
 		void run(const trade_vector& trades) override final;
 
