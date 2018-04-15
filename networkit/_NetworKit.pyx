@@ -2454,6 +2454,10 @@ cdef class Curveball(Algorithm):
 		if isinstance(G, Graph):
 			self._this = new _Curveball((<Graph>G)._this, turbo)
 
+	def __dealloc__(self):
+		del self._this
+		self._this = NULL
+
 	def run(self, vector[pair[node, node]] trades):
 		with nogil:	
 			(<_Curveball*>(self._this)).run(trades)

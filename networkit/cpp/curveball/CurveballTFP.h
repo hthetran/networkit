@@ -25,11 +25,14 @@
 #include "../../../radix-heap/radix_heap.h"
 #endif
 
+#include "../auxiliary/SignalHandling.h"
+
 namespace CurveBall {
 
 	class CurveballTFP : public CurveballBase {
     public:
 		CurveballTFP(const NetworKit::Graph& G);
+        virtual ~CurveballTFP() override final = default;
 
 		void run(const trade_vector& trades);
 

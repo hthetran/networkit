@@ -28,6 +28,8 @@ namespace NetworKit {
 			}
 		}
 
+		virtual ~Curveball() = default;
+
 		void run() override {
 			std::runtime_error("Invalid use of algorithm, provide trades!");
 			return;
