@@ -2398,7 +2398,7 @@ cdef class RmatGenerator:
 		return RmatGenerator(scaleParameter, edgeFactor, a, b, c, d, False, reduceNodes)
 
 cdef extern from "cpp/curveball/UniformTradeGenerator.h":
-	cdef cppclass _UniformTradeGenerator "CurveBall::UniformTradeGenerator":
+	cdef cppclass _UniformTradeGenerator "CurveballImpl::UniformTradeGenerator":
 		_UniformTradeGenerator(count runLength, count numNodes) except +
 		vector[pair[node, node]] generate() nogil except +
 
@@ -2418,7 +2418,7 @@ cdef class UniformTradeGenerator:
 		return self._this.generate()
 
 cdef extern from "cpp/curveball/GlobalTradeGenerator.h":
-	cdef cppclass _GlobalTradeGenerator "CurveBall::GlobalTradeGenerator":
+	cdef cppclass _GlobalTradeGenerator "CurveballImpl::GlobalTradeGenerator":
 		_GlobalTradeGenerator(count runLength, count numNodes) except +
 		vector[pair[node, node]] generate() nogil except +
 
@@ -2473,7 +2473,7 @@ cdef class Curveball(Algorithm):
 		return (<_Curveball*>(self._this)).getNumberOfAffectedEdges()
 
 cdef extern from "cpp/curveball/EdgeSwitchingMarkovChainRandomization.h":
-	cdef cppclass _EdgeSwitchingMarkovChainRandomization "CurveBall::EdgeSwitchingMarkovChainRandomization"(_Algorithm):
+	cdef cppclass _EdgeSwitchingMarkovChainRandomization "CurveballImpl::EdgeSwitchingMarkovChainRandomization"(_Algorithm):
 		_EdgeSwitchingMarkovChainRandomization(_Graph) except +
 		void run(vector[pair[node, node]] swaps) nogil except + # node type = edgeid type
 		_Graph getGraph() except +
@@ -2499,7 +2499,7 @@ cdef class EdgeSwitchingMarkovChainRandomization(Algorithm):
 		return (<_EdgeSwitchingMarkovChainRandomization*>(self._this)).getEdges()
 
 cdef extern from "cpp/curveball/AutocorrelationAnalysis.h":
-	cdef cppclass _AutocorrelationAnalysis "CurveBall::AutocorrelationAnalysis":
+	cdef cppclass _AutocorrelationAnalysis "CurveballImpl::AutocorrelationAnalysis":
 		_AutocorrelationAnalysis(count maxSampleSize) except +
 		void addSample(_Graph G) nogil except +
 		void addSample(vector[pair[node, node]] edges) nogil except +

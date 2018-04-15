@@ -9,10 +9,10 @@
 
 namespace NetworKit {
 
-	using networkit_adjlist = std::vector< std::vector<CurveBall::node_t> >;
-	using networkit_edgeweights = std::vector < std::vector<CurveBall::node_t> >;
+	using networkit_adjlist = std::vector< std::vector<CurveballImpl::node_t> >;
+	using networkit_edgeweights = std::vector < std::vector<CurveballImpl::node_t> >;
 
-	CurveballMaterialization::CurveballMaterialization(const CurveBall::CurveballAdjacencyList& adj_list)
+	CurveballMaterialization::CurveballMaterialization(const CurveballImpl::CurveballAdjacencyList& adj_list)
 			: _adj_list(adj_list)
 	{ }
 
@@ -40,7 +40,7 @@ namespace NetworKit {
 		// 1) insertion of first half is threadsafe
 		// 2) insertion of second half is not threadsafe, for now done sequentially
 
-		const CurveBall::node_t numNodes = _adj_list.numberOfNodes();
+		const CurveballImpl::node_t numNodes = _adj_list.numberOfNodes();
 
 		std::vector<NetworKit::count> missingEdgesCounts(numNodes, 0);
 
@@ -49,8 +49,8 @@ namespace NetworKit {
 
 		// Add first half of edges and count missing edges for each node
 		G.parallelForNodes([&](node nodeid) {
-			const CurveBall::degree_t degree =
-					static_cast<CurveBall::degree_t>(_adj_list.cend(nodeid) - _adj_list.cbegin(nodeid));
+			const CurveballImpl::degree_t degree =
+					static_cast<CurveballImpl::degree_t>(_adj_list.cend(nodeid) - _adj_list.cbegin(nodeid));
 			G.outDeg[nodeid] = degree;
 			missingEdgesCounts[nodeid] = _adj_list.degreeAt(nodeid) - degree;
 			new_outEdges[nodeid].reserve(degree);
@@ -63,13 +63,13 @@ namespace NetworKit {
 		G.outEdges.swap(new_outEdges);
 
 		// Reserve the space
-		G.parallelForNodes([&](CurveBall::node_t v) {
+		G.parallelForNodes([&](CurveballImpl::node_t v) {
 			G.outEdges[v].reserve(G.outDeg[v] + missingEdgesCounts[v]);
 		});
 
 		// Second half of the edges
-		G.forNodes([&](CurveBall::node_t v) {
-			for (CurveBall::degree_t neighbor_id = 0; neighbor_id < G.outDeg[v]; neighbor_id++) {
+		G.forNodes([&](CurveballImpl::node_t v) {
+			for (CurveballImpl::degree_t neighbor_id = 0; neighbor_id < G.outDeg[v]; neighbor_id++) {
 				const node u = G.outEdges[v][neighbor_id];
 				G.outEdges[u].push_back(v);
 			}
@@ -77,12 +77,12 @@ namespace NetworKit {
 
 		//TODO: is the networkit adjacency list even sorted for the neighbours? if not omit this
 		// Sort neighbours
-		G.parallelForNodes([&](CurveBall::node_t v) {
+		G.parallelForNodes([&](CurveballImpl::node_t v) {
 			std::sort(G.outEdges[v].begin(), G.outEdges[v].end());
 		});
 
 		// Set node degrees
-		G.parallelForNodes([&](CurveBall::node_t v) {
+		G.parallelForNodes([&](CurveballImpl::node_t v) {
 			G.outDeg[v] = _adj_list.degreeAt(v);
 		});
 
@@ -97,7 +97,7 @@ namespace NetworKit {
 	}
 
 	void CurveballMaterialization::toGraphSequential(Graph &G) {
-		const CurveBall::node_t numNodes = _adj_list.numberOfNodes();
+		const CurveballImpl::node_t numNodes = _adj_list.numberOfNodes();
 
 		// Analogue to "toGraphSequential" of GraphBuilder
 		std::vector<NetworKit::count> missingEdgesCounts;
@@ -108,8 +108,8 @@ namespace NetworKit {
 
 		// Add first half of edges and count missing edges for each node
 		G.forNodes([&](node nodeid) {
-			const CurveBall::degree_t degree =
-					static_cast<CurveBall::degree_t>(_adj_list.cend(nodeid) - _adj_list.cbegin(nodeid));
+			const CurveballImpl::degree_t degree =
+					static_cast<CurveballImpl::degree_t>(_adj_list.cend(nodeid) - _adj_list.cbegin(nodeid));
 			G.outDeg[nodeid] = degree;
 			missingEdgesCounts.push_back(_adj_list.degreeAt(nodeid) - degree);
 			new_outEdges[nodeid].reserve(degree);
@@ -122,13 +122,13 @@ namespace NetworKit {
 		G.outEdges.swap(new_outEdges);
 
 		// Reserve the space
-		G.forNodes([&](CurveBall::node_t v) {
+		G.forNodes([&](CurveballImpl::node_t v) {
 			G.outEdges[v].reserve(G.outDeg[v] + missingEdgesCounts[v]);
 		});
 
 		// Second half of the edges
-		G.forNodes([&](CurveBall::node_t v) {
-			for (CurveBall::degree_t neighbor_id = 0; neighbor_id < G.outDeg[v]; neighbor_id++) {
+		G.forNodes([&](CurveballImpl::node_t v) {
+			for (CurveballImpl::degree_t neighbor_id = 0; neighbor_id < G.outDeg[v]; neighbor_id++) {
 				const node u = G.outEdges[v][neighbor_id];
 				G.outEdges[u].push_back(v);
 			}
@@ -136,12 +136,12 @@ namespace NetworKit {
 
 		//TODO: is the networkit adjacency list even sorted for the neighbours? if not omit this
 		// Sort neighbours
-		G.forNodes([&](CurveBall::node_t v) {
+		G.forNodes([&](CurveballImpl::node_t v) {
 			std::sort(G.outEdges[v].begin(), G.outEdges[v].end());
 		});
 
 		// Set node degrees
-		G.forNodes([&](CurveBall::node_t v) {
+		G.forNodes([&](CurveballImpl::node_t v) {
 			G.outDeg[v] = _adj_list.degreeAt(v);
 		});
 

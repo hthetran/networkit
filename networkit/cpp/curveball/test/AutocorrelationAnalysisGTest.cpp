@@ -12,7 +12,7 @@
 #include "../../graph/Graph.h"
 #include "../../generators/ErdosRenyiGenerator.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	TEST_F(AutocorrelationAnalysisGTest, testGraphInput) {
 		AutocorrelationAnalysis aa(3);

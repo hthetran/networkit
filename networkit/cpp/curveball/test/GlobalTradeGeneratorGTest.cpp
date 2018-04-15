@@ -8,7 +8,7 @@
 #include "GlobalTradeGeneratorGTest.h"
 #include "../GlobalTradeGenerator.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
     TEST_F(GlobalTradeGeneratorGTest, testTradeNumber) {
         GlobalTradeGenerator genEven(1, 10);
         auto tradesEven = genEven.generate();

@@ -14,7 +14,7 @@
 #include "defs.h"
 #include <unordered_set>
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using edgeswap_vector = std::vector< std::pair<edgeid_t, edgeid_t> >;
 	using edge_vector = std::vector<edge_t>;

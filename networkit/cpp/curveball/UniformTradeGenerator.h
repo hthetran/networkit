@@ -11,7 +11,7 @@
 
 #include "defs.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 	class UniformTradeGenerator {
 		public:
 			using value_type = std::vector<TradeDescriptor>;

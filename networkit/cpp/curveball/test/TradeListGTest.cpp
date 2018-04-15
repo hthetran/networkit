@@ -7,7 +7,7 @@
 
 #include "TradeListGTest.h"
 #include "../TradeList.h"
-namespace CurveBall {
+namespace CurveballImpl {
 
 	TEST_F(TradeListGTest, testTradeListConstructor) {
 		std::vector<TradeDescriptor> trades =

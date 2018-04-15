@@ -7,7 +7,7 @@
 
 #include "AutocorrelationAnalysis.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;
 	using bool_vector = std::vector<bool>;

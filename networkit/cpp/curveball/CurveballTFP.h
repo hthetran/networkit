@@ -27,7 +27,7 @@
 
 #include "../auxiliary/SignalHandling.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	class CurveballTFP : public CurveballBase {
     public:

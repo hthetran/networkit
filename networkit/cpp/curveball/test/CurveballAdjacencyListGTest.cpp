@@ -8,7 +8,7 @@
 #include "CurveballAdjacencyListGTest.h"
 #include "../CurveballAdjacencyList.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using degree_vector = std::vector<degree_t>;
 	using neighbour_it = std::vector<node_t>::const_iterator;
