@@ -63,11 +63,11 @@ namespace CurveBall {
         edgeid_t _aff_edges; // affected half-edges
 
         // Prepare run of CurveballTFP
-        void load_from_graph(const trade_vector& trades);
-        void restructure_graph(const trade_vector& trades);
+        void load_from_graph(const trade_vector& trades, Aux::SignalHandler& handler);
+        void restructure_graph(const trade_vector& trades, Aux::SignalHandler& handler);
 
         template <typename GetEdges>
-        void build_depchain(const trade_vector& trades, GetEdges get_edges);
+        void build_depchain(const trade_vector& trades, GetEdges get_edges, Aux::SignalHandler& handler);
 
         std::vector<depchain_msg> get_tradelist(const trade_vector&) const;
 
