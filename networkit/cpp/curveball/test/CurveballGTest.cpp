@@ -14,97 +14,73 @@
 #include "../UniformTradeGenerator.h"
 #include "../../auxiliary/Random.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using trade_vector = std::vector<TradeDescriptor>;
+
+
+    void CurveballGTest::checkWithGraph(NetworKit::Graph& G, bool turbo) {
+        node_t numNodes = G.numberOfNodes();
+        const tradeid_t numTrades = 5;
+        const NetworKit::count numTradeRuns = 5;
+
+
+        std::vector<degree_t> degrees(numNodes + 1);
+
+        // Add edge to node 0, if isolated node
+        // If 0 itself is isolated, add new node and connect 0 to it
+        G.forNodes([&](node_t u) {
+            if (G.degree(u) > 0)
+                degrees[u] = G.degree(u);
+            else {
+                if (u == 0) {
+                    numNodes++;
+                    G.addEdge(0, numNodes - 1);
+                    degrees[0]++;
+                    degrees[numNodes - 1] = 1;
+                } else {
+                    G.addEdge(u, 0);
+                    degrees[0]++;
+                    degrees[u] = 1;
+                }
+            }
+        });
+
+
+        NetworKit::Curveball algo(G, turbo);
+        for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
+            UniformTradeGenerator gen(numTrades, numNodes);
+            algo.run(gen.generate());
+        }
+
+        // check degrees
+        NetworKit::Graph outG = algo.getGraph();
+        outG.forNodes([&](node_t u){
+            ASSERT_EQ(degrees[u], outG.degree(u));
+        });
+    }
+
 
 	TEST_P(CurveballGTest, testCurveballErdosRenyi) {
         bool turbo = GetParam();
 
         Aux::Random::setSeed(1, false);
 
-		node_t numNodes = 20;
-		const tradeid_t numTrades = 5;
-		const NetworKit::count numTradeRuns = 5;
-
+        node_t numNodes = 1000;
 		NetworKit::ErdosRenyiGenerator generator(numNodes, 0.3);
 		NetworKit::Graph G = generator.generate();
-		std::vector<degree_t> degrees(numNodes + 1);
 
-		// Add edge to node 0, if isolated node
-		// If 0 itself is isolated, add new node and connect 0 to it
-		G.forNodes([&](node_t u) {
-			if (G.degree(u) > 0)
-				degrees[u] = G.degree(u);
-			else {
-				if (u == 0) {
-					numNodes++;
-					G.addEdge(0, numNodes - 1);
-					degrees[0]++;
-					degrees[numNodes - 1] = 1;
-				} else {
-					G.addEdge(u, 0);
-					degrees[0]++;
-					degrees[u] = 1;
-				}
-			}
-		});
-
-
-        NetworKit::Curveball algo(G, turbo);
-        for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
-            UniformTradeGenerator gen(numTrades, numNodes);
-            algo.run(gen.generate());
-        }
-
-        // check degrees
-        NetworKit::Graph outG = algo.getGraph();
-        outG.forNodes([&](node_t u){
-            ASSERT_EQ(degrees[u], outG.degree(u));
-        });
+        this->checkWithGraph(G, turbo);
 	}
 
 	TEST_P(CurveballGTest, testCurveballHyperbolic) {
         bool turbo = GetParam();
 
-		node_t numNodes = 5000;
-		const tradeid_t numTrades = 500;
-		const NetworKit::count numTradeRuns = 10;
-
+        node_t numNodes = 1000;
 		NetworKit::HyperbolicGenerator generator(numNodes);
 		NetworKit::Graph G = generator.generate();
-		std::vector<degree_t> degrees(numNodes + 1);
 
-		// Add edge to node 0, if isolated node
-		// If 0 itself is isolated, add new node and connect 0 to it
-		G.forNodes([&](node_t u) {
-			if (G.degree(u) > 0)
-				degrees[u] = G.degree(u);
-			else {
-				if (u == 0) {
-					numNodes++;
-					G.addEdge(0, numNodes - 1);
-					degrees[0]++;
-					degrees[numNodes - 1] = 1;
-				} else {
-					G.addEdge(u, 0);
-					degrees[0]++;
-					degrees[u] = 1;
-				}
-			}
-		});
-
-        NetworKit::Curveball algo(G, turbo);
-        for (NetworKit::count tradeRun = 0; tradeRun < numTradeRuns; tradeRun++) {
-            UniformTradeGenerator gen(numTrades, numNodes);
-            algo.run(gen.generate());
-        }
-
-        // check degrees
-        NetworKit::Graph outG = algo.getGraph();
-        outG.forNodes([&](node_t u){
-            ASSERT_EQ(degrees[u], outG.degree(u));
-        });
+        this->checkWithGraph(G, turbo);
 	}
 
 

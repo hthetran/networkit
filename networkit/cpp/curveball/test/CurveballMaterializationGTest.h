@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	class CurveballMaterializationGTest : public testing::Test {
 	public:

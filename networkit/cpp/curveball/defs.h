@@ -18,7 +18,7 @@
 #include <limits>
 #include <ostream>
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 /**
  * @typedef node_t
@@ -98,23 +98,23 @@ struct depchain_msg {
 using trade_vector = std::vector<TradeDescriptor>;
 using nodepair_vector = std::vector <std::pair<node_t, node_t>>;
 
-} // namespace CurveBall
+} // namespace CurveballImpl
 
 namespace std {
 template<>
-class numeric_limits<CurveBall::edge_t> {
+class numeric_limits<CurveballImpl::edge_t> {
 public:
-	static CurveBall::edge_t min() {
-		return {numeric_limits<CurveBall::node_t>::min(), numeric_limits<CurveBall::node_t>::min()};
+	static CurveballImpl::edge_t min() {
+		return {numeric_limits<CurveballImpl::node_t>::min(), numeric_limits<CurveballImpl::node_t>::min()};
 	};
 
-	static CurveBall::edge_t max() {
-		return {numeric_limits<CurveBall::node_t>::max(), numeric_limits<CurveBall::node_t>::max()};
+	static CurveballImpl::edge_t max() {
+		return {numeric_limits<CurveballImpl::node_t>::max(), numeric_limits<CurveballImpl::node_t>::max()};
 	};
 };
 }
 
-inline std::ostream &operator<<(std::ostream &os, const CurveBall::edge_t &t) {
+inline std::ostream &operator<<(std::ostream &os, const CurveballImpl::edge_t &t) {
 	os << "edge(" << t.first << "," << t.second << ")";
 	return os;
 }

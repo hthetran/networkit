@@ -12,13 +12,15 @@
 #include "../graph/Graph.h"
 #include "defs.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	class CurveballBase {
 	public:
 		CurveballBase(const NetworKit::Graph& G)
 			: _G(G), _num_nodes(G.numberOfNodes())
 		{}
+
+		virtual ~CurveballBase() = default;
 
 		virtual void run(const trade_vector& trades) = 0;
 

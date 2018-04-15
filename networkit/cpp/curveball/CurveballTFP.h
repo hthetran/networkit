@@ -9,7 +9,7 @@
 #ifndef CB_CURVEBALLTFP_H
 #define CB_CURVEBALLTFP_H
 
-//#define USETLX
+#define USETLX
 
 
 #include "defs.h"
@@ -25,11 +25,14 @@
 #include "../../../radix-heap/radix_heap.h"
 #endif
 
-namespace CurveBall {
+#include "../auxiliary/SignalHandling.h"
+
+namespace CurveballImpl {
 
 	class CurveballTFP : public CurveballBase {
     public:
 		CurveballTFP(const NetworKit::Graph& G);
+        virtual ~CurveballTFP() override final = default;
 
 		void run(const trade_vector& trades);
 
@@ -46,9 +49,11 @@ namespace CurveBall {
         nodepair_vector _edges;
         std::vector<tradeid_t> _trade_successor;
 
+        static constexpr size_t Radix = 64;
+
         template<typename KeyT, typename DataT>
 #ifdef USETLX
-        using pq_t = tlx::radixheap_pair<KeyT, DataT>;
+        using pq_t = tlx::radixheap_pair<KeyT, DataT, Radix>;
 #else
         using pq_t = radix_heap::pair_radix_heap<KeyT, DataT>;
 #endif
@@ -58,11 +63,11 @@ namespace CurveBall {
         edgeid_t _aff_edges; // affected half-edges
 
         // Prepare run of CurveballTFP
-        void load_from_graph(const trade_vector& trades);
-        void restructure_graph(const trade_vector& trades);
+        void load_from_graph(const trade_vector& trades, Aux::SignalHandler& handler);
+        void restructure_graph(const trade_vector& trades, Aux::SignalHandler& handler);
 
         template <typename GetEdges>
-        void build_depchain(const trade_vector& trades, GetEdges get_edges);
+        void build_depchain(const trade_vector& trades, GetEdges get_edges, Aux::SignalHandler& handler);
 
         std::vector<depchain_msg> get_tradelist(const trade_vector&) const;
 

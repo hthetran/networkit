@@ -14,6 +14,7 @@ parser.add_argument('--steps', type=int, default=3)
 parser.add_argument('--runlength', type=int, default=10)
 parser.add_argument('--runs', type=int, default=25)
 parser.add_argument('--maxcount', type=int, default=10**8)
+parser.add_argument('--trades', type=int, default=5)
 parser.add_argument('--output', type=str, default='data.csv')
 parser.add_argument('--const', action='store_true')
 parser.add_argument('--linear', action='store_true')
@@ -79,15 +80,17 @@ with open(args.output, 'a') as out_file:
             degseq = pldgen.getDegreeSequence(num_nodes)
             hhgen = generators.HavelHakimiGenerator(degseq)
             G = hhgen.generate()
-            trades = curveball.GlobalTradeGenerator(args.runlength, num_nodes).generate()
+
+            list_trades = [curveball.GlobalTradeGenerator(args.runlength, num_nodes).generate() for _ in range(args.trades)]
 
             for boost in boosts:
                 print("[ ===] Boost: ", boost)
-                start_time = timeit.default_timer()
-                algo_def = curveball.Curveball(G, boost)
-                algo_def.run(trades)
-                end_time = timeit.default_timer()
-                print("[  ==] Finished in time %f" % (end_time - start_time))
+                algo = curveball.Curveball(G, boost)
+                for r in range(args.trades):
+                    start_time = timeit.default_timer()
+                    algo.run(list_trades[r])
+                    end_time = timeit.default_timer()
+                    print("[  ==] Finished round %d in time %f" % (r, end_time - start_time))
 
-                writer.writerow([scale, boost, num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
-                out_file.flush()
+                    writer.writerow([scale, boost, r, num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
+                    out_file.flush()

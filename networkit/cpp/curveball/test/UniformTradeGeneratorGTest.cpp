@@ -8,7 +8,7 @@
 #include "UniformTradeGeneratorGTest.h"
 #include "../UniformTradeGenerator.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
     TEST_F(UniformTradeGeneratorGTest, testGeneration) {
         UniformTradeGenerator gen(15, 10);
         auto trades = gen.generate();

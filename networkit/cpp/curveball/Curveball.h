@@ -22,18 +22,20 @@ namespace NetworKit {
 	public:
 		Curveball(const NetworKit::Graph& G, bool boost = false) {
 			if (boost) {
-				_algo.reset(new CurveBall::CurveballTFP(G));
+				_algo.reset(new CurveballImpl::CurveballTFP(G));
 			} else {
-				_algo.reset(new CurveBall::CurveballIM(G));
+				_algo.reset(new CurveballImpl::CurveballIM(G));
 			}
 		}
+
+		virtual ~Curveball() = default;
 
 		void run() override {
 			std::runtime_error("Invalid use of algorithm, provide trades!");
 			return;
 		};
 
-		void run(const CurveBall::trade_vector& trades) {
+		void run(const CurveballImpl::trade_vector& trades) {
 			_algo->run(trades);
 		}
 
@@ -41,7 +43,7 @@ namespace NetworKit {
 			return false;
 		}
 
-        CurveBall::edgeid_t getNumberOfAffectedEdges() const {
+        CurveballImpl::edgeid_t getNumberOfAffectedEdges() const {
 			return _algo->getNumberOfAffectedEdges();
 		}
 
@@ -49,12 +51,12 @@ namespace NetworKit {
 			return _algo->getGraph();
 		}
 
-        CurveBall::nodepair_vector getEdges() const {
+        CurveballImpl::nodepair_vector getEdges() const {
 			return _algo->getEdges();
 		}
 
 	protected:
-		std::unique_ptr<CurveBall::CurveballBase> _algo;
+		std::unique_ptr<CurveballImpl::CurveballBase> _algo;
 	};
 
 }
