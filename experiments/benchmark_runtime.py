@@ -6,6 +6,9 @@ import timeit
 import argparse
 import csv
 import sys
+import tempfile
+import numpy as np
+import subprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--start', type=int, default=4)
@@ -18,6 +21,7 @@ parser.add_argument('--trades', type=int, default=5)
 parser.add_argument('--output', type=str, default='data.csv')
 parser.add_argument('--const', action='store_true')
 parser.add_argument('--linear', action='store_true')
+parser.add_argument('--with_vles', type=str, default='')
 
 parser.add_argument('--with_boost', action='store_true')
 parser.add_argument('--without_boost', action='store_true')
@@ -25,7 +29,7 @@ parser.add_argument('--without_boost', action='store_true')
 args = parser.parse_args()
 
 boosts = []
-if not (args.without_boost or args.with_boost):
+if not (args.without_boost or args.with_boost or args.with_vles):
     print("Select at least one algorithm --with_boost / --without_boost")
     sys.exit(-1)
 else:
@@ -81,6 +85,8 @@ with open(args.output, 'a') as out_file:
             hhgen = generators.HavelHakimiGenerator(degseq)
             G = hhgen.generate()
 
+            print("[    ] Graph has %d edges" % G.numberOfEdges())
+
             list_trades = [curveball.GlobalTradeGenerator(args.runlength, num_nodes).generate() for _ in range(args.trades)]
 
             for boost in boosts:
@@ -92,5 +98,28 @@ with open(args.output, 'a') as out_file:
                     end_time = timeit.default_timer()
                     print("[  ==] Finished round %d in time %f" % (r, end_time - start_time))
 
-                    writer.writerow([scale, boost, r, num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
+                    writer.writerow([scale, "emcb" if boost else "imcb", r, num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
                     out_file.flush()
+
+            if args.with_vles:
+                with tempfile.TemporaryDirectory() as dir:
+                    outf = dir + "/dist"
+                    dd_raw = np.array(centrality.DegreeCentrality(G).run().scores(), dtype=int)
+                    dd = np.vstack(np.unique(dd_raw, return_counts=True)).T
+                    np.savetxt(outf, dd, fmt="%d %d")
+                    with open("/dev/null", "w") as fnull:
+                        p = subprocess.Popen([args.with_vles, "-v", "-t", "-d", outf], stdout=fnull, stderr=subprocess.PIPE)
+                    _, err = p.communicate()
+                    last_lines = str(err).split("\\n")[-3:-1]
+
+                    assert("Performed : " in last_lines[0])
+                    assert("Time used: " in last_lines[1])
+
+                    performed = int(last_lines[0].split(" ")[-2])
+                    time = float(last_lines[1].split(" ")[-1])
+
+                    expef = args.trades * G.numberOfEdges() * 2
+                    print("Performed %d swaps (%d expected) in %f s" % (performed, expef, time))
+                    assert(performed == expef)
+
+                    writer.writerow([scale, "vles", -1, num_nodes, min_deg, max_deg, G.numberOfEdges(), time])
