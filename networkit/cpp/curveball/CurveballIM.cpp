@@ -9,6 +9,7 @@
 #include "CurveballIM.h"
 #include "../graph/GraphBuilder.h"
 #include "CurveballMaterialization.h"
+#include "../auxiliary/SignalHandling.h"
 
 namespace CurveBall {
 
@@ -76,7 +77,12 @@ namespace CurveBall {
 
 		common_neighbours.reserve(_max_degree);
 		disjoint_neighbours.reserve(_max_degree);
+
+		Aux::SignalHandler handler;
+
 		for (const auto& trade : trades) {
+			handler.assureRunning();
+
 			// Trade partners u and v
 			const node_t u = trade.first;
 			const node_t v = trade.second;
