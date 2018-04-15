@@ -12,6 +12,7 @@
 #include "../auxiliary/IntSort.h"
 #include "../auxiliary/Timer.h"
 
+
 namespace CurveBall {
 
 	using degree_vector = std::vector<degree_t>;
@@ -62,7 +63,7 @@ namespace CurveBall {
 	}
 
 	template <typename GetNeigh>
-	void CurveballTFP::build_depchain(const trade_vector& trades, GetNeigh get_neighbors) {
+	void CurveballTFP::build_depchain(const trade_vector& trades, GetNeigh get_neighbors, Aux::SignalHandler& handler) {
         //for(auto t : trades) std::cout << "trade [" << t.first << ", " << t.second << "]\n";
 
 		auto tlist = get_tradelist(trades);
@@ -83,6 +84,8 @@ namespace CurveBall {
 
 		auto it = tlist.begin();
 		for(node_t u=0; u < max_nodes; u++) {
+		    handler.assureRunning();
+
             // Obtain and sort neighbors
             auto neighbors = get_neighbors(u);
             if (neighbors.empty()) continue;
@@ -212,7 +215,7 @@ namespace CurveBall {
 	}
 
 
-	void CurveballTFP::load_from_graph(const trade_vector& trades) {
+	void CurveballTFP::load_from_graph(const trade_vector& trades, Aux::SignalHandler& handler) {
 		Aux::Timer timer;
 		timer.start();
 
@@ -231,13 +234,13 @@ namespace CurveBall {
                 _max_degree = tmp.size();
 
             return tmp;
-		});
+		}, handler);
 
 		timer.stop();
         std::cout << "Loading initial graph took " << timer.elapsedMilliseconds() << " milliseconds.\n";
 	}
 
-	void CurveballTFP::restructure_graph(const trade_vector& trades) {
+	void CurveballTFP::restructure_graph(const trade_vector& trades, Aux::SignalHandler& handler) {
 		Aux::Timer timer;
 		timer.start();
 
@@ -270,17 +273,19 @@ namespace CurveBall {
 		};
 
         _edges.reserve(old_edges.size());
-		build_depchain(trades, get_neighbors);
+		build_depchain(trades, get_neighbors, handler);
 
 		timer.stop();
         std::cout << "Restructuring took " << timer.elapsedMilliseconds() << " milliseconds.\n";
 	}
 
 	void CurveballTFP::run(const trade_vector& trades) {
+        Aux::SignalHandler handler;
+
 		if (!hasRun)
-			load_from_graph(trades);
+			load_from_graph(trades, handler);
 		else
-			restructure_graph(trades);
+			restructure_graph(trades, handler);
 
 		Aux::Timer timer;
 		timer.start();
@@ -298,6 +303,8 @@ namespace CurveBall {
 
         tradeid_t tid = 0;
         for (const auto& trade : trades) {
+			handler.assureRunning();
+
 			// Trade partners u and v
 			const node_t u = trade.first;
 			const node_t v = trade.second;
