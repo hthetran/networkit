@@ -10,7 +10,7 @@
 #include "../../graph/GraphBuilder.h"
 #include "../../graph/Graph.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 TEST_F(CurveballMaterializationGTest, testNewBuilder) {
 	

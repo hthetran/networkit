@@ -12,7 +12,7 @@
 #include "../../generators/ErdosRenyiGenerator.h"
 #include "../UniformTradeGenerator.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using edgeswap_vector = std::vector< std::pair<edgeid_t, edgeid_t> >;
 

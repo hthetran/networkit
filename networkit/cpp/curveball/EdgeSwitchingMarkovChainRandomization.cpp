@@ -9,7 +9,7 @@
 #include "../auxiliary/Random.h"
 #include "../graph/Graph.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using edgeswap_vector = std::vector< std::pair<edgeid_t, edgeid_t> >;
 	using nodepair_vector = std::vector< std::pair<node_t, node_t> >;

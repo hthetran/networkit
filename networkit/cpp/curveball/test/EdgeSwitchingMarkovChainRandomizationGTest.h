@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-namespace CurveBall {
+namespace CurveballImpl {
 	
 	class EdgeSwitchingMarkovChainRandomizationGTest : public testing::Test {
 	public:

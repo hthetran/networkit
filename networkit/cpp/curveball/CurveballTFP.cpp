@@ -13,7 +13,7 @@
 #include "../auxiliary/Timer.h"
 
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using degree_vector = std::vector<degree_t>;
 	using trade_vector = std::vector<TradeDescriptor>;

@@ -7,7 +7,7 @@
 
 #include "CurveballAdjacencyList.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using neighbour_vector = std::vector<node_t>;
 	using degree_vector = std::vector<degree_t>;

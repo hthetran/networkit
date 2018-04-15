@@ -14,7 +14,7 @@
 #include "../UniformTradeGenerator.h"
 #include "../../auxiliary/Random.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	using trade_vector = std::vector<TradeDescriptor>;
 

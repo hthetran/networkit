@@ -8,7 +8,7 @@
 #include "UniformTradeGenerator.h"
 #include "../auxiliary/Random.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 	using value_type = std::vector<TradeDescriptor>;
 	using node_vector = std::vector<node_t>;
 

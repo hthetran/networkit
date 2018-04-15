@@ -16,7 +16,7 @@
 #include "CurveballAdjacencyList.h"
 #include "TradeList.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 	class CurveballIM : public CurveballBase {
 	public:

@@ -12,7 +12,7 @@
 #include "../../graph/Graph.h"
 #include "../defs.h"
 
-namespace CurveBall {
+namespace CurveballImpl {
 
 class CurveballXRefGTest : public testing::Test, public ::testing::WithParamInterface<node_t>  {
     public:
