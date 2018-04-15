@@ -20,6 +20,8 @@ namespace CurveBall {
 			: _G(G), _num_nodes(G.numberOfNodes())
 		{}
 
+		virtual ~CurveballBase() = default;
+
 		virtual void run(const trade_vector& trades) = 0;
 
 		virtual edgeid_t getNumberOfAffectedEdges() const = 0;
