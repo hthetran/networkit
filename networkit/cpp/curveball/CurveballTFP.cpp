@@ -153,7 +153,7 @@ namespace CurveballImpl {
 			// Receive TFP messages
             messages.clear();
 			if (pq.peak_top_key() == u) {
-				pq.swap_min_bucket(messages);
+				pq.swap_top_bucket(messages);
 
 				/*for(auto& msg:messages) {
 				    std::cout << msg.node << " ";
@@ -306,7 +306,7 @@ namespace CurveballImpl {
 				assert(_cbpq.top().first >= tid);
 
                 if (_cbpq.peak_top_key() == tid) {
-                    _cbpq.swap_min_bucket(neigh_u);
+                    _cbpq.swap_top_bucket(neigh_u);
                     for(auto &x : neigh_u) {
                         if (x.node == v) {
                             edge_between_uv = true;
@@ -320,7 +320,7 @@ namespace CurveballImpl {
                 }
 
 				if (_cbpq.peak_top_key() == tid + 1) {
-					_cbpq.swap_min_bucket(neigh_v);
+					_cbpq.swap_top_bucket(neigh_v);
                     std::sort(neigh_v.begin(), neigh_v.end());
 				}
 			}
