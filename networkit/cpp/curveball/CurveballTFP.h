@@ -9,9 +9,6 @@
 #ifndef CB_CURVEBALLTFP_H
 #define CB_CURVEBALLTFP_H
 
-#define USETLX
-
-
 #include "defs.h"
 
 #include "../base/Algorithm.h"
@@ -19,11 +16,7 @@
 
 #include "CurveballBase.h"
 
-#ifdef USETLX
 #include <tlx/radixheap_pair.hpp>
-#else
-#include "../../../radix-heap/radix_heap.h"
-#endif
 
 #include "../auxiliary/SignalHandling.h"
 
@@ -52,11 +45,7 @@ namespace CurveballImpl {
         static constexpr size_t Radix = 64;
 
         template<typename KeyT, typename DataT>
-#ifdef USETLX
         using pq_t = tlx::radixheap_pair<KeyT, DataT, Radix>;
-#else
-        using pq_t = radix_heap::pair_radix_heap<KeyT, DataT>;
-#endif
         pq_t<tradeid_t, depchain_msg> _cbpq;
 
         degree_t _max_degree; // only valid after load_from_graph
