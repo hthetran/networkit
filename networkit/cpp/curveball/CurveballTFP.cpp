@@ -25,10 +25,6 @@ namespace CurveballImpl {
           , _max_degree(0)
 		  , _aff_edges(0)
 	{
-		#ifdef USETLX
-        std::cout << "USETLX:" << Radix << "\n";
-        #endif
-
 		hasRun = false;
 		assert(G.checkConsistency());
 		assert(G.numberOfSelfLoops() == 0);
@@ -81,6 +77,7 @@ namespace CurveballImpl {
 		constexpr auto no_more_trade = std::numeric_limits<tradeid_t>::max();
 
         std::vector<node_t> handled_nodes;
+        pq_t<node_t, depchain_msg>::bucket_data_type messages;
 
 		auto it = tlist.begin();
 		for(node_t u=0; u < max_nodes; u++) {
@@ -95,15 +92,15 @@ namespace CurveballImpl {
 			if (it->node != u) {
 				assert(it->node > u);
                 assert(!pq.empty());
-				assert(pq.peak_min_key() >= u);
+				assert(pq.peak_top_key() >= u);
 
-                //std::cout << "Skip u=" << u << " pq.peak_min_key=" << pq.peak_min_key() << " size: "  << pq.size() << "\n";
+                //std::cout << "Skip u=" << u << " pq.peak_top().first=" << pq.peak_top_key() << " size: "  << pq.size() << "\n";
 
                 handled_nodes.clear();
-				for(; pq.peak_min_key() == u; pq.pop()) {
-                    //std::cout << " Bypass u=" << u << " to " << pq.min_value().next_trade << "\n";
-					_cbpq.emplace(pq.min_value().next_trade, u, no_more_trade);
-                    handled_nodes.emplace_back(pq.min_value().node);
+				for(; pq.peak_top_key() == u; pq.pop()) {
+                    //std::cout << " Bypass u=" << u << " to " << pq.top().second.next_trade << "\n";
+					_cbpq.emplace(pq.top().second.next_trade, u, no_more_trade);
+                    handled_nodes.emplace_back(pq.top().second.node);
 				}
 
                 std::sort(handled_nodes.begin(), handled_nodes.end());
@@ -134,9 +131,12 @@ namespace CurveballImpl {
 				    [u] (const depchain_msg& msg) {return msg.node == u;});
 				assert(end != tlist.end()); // there's a bottom element
 
-				std::sort(it, end, [] (const depchain_msg& a, const depchain_msg& b) {
-					return a.next_trade < b.next_trade;
-				});
+                auto comp = [] (const depchain_msg& a, const depchain_msg& b) {
+                    return a.next_trade < b.next_trade;
+                };
+
+                assert(std::is_sorted(it, end, comp));
+				//std::sort(it, end, comp);
 
 				// Emit dependency chain
 				first_tid = it->next_trade;
@@ -151,22 +151,15 @@ namespace CurveballImpl {
 			}
 
 			// Receive TFP messages
-#ifdef USETLX
-            pq_t<node_t, depchain_msg>::bucket_value_t messages;
-#else
-            std::vector<depchain_msg> messages;
-#endif
-			if (pq.peak_min_key() == u) {
-#ifdef USETLX
-                messages = pq.extract_min_bucket().second;
-#else
-				const auto tmp = pq.extract_top_values();
-				messages.clear();
-				messages.reserve(tmp.size()+1);
+            messages.clear();
+			if (pq.peak_top_key() == u) {
+				pq.swap_min_bucket(messages);
 
-				for(const auto msg : tmp)
-                    messages.emplace_back(msg.second);
-#endif
+				/*for(auto& msg:messages) {
+				    std::cout << msg.node << " ";
+				}
+				std::cout << "\n"; */
+				//assert(std::is_sorted(messages.crbegin(), messages.crend()));
 
 				std::sort(messages.begin(), messages.end());
 			}
@@ -223,12 +216,6 @@ namespace CurveballImpl {
 
         build_depchain(trades, [this] (node_t u) {
 			auto tmp = _G.neighbors(u);
-
-            /*
-            std::cout << "A[" << u << "]: ";
-            for(auto x : tmp) std::cout << x << " ";
-            std::cout << "\n";
-            */
 
             if (tmp.size() > _max_degree)
                 _max_degree = tmp.size();
@@ -316,23 +303,26 @@ namespace CurveballImpl {
 			neigh_u.clear();
 			neigh_v.clear();
 			{
-				assert(_cbpq.min_key() >= tid);
-				for (; _cbpq.peak_min_key() == tid; _cbpq.pop()) {
-					if (_cbpq.min_value().node == v) {
-						edge_between_uv = true;
-						continue;
-					}
+				assert(_cbpq.top().first >= tid);
 
-					neigh_u.push_back(_cbpq.min_value());
+                if (_cbpq.peak_top_key() == tid) {
+                    _cbpq.swap_min_bucket(neigh_u);
+                    for(auto &x : neigh_u) {
+                        if (x.node == v) {
+                            edge_between_uv = true;
+                            x = neigh_u.back();
+                            neigh_u.pop_back();
+                            break;
+                        }
+                    }
+
+                    std::sort(neigh_u.begin(), neigh_u.end());
+                }
+
+				if (_cbpq.peak_top_key() == tid + 1) {
+					_cbpq.swap_min_bucket(neigh_v);
+                    std::sort(neigh_v.begin(), neigh_v.end());
 				}
-
-				for (; _cbpq.peak_min_key() == tid + 1; _cbpq.pop()) {
-					assert(_cbpq.min_value().node != u);
-					neigh_v.push_back(_cbpq.min_value());
-				}
-
-				std::sort(neigh_u.begin(), neigh_u.end());
-				std::sort(neigh_v.begin(), neigh_v.end());
 			}
 
 			_aff_edges += neigh_u.size() + neigh_v.size() + edge_between_uv;
