@@ -307,16 +307,15 @@ namespace CurveballImpl {
 
                 if (_cbpq.peak_top_key() == tid) {
                     _cbpq.swap_top_bucket(neigh_u);
-                    for(auto &x : neigh_u) {
-                        if (x.node == v) {
-                            edge_between_uv = true;
-                            x = neigh_u.back();
-                            neigh_u.pop_back();
-                            break;
-                        }
-                    }
-
                     std::sort(neigh_u.begin(), neigh_u.end());
+
+                    auto it = std::lower_bound(neigh_u.begin(), neigh_u.end(), v,
+                        [] (const depchain_msg& x, node_t v) {return x.node < v;});
+
+                    if (it != neigh_u.end() && it->node == v) {
+                        edge_between_uv = true;
+                        neigh_u.erase(it);
+                    }
                 }
 
 				if (_cbpq.peak_top_key() == tid + 1) {
