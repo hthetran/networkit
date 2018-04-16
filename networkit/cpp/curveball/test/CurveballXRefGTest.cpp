@@ -2,7 +2,7 @@
  * CurveballXRefGTest.h
  *
  *  Created on: Jul 12, 2017
- *	Author: Hung Tran
+ *	Author: Hung Tran, Manuel Penschuck
  */
 
 #include "CurveballXRefGTest.h"
@@ -11,42 +11,43 @@
 #include "../../generators/ErdosRenyiGenerator.h"
 #include "../../generators/HyperbolicGenerator.h"
 #include "../UniformTradeGenerator.h"
+#include "../GlobalTradeGenerator.h"
 #include "../../auxiliary/Random.h"
 
 namespace CurveballImpl {
 
 	using trade_vector = std::vector<TradeDescriptor>;
 
-    void CurveballXRefGTest::checkWithGraph(NetworKit::Graph& G) {
+    void CurveballXRefGTest::prepareGraph(NetworKit::Graph& G) {
+        auto numNodes = G.numberOfNodes();
+        // Add edge to node 0, if isolated node
+        // If 0 itself is isolated, add new node and connect 0 to it
+        G.forNodes([&](node_t u) {
+            if (!G.degree(u)) {
+                if (u == 0) {
+                    G.addEdge(0, numNodes - 1);
+                } else {
+                    G.addEdge(u, 0);
+                }
+            }
+        });
+    }
+
+    void CurveballXRefGTest::checkWithGraph(const NetworKit::Graph& G, bool global) {
         auto numNodes = G.numberOfNodes();
         const tradeid_t numTrades = numNodes;
         const NetworKit::count numTradeRuns = 10;
 
-        std::vector<degree_t> degrees(numNodes + 1);
-
-        // Add edge to node 0, if isolated node
-        // If 0 itself is isolated, add new node and connect 0 to it
-        G.forNodes([&](node_t u) {
-            if (G.degree(u) > 0)
-                degrees[u] = G.degree(u);
-            else {
-                if (u == 0) {
-                    numNodes++;
-                    G.addEdge(0, numNodes - 1);
-                    degrees[0]++;
-                    degrees[numNodes - 1] = 1;
-                } else {
-                    G.addEdge(u, 0);
-                    degrees[0]++;
-                    degrees[u] = 1;
-                }
-            }
-        });
-
-        UniformTradeGenerator gen(numTrades, numNodes);
         std::vector< UniformTradeGenerator::value_type > trades;
-        for(unsigned int j=0; j<numTradeRuns; j++)
-            trades.emplace_back( gen.generate() );
+        if (global) {
+            GlobalTradeGenerator gen(1, numNodes);
+            for (unsigned int j = 0; j < numTradeRuns; j++)
+                trades.emplace_back(gen.generate());
+        } else {
+            UniformTradeGenerator gen(numTrades, numNodes);
+            for (unsigned int j = 0; j < numTradeRuns; j++)
+                trades.emplace_back(gen.generate());
+        }
 
         auto seed1 = Aux::Random::getSeed();
         auto seed2 = Aux::Random::getSeed();
@@ -83,10 +84,12 @@ namespace CurveballImpl {
 
         Aux::Random::setSeed(1, false);
 
-		NetworKit::ErdosRenyiGenerator generator(numNodes, 0.3);
+		NetworKit::ErdosRenyiGenerator generator(numNodes, 0.2);
 		NetworKit::Graph G = generator.generate();
 
-        this->checkWithGraph(G);
+        this->prepareGraph(G);
+        this->checkWithGraph(G, false);
+        this->checkWithGraph(G, true);
 	}
 
 	TEST_P(CurveballXRefGTest, testCurveballHyperbolic) {
@@ -97,7 +100,9 @@ namespace CurveballImpl {
 		NetworKit::HyperbolicGenerator generator(numNodes);
 		NetworKit::Graph G = generator.generate();
 
-        this->checkWithGraph(G);
+		this->prepareGraph(G);
+        this->checkWithGraph(G, true);
+        this->checkWithGraph(G, false);
 	}
 
 

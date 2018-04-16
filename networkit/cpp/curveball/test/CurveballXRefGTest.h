@@ -20,7 +20,8 @@ class CurveballXRefGTest : public testing::Test, public ::testing::WithParamInte
         virtual ~CurveballXRefGTest() = default;
 
     protected:
-        void checkWithGraph(NetworKit::Graph&);
+        void prepareGraph(NetworKit::Graph& G);
+        void checkWithGraph(const NetworKit::Graph&, bool);
     };
 }
 
