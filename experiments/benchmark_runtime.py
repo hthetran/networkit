@@ -122,4 +122,4 @@ with open(args.output, 'a') as out_file:
                     print("Performed %d swaps (%d expected) in %f s" % (performed, expef, time))
                     assert(performed == expef)
 
-                    writer.writerow([scale, "vles", -1, num_nodes, min_deg, max_deg, G.numberOfEdges(), time])
+                    writer.writerow([scale, "vles", -1 * args.trades, num_nodes, min_deg, max_deg, G.numberOfEdges(), time])
