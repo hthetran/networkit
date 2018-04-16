@@ -11,6 +11,8 @@
 #include "CurveballMaterialization.h"
 #include "../auxiliary/SignalHandling.h"
 
+#include "CurveballHelper.h"
+
 namespace CurveballImpl {
 
 	using degree_vector = std::vector<degree_t>;
@@ -79,6 +81,8 @@ namespace CurveballImpl {
 		disjoint_neighbours.reserve(_max_degree);
 
 		Aux::SignalHandler handler;
+
+		auto& urng = Aux::Random::getURNG();
 
 		for (const auto& trade : trades) {
 			handler.assureRunning();
@@ -167,7 +171,8 @@ namespace CurveballImpl {
 			_adj_list.resetRow(u);
 			_adj_list.resetRow(v);
 
-			std::shuffle(disjoint_neighbours.begin(), disjoint_neighbours.end(), Aux::Random::getURNG());
+			random_partition(disjoint_neighbours.begin(), disjoint_neighbours.end(),
+							 u_setsize, urng);
 
 			// Assign first u_setsize to u and last v_setsize to v
 			// if not existent then max value, and below compare goes in favor of partner, if partner

@@ -13,7 +13,6 @@
 #include "defs.h"
 
 namespace CurveballImpl {
-
 	class CurveballBase {
 	public:
 		CurveballBase(const NetworKit::Graph& G)
