@@ -12,6 +12,7 @@
 #include "../auxiliary/IntSort.h"
 #include "../auxiliary/Timer.h"
 
+#include "CurveballHelper.h"
 
 namespace CurveballImpl {
 
@@ -289,6 +290,9 @@ namespace CurveballImpl {
 		disjoint_neighbours.reserve(_max_degree);
 
         tradeid_t tid = 0;
+
+        auto& urng = Aux::Random::getURNG();
+
         for (const auto& trade : trades) {
 			handler.assureRunning();
 
@@ -403,47 +407,19 @@ namespace CurveballImpl {
 			{
 				const size_t u_setsize = neigh_u.size() - num_common;
 				const size_t v_setsize = neigh_v.size() - num_common;
-				const size_t setsize = disjoint_neighbours.size();
-                assert(u_setsize + v_setsize == setsize);
+                assert(u_setsize + v_setsize == disjoint_neighbours.size());
 
-                auto& urng = Aux::Random::getURNG();
+                random_partition(disjoint_neighbours.begin(), disjoint_neighbours.end(),
+                                 u_setsize, urng);
 
-                auto two_random = [&urng] (size_t a, size_t b) {
-                    auto x = std::uniform_int_distribution<size_t>{0, (a * b) - 1}(urng);
-                    return std::make_pair(x / a, x % b);
-                };
-
-                size_t small_ss, large_ss;
-                node_t small_node, large_node;
-                tradeid_t small_next, large_next;
-
-                if (u_setsize < v_setsize) {
-                    small_ss = u_setsize; large_ss = v_setsize;
-                    small_node = u; large_node = v;
-                    small_next = next_u; large_next = next_v;
-                } else {
-                    small_ss = v_setsize; large_ss = u_setsize;
-                    small_node = v; large_node = u;
-                    small_next = next_v; large_next = next_u;
+                size_t i = 0;
+                for (; i < u_setsize; i++) {
+                    send_edge(u, next_u, disjoint_neighbours[i]);
                 }
 
-                for (size_t i = setsize - 2; i >= large_ss; i -= 2) {
-                    auto rand = two_random(i+1, i);
-                    std::swap(disjoint_neighbours[i+1],  disjoint_neighbours[rand.first]);
-                    std::swap(disjoint_neighbours[i],    disjoint_neighbours[rand.second]);
 
-                    send_edge(small_node, small_next, disjoint_neighbours[i+1]);
-                    send_edge(small_node, small_next, disjoint_neighbours[i]);
-                }
-
-                if (small_ss % 2) {
-                    auto x = std::uniform_int_distribution<size_t>{0, large_ss}(urng);
-                    std::swap(disjoint_neighbours[large_ss],    disjoint_neighbours[x]);
-                    send_edge(small_node, small_next, disjoint_neighbours[large_ss]);
-                }
-
-                for (size_t i = 0; i < large_ss; i++) {
-                    send_edge(large_node, large_next, disjoint_neighbours[i]);
+                for (; i < setsize; i++) {
+                    send_edge(v, next_v, disjoint_neighbours[i]);
                 }
 			}
 
