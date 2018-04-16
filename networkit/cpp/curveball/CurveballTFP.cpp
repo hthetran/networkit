@@ -407,9 +407,11 @@ namespace CurveballImpl {
 			{
 				const size_t u_setsize = neigh_u.size() - num_common;
 				const size_t v_setsize = neigh_v.size() - num_common;
+				const size_t setsize = u_setsize + v_setsize;
                 assert(u_setsize + v_setsize == disjoint_neighbours.size());
 
-                random_partition(disjoint_neighbours.begin(), disjoint_neighbours.end(),
+                random_partition(disjoint_neighbours.begin(),
+                                 disjoint_neighbours.end(),
                                  u_setsize, urng);
 
                 size_t i = 0;
