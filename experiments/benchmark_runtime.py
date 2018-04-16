@@ -101,6 +101,10 @@ with open(args.output, 'a') as out_file:
                     writer.writerow([scale, "emcb" if boost else "imcb", r, num_nodes, min_deg, max_deg, G.numberOfEdges(), end_time - start_time])
                     out_file.flush()
 
+                del(algo)
+
+            del(list_trades)
+
             if args.with_vles:
                 with tempfile.TemporaryDirectory() as dir:
                     outf = dir + "/dist"
