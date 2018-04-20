@@ -44,6 +44,7 @@ from . import graph
 from . import graphio
 from . import community
 from . import centrality
+from . import curveball
 from . import generators
 from . import structures
 from . import engineering

@@ -1,0 +1,12 @@
+[submodule "googletest"]
+	path = googletest
+	url = https://github.com/google/googletest.git
+[submodule "stx-btree"]
+	path = stx-btree
+	url = https://github.com/bingmann/stx-btree
+[submodule "radix-heap"]
+	path = radix-heap
+	url = git@github.com:manpen/radix-heap
+[submodule "tlx"]
+	path = tlx
+	url = git@github.com:manpen/tlx

@@ -2397,6 +2397,175 @@ cdef class RmatGenerator:
 		print("random nodes to delete to achieve target node count: ", reduceNodes)
 		return RmatGenerator(scaleParameter, edgeFactor, a, b, c, d, False, reduceNodes)
 
+cdef extern from "cpp/curveball/UniformTradeGenerator.h":
+	cdef cppclass _UniformTradeGenerator "CurveballImpl::UniformTradeGenerator":
+		_UniformTradeGenerator(count runLength, count numNodes) except +
+		vector[pair[node, node]] generate() nogil except +
+
+cdef class UniformTradeGenerator:
+	"""
+	TODO document
+	"""
+	cdef _UniformTradeGenerator *_this
+
+	def __cinit__(self, count runLength, count numNodes):
+		self._this = new _UniformTradeGenerator(runLength, numNodes)
+
+	def __dealloc__(self):
+		del self._this
+
+	def generate(self):
+		return self._this.generate()
+
+cdef extern from "cpp/curveball/GlobalTradeGenerator.h":
+	cdef cppclass _GlobalTradeGenerator "CurveballImpl::GlobalTradeGenerator":
+		_GlobalTradeGenerator(count runLength, count numNodes) except +
+		vector[pair[node, node]] generate() nogil except +
+
+cdef class GlobalTradeGenerator:
+	"""
+	TODO document
+	"""
+	cdef _GlobalTradeGenerator *_this
+
+	def __cinit__(self, count runLength, count numNodes):
+		self._this = new _GlobalTradeGenerator(runLength, numNodes)
+
+	def __dealloc__(self):
+		del self._this
+
+	def generate(self):
+		return self._this.generate()
+
+cdef extern from "cpp/curveball/Curveball.h":
+	cdef cppclass _Curveball "NetworKit::Curveball"(_Algorithm):
+		_Curveball(_Graph, bool) except +
+		void run(vector[pair[node, node]] trades) nogil except +
+		_Graph getGraph() except +
+		vector[pair[node, node]] getEdges() except +
+		count getNumberOfAffectedEdges() except +
+
+cdef class Curveball(Algorithm):
+	"""
+	TODO document
+	TODO nogil?
+	"""
+	def __cinit__(self, G, turbo = False):
+		if isinstance(G, Graph):
+			self._this = new _Curveball((<Graph>G)._this, turbo)
+
+	def __dealloc__(self):
+		del self._this
+		self._this = NULL
+
+	def run(self, vector[pair[node, node]] trades):
+		with nogil:	
+			(<_Curveball*>(self._this)).run(trades)
+		return self
+
+	def getGraph(self):
+		return Graph().setThis((<_Curveball*>self._this).getGraph())
+
+	def getEdges(self):
+		return (<_Curveball*>(self._this)).getEdges()
+	
+	def getNumberOfAffectedEdges(self):
+		return (<_Curveball*>(self._this)).getNumberOfAffectedEdges()
+
+cdef extern from "cpp/curveball/EdgeSwitchingMarkovChainRandomization.h":
+	cdef cppclass _EdgeSwitchingMarkovChainRandomization "CurveballImpl::EdgeSwitchingMarkovChainRandomization"(_Algorithm):
+		_EdgeSwitchingMarkovChainRandomization(_Graph) except +
+		void run(vector[pair[node, node]] swaps) nogil except + # node type = edgeid type
+		_Graph getGraph() except +
+		vector[pair[node, node]] getEdges() except +
+
+cdef class EdgeSwitchingMarkovChainRandomization(Algorithm):
+	"""
+	TODO document
+	"""
+	def __cinit__(self, G):
+		if isinstance(G, Graph):
+			self._this = new _EdgeSwitchingMarkovChainRandomization((<Graph>G)._this)
+
+	def run(self, vector[pair[node, node]] swaps):
+		with nogil:
+			(<_EdgeSwitchingMarkovChainRandomization*>(self._this)).run(swaps)
+		return self
+
+	def getGraph(self):
+		return Graph().setThis((<_EdgeSwitchingMarkovChainRandomization*>self._this).getGraph())
+
+	def getEdges(self):
+		return (<_EdgeSwitchingMarkovChainRandomization*>(self._this)).getEdges()
+
+cdef extern from "cpp/curveball/AutocorrelationAnalysis.h":
+	cdef cppclass _AutocorrelationAnalysis "CurveballImpl::AutocorrelationAnalysis":
+		_AutocorrelationAnalysis(count maxSampleSize) except +
+		void addSample(_Graph G) nogil except +
+		void addSample(vector[pair[node, node]] edges) nogil except +
+		count numberOfEdges() except +
+		vector[double] getIndependenceRate(vector[count], count) except +
+		void init() nogil except +
+		vector[bool] get() except +
+		void next() nogil except +
+		bool end() except +
+
+cdef class AutocorrelationAnalysis:
+	"""
+	TODO document
+	"""
+	cdef _AutocorrelationAnalysis *_this
+
+	def __cinit__(self, count maxSampleSize):
+		self._this = new _AutocorrelationAnalysis(maxSampleSize)
+
+	def __dealloc__(self):
+		del self._this
+
+	def addSample(self, G):
+		if isinstance(G, Graph):
+			with nogil:
+				self._this.addSample((<Graph>G)._this)
+		else:
+			self._this.addSample(<vector[pair[node, node]]?>G)
+	
+	def numberOfEdges(self):
+		return self._this.numberOfEdges()
+
+	def getIndependenceRate(self, vector[count] thinnings, count runLength):
+		return self._this.getIndependenceRate(thinnings, runLength)
+
+	def init(self):
+		with nogil:
+			(<_AutocorrelationAnalysis*>(self._this)).init()
+
+	def get(self):
+		return self._this.get()
+
+	def next(self):
+		with nogil:
+			(<_AutocorrelationAnalysis*>(self._this)).next()
+
+	def end(self):
+		return self._this.end()
+
+
+
+	"""
+	TODO document
+	
+	cdef _GlobalTradeGenerator *_this
+
+	def __cinit__(self, count runLength, count numNodes):
+		self._this = new _GlobalTradeGenerator(runLength, numNodes)
+
+	def __dealloc__(self):
+		del self._this
+
+	def generate(self):
+		return self._this.generate()
+	"""
+
 cdef extern from "cpp/generators/PowerlawDegreeSequence.h":
 	cdef cppclass _PowerlawDegreeSequence "NetworKit::PowerlawDegreeSequence":
 		_PowerlawDegreeSequence(count minDeg, count maxDeg, double gamma) except +
@@ -8414,7 +8583,7 @@ cdef class EdgeScoreNormalizer(EdgeScore):
 		except TypeError:
 			try:
 				self._inScoreCount = <vector[count]?>score
-				self._this = new _EdgeScoreNormalizer[count](G._this, self._inScoreCount, inverse, lower, upper)
+#				self._this = new _EdgeScoreNormalizer[count](G._this, self._inScoreCount, inverse, lower, upper)
 			except TypeError:
 				raise TypeError("score must be either a vector of integer or float")
 
@@ -8514,7 +8683,7 @@ cdef class EdgeScoreAsWeight:
 
 	def __dealloc__(self):
 		self._G = None
-		self._score = None
+#		self._score = None
 		del self._this
 
 	def getWeightedGraph(self):
