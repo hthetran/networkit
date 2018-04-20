@@ -295,7 +295,7 @@ else:
 modules = [Extension("_NetworKit",
 	src,
 	language = "c++",
-	extra_compile_args=["-fopenmp", "-std={}".format(stdflag), "-O3", "-DNOGTEST"],
+	extra_compile_args=["-fopenmp", "-std={}".format(stdflag), "-O3", "-DNOGTEST", "-Itlx"],
 	extra_link_args=["-fopenmp", "-std={}".format(stdflag)],
 	libraries=["NetworKit-Core-{0}".format(optimize)],
 	library_dirs=["./"])]
