@@ -3,6 +3,7 @@ networkit_add_module(randomization
     CurveballGlobalTradeGenerator.cpp
     CurveballImpl.cpp
     CurveballUniformTradeGenerator.cpp
+    DegreeIntervalSwitching.cpp
     DegreePreservingShuffle.cpp
     EdgeSwitching.cpp
     GlobalCurveball.cpp
