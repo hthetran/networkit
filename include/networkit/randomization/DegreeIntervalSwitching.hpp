@@ -17,11 +17,20 @@
 
 namespace NetworKit {
 
+// the fields have a lengthy name since we need to treat this
+// class enum as an enum in Python ...
+enum class DegreeIntervalSampling : int {
+    DegreeIntervalSampleSingleEdges,
+    DegreeIntervalSampleSingleTuples,
+    DegreeIntervalSampleGlobalTuples,
+};
+
 class DegreeIntervalSwitching : public Algorithm {
 public:
     /// Constructs an EdgeSwitch algorithm that contains a COPY of the input graph.
     explicit DegreeIntervalSwitching(const Graph &G,
-                                     const std::vector<std::pair<node, node>> &degreeIntervals);
+                                     const std::vector<std::pair<node, node>> &degreeIntervals,
+                                     double numberOfSwitchesPerEdge = 10.0);
 
     ~DegreeIntervalSwitching() override = default;
 
@@ -42,7 +51,7 @@ public:
     Graph moveGraph() { return std::move(graph); }
 
     /// Modify (average) number of switches per edge that will be executed on next run
-    void setNumberOfSwitches(uint64_t x) noexcept { numberOfSwitches = x; }
+    void setNumberOfSwitches(count x) noexcept { numberOfSwitches = x; }
 
     /// Modify probabilities of switching types; the sum S of non-negative weights must not
     /// exceed 1.0. The remaining probability 1-S correspond to no switch beeing performed.
@@ -52,60 +61,66 @@ public:
     double getHingeFlipProbability() const noexcept { return probInsertionDeletion; }
     double getEdgeSwitchProbability() const noexcept { return probEdgeSwitch; }
 
-    uint64_t getNumberOfInsertionsDeletions() const noexcept { return numInsertionsDeletions; }
-    uint64_t getNumberOfAttemptedInsertions() const noexcept { return numAttemptedInsertions; }
-    uint64_t getNumberOfAttemptedDeletions() const noexcept { return numAttemptedDeletions; }
-    uint64_t getNumberOfHingeFlips() const noexcept { return numHingeFlips; }
-    uint64_t getNumberOfEdgeSwitches() const noexcept { return numEdgeSwitches; }
-    uint64_t getNumberOfLazy() const noexcept { return numLazy; }
-    uint64_t getNumberOfSuccessfulInsertionsDeletions() const noexcept {
+    count getNumberOfInsertionsDeletions() const noexcept { return numInsertionsDeletions; }
+    count getNumberOfAttemptedInsertions() const noexcept { return numAttemptedInsertions; }
+    count getNumberOfAttemptedDeletions() const noexcept { return numAttemptedDeletions; }
+    count getNumberOfHingeFlips() const noexcept { return numHingeFlips; }
+    count getNumberOfEdgeSwitches() const noexcept { return numEdgeSwitches; }
+    count getNumberOfLazy() const noexcept { return numLazy; }
+    count getNumberOfSuccessfulInsertionsDeletions() const noexcept {
         return numSuccessfulInsertionsDeletions;
     }
-    uint64_t getNumberOfSuccessfulHingeFlips() const noexcept { return numSuccessfulHingeFlips; }
-    uint64_t getNumberOfSuccessfulEdgeSwitches() const noexcept {
-        return numSuccessfulEdgeSwitches;
-    }
+    count getNumberOfSuccessfulHingeFlips() const noexcept { return numSuccessfulHingeFlips; }
+    count getNumberOfSuccessfulEdgeSwitches() const noexcept { return numSuccessfulEdgeSwitches; }
 
-    void resetStatistics() {
-        numInsertionsDeletions = 0;
-        numAttemptedInsertions = 0;
-        numAttemptedDeletions = 0;
-        numHingeFlips = 0;
-        numEdgeSwitches = 0;
-        numLazy = 0;
-        numSuccessfulInsertionsDeletions = 0;
-        numSuccessfulHingeFlips = 0;
-        numSuccessfulEdgeSwitches = 0;
-    }
+    void resetStatistics();
+
+    void setSamplingStrategy(DegreeIntervalSampling s) { samplingStrategy = s; }
+
+    DegreeIntervalSampling getSamplingStrategy() const noexcept { return samplingStrategy; }
 
 private:
     Graph graph;
     std::vector<std::pair<node, node>> degreeIntervals;
     std::discrete_distribution<node> upperDegreeDistribution;
 
-    uint64_t numberOfSwitches;
+    std::vector<node> nodes;
+    DegreeIntervalSampling samplingStrategy{
+        DegreeIntervalSampling::DegreeIntervalSampleSingleEdges};
+
+    count numberOfSwitches;
 
     double probInsertionDeletion = 1.0 / 6;
     double probHingeFlip = 1.0 / 6;
     double probEdgeSwitch = 1.0 / 6;
 
-    uint64_t numInsertionsDeletions = 0;
-    uint64_t numAttemptedInsertions = 0;
-    uint64_t numAttemptedDeletions = 0;
-    uint64_t numHingeFlips = 0;
-    uint64_t numEdgeSwitches = 0;
-    uint64_t numLazy = 0;
+    count numInsertionsDeletions = 0;
+    count numAttemptedInsertions = 0;
+    count numAttemptedDeletions = 0;
+    count numHingeFlips = 0;
+    count numEdgeSwitches = 0;
+    count numLazy = 0;
 
-    uint64_t numSuccessfulInsertionsDeletions = 0;
-    uint64_t numSuccessfulHingeFlips = 0;
-    uint64_t numSuccessfulEdgeSwitches = 0;
+    count numSuccessfulInsertionsDeletions = 0;
+    count numSuccessfulInsertions = 0;
+    count numSuccessfulDeletions = 0;
+    count numSuccessfulHingeFlips = 0;
+    count numSuccessfulEdgeSwitches = 0;
 
     node sampleNodeWeightedByDegree(std::mt19937_64 &);
     node sampleRandomNode(std::mt19937_64 &);
 
-    bool tryPerformSingleInsertionDeletion(std::mt19937_64 &gen);
-    bool tryPerformSingleHingeFlip(std::mt19937_64 &gen);
-    bool tryPerformSingleEdgeSwitch(std::mt19937_64 &gen);
+    bool tryPerformSingleInsertionDeletionOnNodes(node u, node v);
+    bool tryPerformSingleHingeFlipOnNodes(node u, node v, node w);
+    bool tryPerformSingleEdgeSwitchOnNodes(node s1, node t1, node s2, node t2);
+
+    template <typename ISSample, typename HFSample, typename ESSample>
+    void runStrategy(std::mt19937_64 &gen, ISSample iSSample, HFSample hFSampler,
+                     ESSample eSSampler);
+
+    void runStrategySingleSampleEdges(std::mt19937_64 &gen);
+    void runStrategySingleSampleTuples(std::mt19937_64 &gen);
+    void runStrategyGlobalSampleTuples(std::mt19937_64 &gen);
 
     bool canRemoveNeighborOf(node u) const noexcept {
         return degreeIntervals[static_cast<size_t>(u)].first < graph.degree(u);

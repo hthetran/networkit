@@ -12,23 +12,21 @@
 
 namespace NetworKit {
 
-bool DegreeIntervalSwitching::tryPerformSingleEdgeSwitch(std::mt19937_64 &urng) {
-    const auto s1 = sampleNodeWeightedByDegree(urng);
-    const auto s2 = sampleNodeWeightedByDegree(urng);
-
-    // we avoid GraphTools::randomNeighbor to avoid the implicit cost of accessing the
-    // Aux::Random::getURNG
-    const auto i1 = std::uniform_int_distribution<index>{0, graph.degree(s1) - 1}(urng);
-    const auto t1 = graph.getIthNeighbor(s1, i1);
+// Implement actual switching types (sampling comes later)
+bool DegreeIntervalSwitching::tryPerformSingleEdgeSwitchOnNodes(node s1, node t1, node s2,
+                                                                node t2) {
+    reject_if(s1 == s2);
+    reject_if(s1 == t1);
+    reject_if(s1 == t2);
 
     reject_if(s2 == t1);
-    reject_if(graph.hasEdge(s2, t1));
-
-    const auto i2 = std::uniform_int_distribution<index>{0, graph.degree(s2) - 1}(urng);
-    const auto t2 = graph.getIthNeighbor(s2, i2);
-
+    reject_if(s2 == t2);
     reject_if(t1 == t2);
-    reject_if(s1 == t2);
+
+    reject_if(!graph.hasEdge(s1, t1));
+    reject_if(!graph.hasEdge(s2, t2));
+
+    reject_if(graph.hasEdge(s2, t1));
     reject_if(graph.hasEdge(s1, t2));
 
     graph.swapEdge(s1, t1, s2, t2);
@@ -36,10 +34,7 @@ bool DegreeIntervalSwitching::tryPerformSingleEdgeSwitch(std::mt19937_64 &urng) 
     accept();
 }
 
-bool DegreeIntervalSwitching::tryPerformSingleInsertionDeletion(std::mt19937_64 &urng) {
-    const auto u = sampleRandomNode(urng);
-    const auto v = sampleRandomNode(urng);
-
+bool DegreeIntervalSwitching::tryPerformSingleInsertionDeletionOnNodes(node u, node v) {
     reject_if(u == v);
 
     if (graph.hasEdge(u, v)) {
@@ -50,6 +45,7 @@ bool DegreeIntervalSwitching::tryPerformSingleInsertionDeletion(std::mt19937_64 
         reject_if(!canRemoveNeighborOf(v));
 
         graph.removeEdge(u, v);
+        numSuccessfulDeletions++;
 
     } else {
         numAttemptedInsertions++;
@@ -59,23 +55,20 @@ bool DegreeIntervalSwitching::tryPerformSingleInsertionDeletion(std::mt19937_64 
         reject_if(!canAddNeighborTo(v));
 
         graph.addEdge(u, v);
+        numSuccessfulInsertions++;
     }
 
     accept();
 }
 
-bool DegreeIntervalSwitching::tryPerformSingleHingeFlip(std::mt19937_64 &urng) {
-    const auto u = sampleNodeWeightedByDegree(urng);
-    const auto w = sampleRandomNode(urng);
-
+bool DegreeIntervalSwitching::tryPerformSingleHingeFlipOnNodes(node u, node v, node w) {
+    reject_if(u == v);
     reject_if(u == w);
-
-    const auto neigh_idx = std::uniform_int_distribution<index>{0, graph.degree(u) - 1}(urng);
-    const auto v = graph.getIthNeighbor(u, neigh_idx);
-
     reject_if(v == w);
 
     // remove {u, v} insert {v, w}
+    reject_if(!graph.hasEdge(u, v));
+    reject_if(graph.hasEdge(v, w));
     reject_if(!canRemoveNeighborOf(u));
     reject_if(!canAddNeighborTo(w));
 
@@ -85,6 +78,147 @@ bool DegreeIntervalSwitching::tryPerformSingleHingeFlip(std::mt19937_64 &urng) {
     accept();
 }
 
+template <typename ISSample, typename HFSample, typename ESSample>
+void DegreeIntervalSwitching::runStrategy(std::mt19937_64 &urng, ISSample iSSampler,
+                                          HFSample hFSampler, ESSample eSSampler) {
+    Aux::SignalHandler handler;
+
+    const auto probInsertOrHinge = probInsertionDeletion + probHingeFlip;
+    const auto probAnySwitch = probInsertOrHinge + probEdgeSwitch;
+
+    for (auto i = 0; i < numberOfSwitches; ++i) {
+        handler.assureRunning();
+
+        const auto randomSwitch = std::uniform_real_distribution{}(urng);
+
+        if (randomSwitch < probInsertionDeletion) {
+            const bool success = iSSampler(urng);
+            numInsertionsDeletions++;
+            numSuccessfulInsertionsDeletions += success;
+        } else if (randomSwitch < probInsertOrHinge) {
+            const bool success = hFSampler(urng);
+            numHingeFlips++;
+            numSuccessfulHingeFlips += success;
+        } else if (randomSwitch < probAnySwitch) {
+            const bool success = eSSampler(urng);
+            numEdgeSwitches++;
+            numSuccessfulEdgeSwitches += success;
+        } else {
+            numLazy++;
+        }
+    }
+}
+
+void DegreeIntervalSwitching::runStrategySingleSampleEdges(std::mt19937_64 &urng) {
+    return runStrategy(
+        urng,
+        [&](std::mt19937_64 &urng) {
+            const node u = sampleRandomNode(urng);
+            const node v = sampleRandomNode(urng);
+
+            return tryPerformSingleInsertionDeletionOnNodes(u, v);
+        },
+
+        [&](std::mt19937_64 &urng) {
+            const node u = sampleNodeWeightedByDegree(urng);
+            const node w = sampleRandomNode(urng);
+
+            reject_if(u == w);
+
+            const auto neigh_idx =
+                std::uniform_int_distribution<index>{0, graph.degree(u) - 1}(urng);
+            const node v = graph.getIthNeighbor(u, neigh_idx);
+
+            return tryPerformSingleHingeFlipOnNodes(u, v, w);
+        },
+
+        [&](std::mt19937_64 &urng) {
+            const node s1 = sampleNodeWeightedByDegree(urng);
+            const node s2 = sampleNodeWeightedByDegree(urng);
+
+            // we avoid GraphTools::randomNeighbor to avoid the implicit cost of accessing the
+            // Aux::Random::getURNG
+            const auto i1 = std::uniform_int_distribution<index>{0, graph.degree(s1) - 1}(urng);
+            const node t1 = graph.getIthNeighbor(s1, i1);
+
+            reject_if(s2 == t1);
+            reject_if(graph.hasEdge(s2, t1));
+
+            const auto i2 = std::uniform_int_distribution<index>{0, graph.degree(s2) - 1}(urng);
+            const node t2 = graph.getIthNeighbor(s2, i2);
+
+            return tryPerformSingleEdgeSwitchOnNodes(s1, t1, s2, t2);
+        });
+}
+
+void DegreeIntervalSwitching::runStrategySingleSampleTuples(std::mt19937_64 &urng) {
+    return runStrategy(
+        urng,
+        [&](std::mt19937_64 &urng) {
+            const auto u = sampleRandomNode(urng);
+            const auto v = sampleRandomNode(urng);
+            return tryPerformSingleInsertionDeletionOnNodes(u, v);
+        },
+        [&](std::mt19937_64 &urng) {
+            const auto u = sampleRandomNode(urng);
+            const auto v = sampleRandomNode(urng);
+            const auto w = sampleRandomNode(urng);
+            return tryPerformSingleHingeFlipOnNodes(u, v, w);
+        },
+        [&](std::mt19937_64 &urng) {
+            const auto s1 = sampleRandomNode(urng);
+            const auto s2 = sampleRandomNode(urng);
+            const auto t1 = sampleRandomNode(urng);
+            const auto t2 = sampleRandomNode(urng);
+            return tryPerformSingleEdgeSwitchOnNodes(s1, t1, s2, t2);
+        });
+}
+
+void DegreeIntervalSwitching::runStrategyGlobalSampleTuples(std::mt19937_64 &urng) {
+    if (nodes.size() != graph.numberOfNodes()) {
+        nodes.clear();
+        nodes.reserve(static_cast<size_t>(graph.numberOfNodes()));
+        for (node i = 0; i < graph.numberOfNodes(); ++i)
+            nodes.push_back(i);
+        std::shuffle(nodes.begin(), nodes.end(), urng);
+    }
+
+    auto reader = nodes.cbegin();
+
+    auto shuffle_if_below = [&](size_t n) {
+        if (std::distance(reader, nodes.cend()) >= n) {
+            return;
+        }
+
+        std::shuffle(nodes.begin(), nodes.end(), urng);
+        reader = nodes.begin();
+    };
+
+    return runStrategy(
+        urng,
+        [&](std::mt19937_64 &urng) {
+            shuffle_if_below(2);
+            const auto u = *reader++;
+            const auto v = *reader++;
+            return tryPerformSingleInsertionDeletionOnNodes(u, v);
+        },
+        [&](std::mt19937_64 &urng) {
+            shuffle_if_below(3);
+            const auto u = *reader++;
+            const auto v = *reader++;
+            const auto w = *reader++;
+            return tryPerformSingleHingeFlipOnNodes(u, v, w);
+        },
+        [&](std::mt19937_64 &urng) {
+            shuffle_if_below(4);
+            const auto s1 = *reader++;
+            const auto s2 = *reader++;
+            const auto t1 = *reader++;
+            const auto t2 = *reader++;
+            return tryPerformSingleEdgeSwitchOnNodes(s1, t1, s2, t2);
+        });
+}
+
 void DegreeIntervalSwitching::run() {
     auto &urng = Aux::Random::getURNG();
     Aux::SignalHandler handler;
@@ -92,26 +226,21 @@ void DegreeIntervalSwitching::run() {
     const auto probInsertOrHinge = probInsertionDeletion + probHingeFlip;
     const auto probAnySwitch = probInsertOrHinge + probEdgeSwitch;
 
-    while (numberOfSwitches--) {
-        handler.assureRunning();
+    switch (samplingStrategy) {
+    case DegreeIntervalSampling::DegreeIntervalSampleSingleEdges:
+        runStrategySingleSampleEdges(urng);
+        break;
 
-        const auto randomSwitch = std::uniform_real_distribution{}(urng);
+    case DegreeIntervalSampling::DegreeIntervalSampleSingleTuples:
+        runStrategySingleSampleTuples(urng);
+        break;
 
-        if (randomSwitch < probInsertionDeletion) {
-            const bool success = tryPerformSingleInsertionDeletion(urng);
-            numInsertionsDeletions++;
-            numSuccessfulInsertionsDeletions += success;
-        } else if (randomSwitch < probInsertOrHinge) {
-            const bool success = tryPerformSingleHingeFlip(urng);
-            numHingeFlips++;
-            numSuccessfulHingeFlips += success;
-        } else if (randomSwitch < probAnySwitch) {
-            const bool success = tryPerformSingleEdgeSwitch(urng);
-            numEdgeSwitches++;
-            numSuccessfulEdgeSwitches += success;
-        } else {
-            numLazy++;
-        }
+    case DegreeIntervalSampling::DegreeIntervalSampleGlobalTuples:
+        runStrategyGlobalSampleTuples(urng);
+        break;
+
+    default:
+        throw std::runtime_error("unknown sampling strategy selected");
     }
 
     hasRun = true;
@@ -131,12 +260,21 @@ void DegreeIntervalSwitching::setSwitchingTypeDistribution(double insertDelete, 
 }
 
 DegreeIntervalSwitching::DegreeIntervalSwitching(
-    const Graph &G, const std::vector<std::pair<node, node>> &degreeIntervals)
-    : graph(G), degreeIntervals(degreeIntervals),
-      upperDegreeDistribution(graph.numberOfNodes(), //
-                              0.0, static_cast<double>(graph.numberOfNodes()), [&](double x) {
-                                  return degreeIntervals[static_cast<node>(x)].second;
-                              }) {
+    const Graph &G, const std::vector<std::pair<node, node>> &degreeIntervals,
+    double numberOfSwitchesPerEdge)
+    : //
+      graph(G), degreeIntervals(degreeIntervals),
+      upperDegreeDistribution(
+          graph.numberOfNodes(), //
+          0.0, static_cast<double>(graph.numberOfNodes()),
+          [&](double x) { return degreeIntervals[static_cast<node>(x)].second; }),
+      numberOfSwitches(
+          static_cast<count>(std::ceil(graph.numberOfEdges() * numberOfSwitchesPerEdge))) {
+
+    if (graph.numberOfNodes() < 4) {
+        throw std::runtime_error("Graph needs at least four nodes");
+    }
+
     if (static_cast<size_t>(graph.numberOfNodes()) != degreeIntervals.size())
         throw std::invalid_argument("Size of degreeIntervals has to match number of nodes");
 
@@ -172,6 +310,18 @@ node DegreeIntervalSwitching::sampleNodeWeightedByDegree(std::mt19937_64 &gen) {
 
 node DegreeIntervalSwitching::sampleRandomNode(std::mt19937_64 &gen) {
     return std::uniform_int_distribution<index>{0, graph.numberOfNodes() - 1}(gen);
+}
+
+void DegreeIntervalSwitching::resetStatistics() {
+    numInsertionsDeletions = 0;
+    numAttemptedInsertions = 0;
+    numAttemptedDeletions = 0;
+    numHingeFlips = 0;
+    numEdgeSwitches = 0;
+    numLazy = 0;
+    numSuccessfulInsertionsDeletions = 0;
+    numSuccessfulHingeFlips = 0;
+    numSuccessfulEdgeSwitches = 0;
 }
 
 } // namespace NetworKit

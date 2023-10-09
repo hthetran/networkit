@@ -8,6 +8,122 @@ from .base cimport _Algorithm, Algorithm
 from .graph cimport _Graph, Graph
 from .structures cimport count, index, node
 
+cdef extern from "<networkit/randomization/DegreeIntervalSwitching.hpp>":
+	# _DegreeIntervalSampling wraps an enum class (not directly available in Cython < 3)!
+	cdef cppclass _DegreeIntervalSampling  "NetworKit::DegreeIntervalSampling":
+		pass
+
+	cdef cppclass _DegreeIntervalSwitching "NetworKit::DegreeIntervalSwitching"(_Algorithm):
+		_DegreeIntervalSwitching(_Graph, vector[pair[count, count]], double) except +
+		void run(count) nogil except +
+		_Graph getGraph() except +
+		void setNumberOfSwitches(count x);
+		void setSwitchingTypeDistribution(double, double, double);
+		double getInsertionDeletionProbability();
+		double getHingeFlipProbability();
+		double getEdgeSwitchProbability();
+		count getNumberOfInsertionsDeletions();
+		count getNumberOfAttemptedInsertions();
+		count getNumberOfAttemptedDeletions();
+		count getNumberOfHingeFlips();
+		count getNumberOfEdgeSwitches();
+		count getNumberOfLazy();
+		count getNumberOfSuccessfulInsertionsDeletions();
+		count getNumberOfSuccessfulHingeFlips();
+		count getNumberOfSuccessfulEdgeSwitches();
+		void resetStatistics();
+
+		_DegreeIntervalSampling getSamplingStrategy();
+		void setSamplingStrategy(_DegreeIntervalSampling);
+
+cdef extern from "<networkit/randomization/DegreeIntervalSwitching.hpp>" namespace "NetworKit::DegreeIntervalSampling":
+	cdef _DegreeIntervalSampling DegreeIntervalSampleSingleEdges
+	cdef _DegreeIntervalSampling DegreeIntervalSampleSingleTuples
+	cdef _DegreeIntervalSampling DegreeIntervalSampleGlobalTuples
+
+
+cdef class DegreeIntervalSwitching(Algorithm):
+	def __cinit__(self, G, degreeIntervals, numberOfSwitchesPerEdge = 10.0):
+		if isinstance(G, Graph):
+			self._this = new _DegreeIntervalSwitching(
+				(<Graph>G)._this, degreeIntervals, numberOfSwitchesPerEdge)
+		else:
+			raise RuntimeError("Parameter G has to be a graph")
+
+	def run(self):
+		"""Perform switching. May be called multiple times."""
+		(<_DegreeIntervalSwitching*>self._this).run()
+
+	def getGraph(self):
+		return Graph().setThis((<_DegreeIntervalSwitching*>self._this).getGraph())
+
+	def setSwitchingTypeDistribution(self, probInsertionDeletion, probHingeFlip, probEdgeSwitch):
+		(<_DegreeIntervalSwitching*>(self._this)).setSwitchingTypeDistribution(
+			probInsertionDeletion, probHingeFlip, probEdgeSwitch)
+
+	def getSwitchingTypeDistribution(self):
+		return {
+			"insertionDeletion": (<_DegreeIntervalSwitching*>(self._this)).getInsertionDeletionProbability(),
+			"hingeFlip": (<_DegreeIntervalSwitching*>(self._this)).getHingeFlipProbability(),
+			"edgeSwitch": (<_DegreeIntervalSwitching*>(self._this)).getEdgeSwitchProbability(),
+		}
+
+	def getStatistics(self):
+		"""Returns a dictionary of statistics collected during previous run(s).
+		   Call resetStatistics() to reset the counts to zero"""
+		stats = {
+			"attemptedInsertionsDeletions": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfInsertionsDeletions(),
+			"attemptedInsertions": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfAttemptedInsertions(),
+			"attemptedDeletions": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfAttemptedDeletions(),
+			"attemptedHingeFlips": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfHingeFlips(),
+			"attemptedEdgeSwitches": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfEdgeSwitches(),
+			"lazy": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfLazy(),
+			"successfulInsertionsDeletions": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfSuccessfulInsertionsDeletions(),
+			"successfulHingeFlips": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfSuccessfulHingeFlips(),
+			"successfulEdgeSwitches": (<_DegreeIntervalSwitching*>(self._this)).getNumberOfSuccessfulEdgeSwitches(),
+		}
+
+		stats["successRateInsertionsDeletions"] = stats["successfulInsertionsDeletions"] / stats["attemptedInsertionsDeletions"] 
+		stats["successRateHingeFlips"] = stats["successfulHingeFlips"] / stats["attemptedHingeFlips"] 
+		stats["successRateEdgeSwitches"] = stats["successfulEdgeSwitches"] / stats["attemptedEdgeSwitches"] 
+
+		return stats
+
+	def resetStatistics(self):
+		"""Sets all counts collected and accessible via getStatistics() to zero"""
+		(<_DegreeIntervalSwitching*>(self._this)).resetStatistics()
+
+	def getSamplingStrategy(self):
+		"""Returns the sampling strategy as dict with keys `single` and `edges`."""
+		s = <int> (<_DegreeIntervalSwitching*>(self._this)).getSamplingStrategy()
+		
+		if s == <int> DegreeIntervalSampleSingleEdges:
+			return {"single": True, "edges": True}
+		elif s == <int> DegreeIntervalSampleSingleTuples:
+			return {"single": True, "edges": False}
+		elif s == <int> DegreeIntervalSampleGlobalTuples:
+			return {"single": False, "edges": False}
+				
+		raise RuntimeError("Unknown sampling strategy")
+
+	def setSamplingStrategy(self, single = True, edges = True):
+		"""Sets the sampling strategy"""
+		s = DegreeIntervalSampleSingleEdges
+		if single:
+			if edges:
+				s = DegreeIntervalSampleSingleEdges
+			else:
+				s = DegreeIntervalSampleSingleTuples
+		
+		else:
+			if edges:
+				raise RuntimeError("Currently support only global tuple sampling")
+			else:
+				s = DegreeIntervalSampleGlobalTuples
+			
+		(<_DegreeIntervalSwitching*>(self._this)).setSamplingStrategy(s)
+
+
 cdef extern from "<networkit/randomization/EdgeSwitching.hpp>":
 	cdef cppclass _EdgeSwitching "NetworKit::EdgeSwitching"(_Algorithm):
 		_EdgeSwitching(_Graph, double, bool_t) except +

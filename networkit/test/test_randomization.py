@@ -58,6 +58,71 @@ class TestRandomization(unittest.TestCase):
             G2 = algo.getGraph()
             check_graphs(G, G2)
 
+    def testDegreeIntervalTight(self):
+        for sampleSingle, sampleEdge in [(True, True), (True, False), (False, False)]:
+            for G in self.graphs:
+                if G.isDirected(): continue
+                
+                intervals = [(G.degree(u), G.degree(u)) for u in G.iterNodes()] 
+
+                n = G.numberOfNodes()
+                algo = nk.randomization.DegreeIntervalSwitching(G, intervals, 10.0)
+                
+                algo.setSamplingStrategy(sampleSingle, sampleEdge)
+                self.assertEqual({"single": sampleSingle, "edges": sampleEdge},
+                                 algo.getSamplingStrategy())
+
+                for i in [1, 2]:
+                    algo.run()
+                    stats = algo.getStatistics()
+
+                    self.assertGreater(stats["attemptedInsertionsDeletions"], 0)
+                    self.assertGreater(stats["attemptedHingeFlips"], 0)
+                    self.assertGreater(stats["attemptedEdgeSwitches"], 0)
+
+                    self.assertEqual(stats["successfulInsertionsDeletions"], 0)
+                    self.assertEqual(stats["successfulHingeFlips"], 0)
+                    if sampleEdge:
+                        self.assertGreater(stats["successfulEdgeSwitches"] , 0)
+
+                    G2 = algo.getGraph()
+                    check_graphs(G, G2)
+
+    def testDegreeIntervalLoose(self):
+        for sampleSingle, sampleEdge in [(True, True), (True, False), (False, False)]:
+            for G in self.graphs:
+                if G.isDirected(): continue
+                
+                intervals = [(max(0, G.degree(u)-5), min(G.degree(u) + 3, G.numberOfNodes() - 1)) for u in G.iterNodes()] 
+
+                n = G.numberOfNodes()
+                algo = nk.randomization.DegreeIntervalSwitching(G, intervals, 10.0)
+                
+                algo.setSamplingStrategy(sampleSingle, sampleEdge)
+                assert({"single": sampleSingle, "edges": sampleEdge} == algo.getSamplingStrategy())
+
+                for i in [1, 2]:
+                    algo.run()
+                    stats = algo.getStatistics()
+
+                    self.assertGreater(stats["attemptedInsertionsDeletions"], 0)
+                    self.assertGreater(stats["attemptedHingeFlips"], 0)
+                    self.assertGreater(stats["attemptedEdgeSwitches"], 0)
+
+                    if sampleEdge:
+                        assert(stats["successfulInsertionsDeletions"] > 0)
+                        assert(stats["successfulHingeFlips"] > 0)
+                        assert(stats["successfulEdgeSwitches"] > 0)
+
+
+                    G2 = algo.getGraph()
+                    for (u, (lb, ub)) in enumerate(intervals):
+                        self.assertLessEqual(lb, G2.degree(u))
+                        self.assertLessEqual(G2.degree(u), ub)
+
+                    # This test may fail, but it's very unlikely!
+                    self.assertNotEqual(G.numberOfEdges(), G2.numberOfEdges())
+
     def testDegreePreservingShuffle(self):
         for G in self.graphs:
             dps = nk.randomization.DegreePreservingShuffle(G)
