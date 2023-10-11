@@ -1,4 +1,5 @@
 networkit_add_module(randomization
+    AutocorrelationAnalysis.cpp
     Curveball.cpp
     CurveballGlobalTradeGenerator.cpp
     CurveballImpl.cpp

@@ -1,3 +1,4 @@
+networkit_add_test(randomization AutocorrelationAnalysisGTest)
 networkit_add_test(randomization CurveballGlobalTradeGeneratorGTest)
 networkit_add_test(randomization CurveballGTest generators)
 networkit_add_test(randomization CurveballImplGTest)
