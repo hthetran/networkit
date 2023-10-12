@@ -28,9 +28,9 @@ void AutocorrelationAnalysisGTest::checkWithGraph(const Graph &G) {
     });
     DegreeIntervalSwitching disAlgo(G, degreeIntervals, 1.0);
 
-    std::vector<size_t> thinnings = {1, 2, 3, 5, 7};
-    size_t minSnapshots = 100;
-    size_t maxSnapshots = 1000;
+    std::vector<size_t> thinnings = {2, 3, 5, 7, 9, 11, 13, 17, 19, 23, 27, 29, 31, 37, 41};
+    size_t minSnapshots = 5000;
+    size_t maxSnapshots = 5000;
     AutocorrelationAnalysis autocorrelationAnalysis(disAlgo,
                                                     thinnings,
                                                     minSnapshots,

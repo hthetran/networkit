@@ -30,7 +30,9 @@ AutocorrelationAnalysis::AutocorrelationAnalysis(DegreeIntervalSwitching &algori
       switchesPerEdge(switchesPerEdge_),
       maxSnapshots(maxSnapshots_),
       numPossibleEdges(numNodes * (numNodes - 1)/2),
-      startingSeed(Aux::Random::getSeed())
+      startingSeed(Aux::Random::getSeed()),
+      tPrevSnapshots(thinnings.size(), 0),
+      tProcSnapshots(thinnings.size(), 0)
 {
     // compute least common multiple of all thinning values
     const size_t thinningsLcm = std::accumulate(thinnings.begin(), thinnings.end(), 1,
@@ -52,8 +54,6 @@ AutocorrelationAnalysis::AutocorrelationAnalysis(DegreeIntervalSwitching &algori
     // data structure for the thinnings contains
     // - per possible edge a transition counter
     // - last considered snapshot
-    tPrevSnapshots.reserve(thinnings.size());
-    tProcSnapshots.reserve(thinnings.size());
     tEdgeTransitions.reserve(thinnings.size());
     tEdgeBits.reserve(thinnings.size());
     for (index thinningIndex = 0; thinningIndex < thinnings.size(); thinningIndex++) {
@@ -90,7 +90,6 @@ void AutocorrelationAnalysis::run() {
     std::vector<count> successfulSwitches(snapshots.size());
     count lastSnapshot = 0;
     for (index snapshotIndex = 0; snapshotIndex < snapshots.size(); snapshotIndex++) {
-        std::cout << snapshotIndex << std::endl;
         const index snapshot = snapshots[snapshotIndex];
 
         // compute requested number of switches, filling the gap from last snapshot to this snapshot
@@ -100,7 +99,7 @@ void AutocorrelationAnalysis::run() {
         // perform switchings
         algorithm.setNumberOfSwitches(requested_switches);
         algorithm.run();
-        successful_switches[snapshotIndex] = algorithm.getNumberOfSuccessfulInsertionsDeletions() + algorithm.getNumberOfSuccessfulHingeFlips() + algorithm.getNumberOfSuccessfulEdgeSwitches();
+        successfulSwitches[snapshotIndex] = algorithm.getNumberOfSuccessfulInsertionsDeletions() + algorithm.getNumberOfSuccessfulHingeFlips() + algorithm.getNumberOfSuccessfulEdgeSwitches();
         algorithm.resetStatistics();
 
         // copy edgelist to bit representation
@@ -112,9 +111,9 @@ void AutocorrelationAnalysis::run() {
         // iterate over different thinnings and perform updates
         for (index thinningIndex = 0; thinningIndex < thinnings.size(); thinningIndex++) {
             const auto prevSnapshot = tPrevSnapshots[thinningIndex];
-            const auto procSnapshot = tProcSnapshots[thinningIndex];
+            const auto procSnapshots = tProcSnapshots[thinningIndex];
             const auto thinning = thinnings[thinningIndex];
-            if ((prevSnapshot + thinning == snapshot) && (procSnapshot < maxSnapshots)) {
+            if ((prevSnapshot + thinning == snapshot) && (procSnapshots < maxSnapshots)) {
                 const auto &edgeBits = tEdgeBits[thinningIndex];
                 auto &edgeTransitions = tEdgeTransitions[thinningIndex];
                 assert(edgeBits.size() == switchedEdgeBits.size());
@@ -164,13 +163,13 @@ void AutocorrelationAnalysis::run() {
         }
 
         // write data for a thinning value to file
+        assert(numPossibleEdges - evaluation.numIndependent - evaluation.numNonIndependent == 0);
         outputFile  << "AUTOCORRELATION,"
                     << thinnings[thinningIndex] << ","
                     << tProcSnapshots[thinningIndex] << ","
                     << thinningSuccessfulSwitches << ","
                     << evaluation.numIndependent << ","
                     << evaluation.numNonIndependent << ","
-                    << numPossibleEdges - evaluation.numIndependent - evaluation.numNonIndependent << "," // verify all edges considered TODO remove
                     << startingSeed << "\n";
     }
 
