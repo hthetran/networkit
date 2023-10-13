@@ -725,3 +725,7 @@ if(NETWORKIT_INSTALL_PKGCONFIG_DIR)
 	INSTALL(FILES ${PROJECT_BINARY_DIR}/${NETWORKIT_LIBNAME}.pc
 		DESTINATION ${NETWORKIT_INSTALL_PKGCONFIG_DIR})
 endif()
+
+add_executable(main_autocorrelation_degreeintervalswitching main_autocorrelation_degreeintervalswitching.cpp)
+
+target_link_libraries(main_autocorrelation_degreeintervalswitching networkit)
