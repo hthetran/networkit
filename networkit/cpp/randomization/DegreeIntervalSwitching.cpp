@@ -78,9 +78,9 @@ bool DegreeIntervalSwitching::tryPerformSingleHingeFlipOnNodes(node u, node v, n
     accept();
 }
 
-template <typename ISSample, typename HFSample, typename ESSample>
+template <typename ISSample, typename HFSample, typename ESSample, typename Skipped>
 void DegreeIntervalSwitching::runStrategy(std::mt19937_64 &urng, ISSample iSSampler,
-                                          HFSample hFSampler, ESSample eSSampler) {
+                                          HFSample hFSampler, ESSample eSSampler, Skipped skipped) {
     Aux::SignalHandler handler;
 
     const auto probInsertOrHinge = probInsertionDeletion + probHingeFlip;
@@ -104,6 +104,7 @@ void DegreeIntervalSwitching::runStrategy(std::mt19937_64 &urng, ISSample iSSamp
             numEdgeSwitches++;
             numSuccessfulEdgeSwitches += success;
         } else {
+            skipped(urng);
             numLazy++;
         }
     }
@@ -148,7 +149,8 @@ void DegreeIntervalSwitching::runStrategySingleSampleEdges(std::mt19937_64 &urng
             const node t2 = graph.getIthNeighbor(s2, i2);
 
             return tryPerformSingleEdgeSwitchOnNodes(s1, t1, s2, t2);
-        });
+        },
+        [](std::mt19937_64 &) {});
 }
 
 void DegreeIntervalSwitching::runStrategySingleSampleTuples(std::mt19937_64 &urng) {
@@ -171,51 +173,66 @@ void DegreeIntervalSwitching::runStrategySingleSampleTuples(std::mt19937_64 &urn
             const auto t1 = sampleRandomNode(urng);
             const auto t2 = sampleRandomNode(urng);
             return tryPerformSingleEdgeSwitchOnNodes(s1, t1, s2, t2);
-        });
+        },
+        [](std::mt19937_64 &) {});
 }
 
 void DegreeIntervalSwitching::runStrategyGlobalSampleTuples(std::mt19937_64 &urng) {
     if (nodes.size() != graph.numberOfNodes()) {
         nodes.clear();
         nodes.reserve(static_cast<size_t>(graph.numberOfNodes()));
+
         for (node i = 0; i < graph.numberOfNodes(); ++i)
             nodes.push_back(i);
+
         std::shuffle(nodes.begin(), nodes.end(), urng);
+        nodesReader = nodes.cbegin();
     }
 
-    auto reader = nodes.cbegin();
-
     auto shuffle_if_below = [&](size_t n) {
-        if (std::distance(reader, nodes.cend()) >= n) {
+        if (std::distance(nodesReader, nodes.cend()) >= n) {
             return;
         }
 
         std::shuffle(nodes.begin(), nodes.end(), urng);
-        reader = nodes.begin();
+        nodesReader = nodes.begin();
     };
+
+    const double totalNonSkipProbability = probInsertionDeletion + probHingeFlip + probEdgeSwitch;
 
     return runStrategy(
         urng,
         [&](std::mt19937_64 &urng) {
             shuffle_if_below(2);
-            const auto u = *reader++;
-            const auto v = *reader++;
+            const auto u = *nodesReader++;
+            const auto v = *nodesReader++;
             return tryPerformSingleInsertionDeletionOnNodes(u, v);
         },
         [&](std::mt19937_64 &urng) {
             shuffle_if_below(3);
-            const auto u = *reader++;
-            const auto v = *reader++;
-            const auto w = *reader++;
+            const auto u = *nodesReader++;
+            const auto v = *nodesReader++;
+            const auto w = *nodesReader++;
             return tryPerformSingleHingeFlipOnNodes(u, v, w);
         },
         [&](std::mt19937_64 &urng) {
             shuffle_if_below(4);
-            const auto s1 = *reader++;
-            const auto s2 = *reader++;
-            const auto t1 = *reader++;
-            const auto t2 = *reader++;
+            const auto s1 = *nodesReader++;
+            const auto s2 = *nodesReader++;
+            const auto t1 = *nodesReader++;
+            const auto t2 = *nodesReader++;
             return tryPerformSingleEdgeSwitchOnNodes(s1, t1, s2, t2);
+        },
+        [&](std::mt19937_64 &urng) {
+            // sample which switch type was rejected and skip the appropriate number of nodes
+            double prob = std::uniform_real_distribution{0.0, totalNonSkipProbability}(urng);
+
+            size_t nodesToSkip = 2;
+            nodesToSkip += (prob > probInsertionDeletion);
+            nodesToSkip += (prob > probInsertionDeletion + probHingeFlip);
+
+            shuffle_if_below(nodesToSkip);
+            nodesReader += nodesToSkip;
         });
 }
 
