@@ -85,6 +85,8 @@ private:
     std::discrete_distribution<node> upperDegreeDistribution;
 
     std::vector<node> nodes;
+    std::vector<node>::const_iterator nodesReader;
+
     DegreeIntervalSampling samplingStrategy{
         DegreeIntervalSampling::DegreeIntervalSampleSingleEdges};
 
@@ -114,9 +116,9 @@ private:
     bool tryPerformSingleHingeFlipOnNodes(node u, node v, node w);
     bool tryPerformSingleEdgeSwitchOnNodes(node s1, node t1, node s2, node t2);
 
-    template <typename ISSample, typename HFSample, typename ESSample>
+    template <typename ISSample, typename HFSample, typename ESSample, typename Skipped>
     void runStrategy(std::mt19937_64 &gen, ISSample iSSample, HFSample hFSampler,
-                     ESSample eSSampler);
+                     ESSample eSSampler, Skipped skipped);
 
     void runStrategySingleSampleEdges(std::mt19937_64 &gen);
     void runStrategySingleSampleTuples(std::mt19937_64 &gen);
