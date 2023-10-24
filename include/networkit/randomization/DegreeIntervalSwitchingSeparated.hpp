@@ -22,6 +22,9 @@ public:
     ~DegreeIntervalSwitchingSeparated() override = default;
 
     void run() override;
+
+private:
+    count numberOfInitialEdges;
 };
 
 }

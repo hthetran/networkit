@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 
     // algorithm specific parameters
     unsigned algo = 0;
-    cp.add_param_unsigned("algo", algo, "Algorithm; 1=DIS-SampleEdges, 2=DIS-SampleEdges-S, 3=DIS-SampleTuples, 4=DIS-SampleTuples-S");
+    cp.add_param_unsigned("algo", algo, "Algorithm; 1=DIS-SampleEdges, 2=DIS-SampleTuples, 3=DIS-SampleEdges-S, 4=DIS-SampleTuples-S, 5=DISG");
 
     double id_prob = 1./3.;
     cp.add_double("idprob", id_prob, "Insertion/Deletion Probability");
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     cp.add_double("hfprob", hf_prob, "HingeFlip Probability");
 
     double es_prob = 1./3.;
-    cp.add_double("esprob", es_prob, "HingeFlip Probability");
+    cp.add_double("esprob", es_prob, "Edge-Switch Probability");
 
     bool separated = false;
     cp.add_flag("separated", separated, "Separate ID,HF,ES Operations?");
@@ -127,6 +127,8 @@ int main(int argc, char *argv[]) {
         const NetworKit::Graph G = std::move(generate_graph(graph_type, num_nodes, p, avg_deg, deg_exp));
         std::vector<std::pair<NetworKit::node, NetworKit::node>> degreeIntervals;
         degreeIntervals.reserve(G.numberOfNodes());
+
+        // TODO add parameter for different degree sequence settings
         G.forNodes([&](NetworKit::node u) {
           const auto deg = G.degree(u);
           degreeIntervals.emplace_back(deg, deg + 5);
@@ -146,10 +148,16 @@ int main(int argc, char *argv[]) {
         case 3:
             dis_algo = std::unique_ptr<NetworKit::DegreeIntervalSwitching> (new NetworKit::DegreeIntervalSwitchingSeparated(G, degreeIntervals, 1.0));
             dis_algo->setSwitchingTypeDistribution(id_prob, hf_prob, es_prob);
+            break;
         case 4:
             dis_algo = std::unique_ptr<NetworKit::DegreeIntervalSwitching> (new NetworKit::DegreeIntervalSwitchingSeparated(G, degreeIntervals, 1.0));
             dis_algo->setSwitchingTypeDistribution(id_prob, hf_prob, es_prob);
             dis_algo->setSamplingStrategy(NetworKit::DegreeIntervalSampling::DegreeIntervalSampleSingleTuples);
+            break;
+        case 5:
+            dis_algo = std::unique_ptr<NetworKit::DegreeIntervalSwitching> (new NetworKit::DegreeIntervalSwitching(G, degreeIntervals, 1.0));
+            dis_algo->setSwitchingTypeDistribution(id_prob, hf_prob, es_prob);
+            dis_algo->setSamplingStrategy(NetworKit::DegreeIntervalSampling::DegreeIntervalSampleGlobalTuples);
             break;
         }
         NetworKit::AutocorrelationAnalysis analysis(*dis_algo,

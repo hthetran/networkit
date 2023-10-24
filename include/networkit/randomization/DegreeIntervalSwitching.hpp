@@ -52,6 +52,7 @@ public:
 
     /// Modify (average) number of switches per edge that will be executed on next run
     void setNumberOfSwitches(count x) noexcept { numberOfSwitches = x; }
+    count getNumberOfSwitches() const noexcept { return numberOfSwitches; }
 
     /// Modify probabilities of switching types; the sum S of non-negative weights must not
     /// exceed 1.0. The remaining probability 1-S correspond to no switch beeing performed.

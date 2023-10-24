@@ -10,26 +10,34 @@ namespace NetworKit {
 DegreeIntervalSwitchingSeparated::DegreeIntervalSwitchingSeparated(
     const Graph &G, const std::vector<std::pair<node, node>> &degreeIntervals,
     double numberOfSwitchesPerEdge)
-    : DegreeIntervalSwitching(G, degreeIntervals, numberOfSwitchesPerEdge) { }
+    : DegreeIntervalSwitching(G, degreeIntervals, numberOfSwitchesPerEdge),
+      numberOfInitialEdges(G.numberOfEdges())
+{ }
 
 void DegreeIntervalSwitchingSeparated::run() {
     double idRatio = this->DegreeIntervalSwitching::getInsertionDeletionProbability();
     double hfRatio = this->DegreeIntervalSwitching::getHingeFlipProbability();
     double esRatio = this->DegreeIntervalSwitching::getEdgeSwitchProbability();
 
-    count totalNumberOfEdgeSwitches = this->DegreeIntervalSwitching::getNumberOfEdgeSwitches();
+    count totalNumberOfEdgeSwitches = this->DegreeIntervalSwitching::getNumberOfSwitches();
+    count iterations = totalNumberOfEdgeSwitches / numberOfInitialEdges;
+    count id_switches = static_cast<count>(static_cast<double>(numberOfInitialEdges) * idRatio);
+    count hf_switches = static_cast<count>(static_cast<double>(numberOfInitialEdges) * hfRatio);
+    count es_switches = static_cast<count>(static_cast<double>(numberOfInitialEdges) * esRatio);
 
-    this->DegreeIntervalSwitching::setSwitchingTypeDistribution(1., 0., 0.);
-    this->DegreeIntervalSwitching::setNumberOfSwitches(static_cast<count>(static_cast<double>(totalNumberOfEdgeSwitches) * idRatio));
-    this->DegreeIntervalSwitching::run();
+    for (count i = 0; i < iterations; ++i) {
+        this->DegreeIntervalSwitching::setSwitchingTypeDistribution(1., 0., 0.);
+        this->DegreeIntervalSwitching::setNumberOfSwitches(id_switches);
+        this->DegreeIntervalSwitching::run();
 
-    this->DegreeIntervalSwitching::setSwitchingTypeDistribution(0., 1., 0.);
-    this->DegreeIntervalSwitching::setNumberOfSwitches(static_cast<count>(static_cast<double>(totalNumberOfEdgeSwitches) * hfRatio));
-    this->DegreeIntervalSwitching::run();
+        this->DegreeIntervalSwitching::setSwitchingTypeDistribution(0., 1., 0.);
+        this->DegreeIntervalSwitching::setNumberOfSwitches(hf_switches);
+        this->DegreeIntervalSwitching::run();
 
-    this->DegreeIntervalSwitching::setSwitchingTypeDistribution(0., 0., 1.);
-    this->DegreeIntervalSwitching::setNumberOfSwitches(static_cast<count>(static_cast<double>(totalNumberOfEdgeSwitches) * esRatio));
-    this->DegreeIntervalSwitching::run();
+        this->DegreeIntervalSwitching::setSwitchingTypeDistribution(0., 0., 1.);
+        this->DegreeIntervalSwitching::setNumberOfSwitches(es_switches);
+        this->DegreeIntervalSwitching::run();
+    }
 
     this->DegreeIntervalSwitching::setSwitchingTypeDistribution(idRatio, hfRatio, esRatio);
     this->DegreeIntervalSwitching::setNumberOfSwitches(totalNumberOfEdgeSwitches);
