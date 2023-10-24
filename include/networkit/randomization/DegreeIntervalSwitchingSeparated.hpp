@@ -21,7 +21,7 @@ public:
 
     ~DegreeIntervalSwitchingSeparated() override = default;
 
-    void run();
+    void run() override;
 };
 
 }
