@@ -26,6 +26,10 @@ Graph Curveball::getGraph(bool parallel) {
     return impl->getGraph(parallel);
 }
 
+std::vector<std::pair<node, node>> Curveball::getEdges() {
+    return std::move(impl->getEdges());
+}
+
 std::string Curveball::toString() const {
     return "Curveball";
 }

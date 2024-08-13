@@ -37,6 +37,8 @@ public:
 
     Graph getGraph(bool parallel = false);
 
+    std::vector<std::pair<node, node>> getEdges();
+
     std::string toString() const final;
 
     bool isParallel() const final { return false; }

@@ -171,7 +171,9 @@ public:
 
     Graph getGraph(bool parallel) const;
 
-    nodepair_vector getEdges() const;
+    nodepair_vector getEdges() const {
+        return adjList.getEdges();
+    }
 
 private:
     const Graph *G;
